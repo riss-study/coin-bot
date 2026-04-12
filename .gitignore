@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 가상 환경
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# 데이터 (절대 git 커밋 금지)
+research/data/
+research/outputs/
+*.parquet
+*.csv
+data_hashes.txt
+
+# 시크릿 (절대 git 커밋 금지)
+.env
+.env.*
+secrets/
+*.pem
+*.key
+*_token.txt
+*_secret.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code 로컬 설정 (사용자별)
+.claude/settings.local.json
+
+# 로그
+*.log
+logs/
+
+# Docker
+.docker/
