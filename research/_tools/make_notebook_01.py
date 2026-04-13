@@ -65,12 +65,8 @@ def fetch_with_retry(ticker, interval, start, end, max_retries=5, period=0.2):
     raise RuntimeError(f"Failed to fetch {ticker} {interval} after {max_retries} retries")
 
 
-def check_gaps(df, freq):
-    \"\"\"Detect missing candles by comparing to expected date_range.\"\"\"
-    expected = pd.date_range(start=df.index[0], end=df.index[-1], freq=freq)
-    missing = expected.difference(df.index)
-    pct = len(missing) / max(len(expected), 1) * 100
-    return len(missing), pct
+# 주: check_gaps 범용 헬퍼는 Cell 7에서 inline으로 대체됨 (advertised 범위 기준).
+# 후속 노트북에서 재사용 시 start 파라미터 명시 필수.
 
 
 def sha256_file(path):
@@ -114,10 +110,16 @@ print(f"4h: {len(df_4h)} bars, first={df_4h.index[0]}, last={df_4h.index[-1]}")
 df_4h.head()
 """))
 
-# Cell 6: Timezone localize
+# Cell 6: Timezone localize + advertised range slicing
 cells.append(nbf.v4.new_code_cell("""\
 # pyupbit는 timezone-naive KST 반환 (검증됨).
-# UTC로 변환하여 일관성 확보.
+# 1) KST로 localize → UTC로 convert
+# 2) Advertised UTC 범위로 슬라이싱 (사용자 의도: 2021-01-01 00:00 UTC ~ 2026-04-11 23:59 UTC)
+#    - pyupbit는 START/END를 KST로 해석하므로 4h 결과가 2020-12-31 16:00 UTC부터 시작함.
+#    - 이를 advertised 범위로 정렬해야 data_hashes.txt 헤더와 실제 데이터가 일치.
+
+ADVERTISED_START_UTC = pd.Timestamp('2021-01-01 00:00:00', tz='UTC')
+ADVERTISED_END_UTC   = pd.Timestamp('2026-04-12 00:00:00', tz='UTC')  # exclusive upper bound
 
 for name, df in [('daily', df_daily), ('4h', df_4h)]:
     assert df.index.tz is None, f"{name}: Expected naive timestamps from pyupbit"
@@ -125,23 +127,44 @@ for name, df in [('daily', df_daily), ('4h', df_4h)]:
 df_daily.index = df_daily.index.tz_localize('Asia/Seoul').tz_convert('UTC')
 df_4h.index = df_4h.index.tz_localize('Asia/Seoul').tz_convert('UTC')
 
-print(f"Daily tz: {df_daily.index.tz}, range: {df_daily.index[0]} ~ {df_daily.index[-1]}")
-print(f"4h tz: {df_4h.index.tz}, range: {df_4h.index[0]} ~ {df_4h.index[-1]}")
+# Slice to advertised range (half-open [START, END))
+before_daily = len(df_daily)
+before_h4 = len(df_4h)
+df_daily = df_daily[(df_daily.index >= ADVERTISED_START_UTC) & (df_daily.index < ADVERTISED_END_UTC)]
+df_4h    = df_4h[(df_4h.index >= ADVERTISED_START_UTC) & (df_4h.index < ADVERTISED_END_UTC)]
+
+print(f"Daily: sliced {before_daily} -> {len(df_daily)}, range: {df_daily.index[0]} ~ {df_daily.index[-1]}")
+print(f"4h:    sliced {before_h4} -> {len(df_4h)}, range: {df_4h.index[0]} ~ {df_4h.index[-1]}")
+print(f"Advertised: {ADVERTISED_START_UTC} ~ {ADVERTISED_END_UTC} (exclusive)")
 """))
 
-# Cell 7: Gap detection
+# Cell 7: Gap detection (against advertised range, not just actual bounds)
 cells.append(nbf.v4.new_code_cell("""\
-daily_gaps, daily_pct = check_gaps(df_daily, '1D')
-h4_gaps, h4_pct = check_gaps(df_4h, '4h')
+# 갭은 advertised 시작 시점 기준으로 계산 (시작 경계 누락 감지).
+# 끝 경계는 df.index[-1] 까지 — freeze 시점에 마지막 bar가 아직 존재하지 않을 수 있기 때문.
+# 이 정책은 의도적이며, 만약 끝단 누락도 감지하고 싶으면 end=ADVERTISED_END_UTC-1bar로 수정.
 
-print(f"Daily: {len(df_daily)} bars, {daily_gaps} gaps ({daily_pct:.3f}%)")
-print(f"4h:    {len(df_4h)} bars, {h4_gaps} gaps ({h4_pct:.3f}%)")
+expected_daily = pd.date_range(start=ADVERTISED_START_UTC, end=df_daily.index[-1], freq='1D', tz='UTC')
+expected_h4    = pd.date_range(start=ADVERTISED_START_UTC, end=df_4h.index[-1],    freq='4h', tz='UTC')
+
+daily_missing = expected_daily.difference(df_daily.index)
+h4_missing    = expected_h4.difference(df_4h.index)
+
+daily_pct = len(daily_missing) / len(expected_daily) * 100
+h4_pct    = len(h4_missing)    / len(expected_h4)    * 100
+
+print(f"Daily: expected {len(expected_daily)}, actual {len(df_daily)}, missing {len(daily_missing)} ({daily_pct:.4f}%)")
+print(f"4h:    expected {len(expected_h4)},    actual {len(df_4h)},    missing {len(h4_missing)}    ({h4_pct:.4f}%)")
+
+if len(daily_missing) > 0:
+    print(f"Daily missing (first 5): {list(daily_missing[:5])}")
+if len(h4_missing) > 0:
+    print(f"4h missing (first 5): {list(h4_missing[:5])}")
 
 # 갭 > 0.1%면 경고 (룰)
-if daily_pct > 0.1:
-    print(f"WARNING: Daily gaps {daily_pct:.3f}% > 0.1% threshold")
-if h4_pct > 0.1:
-    print(f"WARNING: 4h gaps {h4_pct:.3f}% > 0.1% threshold")
+assert daily_pct < 0.1, f"Daily gaps {daily_pct:.4f}% exceed 0.1% threshold"
+assert h4_pct    < 0.1, f"4h gaps {h4_pct:.4f}% exceed 0.1% threshold"
+print("\\nGap check PASSED (both < 0.1%)")
 """))
 
 # Cell 8: Save Parquet
@@ -159,16 +182,26 @@ print(f"Saved: {daily_path} ({daily_path.stat().st_size / 1024:.1f} KB)")
 print(f"Saved: {h4_path} ({h4_path.stat().st_size / 1024:.1f} KB)")
 """))
 
-# Cell 9: SHA256 + freeze record
+# Cell 9: SHA256 + freeze record (accurate range)
 cells.append(nbf.v4.new_code_cell("""\
 daily_hash = sha256_file(daily_path)
 h4_hash = sha256_file(h4_path)
+
+# data_hashes.txt 헤더는 actual 데이터 범위 (advertised 범위 아님)
+daily_actual_start = df_daily.index[0].isoformat()
+daily_actual_end   = df_daily.index[-1].isoformat()
+h4_actual_start    = df_4h.index[0].isoformat()
+h4_actual_end      = df_4h.index[-1].isoformat()
 
 hashes_path = data_dir / 'data_hashes.txt'
 with open(hashes_path, 'w') as f:
     f.write(f"# Generated by 01_data_collection.ipynb on {datetime.now(timezone.utc).isoformat()}\\n")
     f.write(f"# Freeze date: {FREEZE_DATE}\\n")
-    f.write(f"# Data range: {START} ~ {END}\\n")
+    f.write(f"# Advertised range (UTC, half-open): {ADVERTISED_START_UTC.isoformat()} ~ {ADVERTISED_END_UTC.isoformat()}\\n")
+    f.write(f"# Daily actual range: {daily_actual_start} ~ {daily_actual_end}\\n")
+    f.write(f"# 4h actual range:    {h4_actual_start} ~ {h4_actual_end}\\n")
+    f.write(f"# Daily bars: {len(df_daily)}, gaps: {len(daily_missing)} ({daily_pct:.4f}%)\\n")
+    f.write(f"# 4h bars: {len(df_4h)}, gaps: {len(h4_missing)} ({h4_pct:.4f}%)\\n")
     f.write(f"\\n")
     f.write(f"{daily_path.name}: {daily_hash}\\n")
     f.write(f"{h4_path.name}: {h4_hash}\\n")
@@ -184,11 +217,17 @@ cells.append(nbf.v4.new_code_cell("""\
 print("=" * 60)
 print("W1-01 Data Collection Verification")
 print("=" * 60)
-print(f"Daily: {len(df_daily)} bars, gaps {daily_pct:.3f}%, hash {daily_hash[:16]}...")
-print(f"4h:    {len(df_4h)} bars, gaps {h4_pct:.3f}%, hash {h4_hash[:16]}...")
-print(f"TZ:    UTC (localized from naive KST)")
-print(f"Range: {df_daily.index[0]} ~ {df_daily.index[-1]}")
+print(f"Advertised range: {ADVERTISED_START_UTC} ~ {ADVERTISED_END_UTC} (half-open)")
+print(f"Daily: {len(df_daily)} bars, gaps {len(daily_missing)} ({daily_pct:.4f}%), hash {daily_hash[:16]}...")
+print(f"  range: {df_daily.index[0]} ~ {df_daily.index[-1]}")
+print(f"4h:    {len(df_4h)} bars, gaps {len(h4_missing)} ({h4_pct:.4f}%), hash {h4_hash[:16]}...")
+print(f"  range: {df_4h.index[0]} ~ {df_4h.index[-1]}")
+print(f"TZ: UTC (localized from naive KST)")
 print(f"Files: {daily_path.name}, {h4_path.name}")
+if len(h4_missing) > 0:
+    print(f"\\n4h missing timestamps:")
+    for ts in h4_missing:
+        print(f"  {ts}")
 """))
 
 nb.cells = cells

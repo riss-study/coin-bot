@@ -23,18 +23,18 @@
 ## 현재 진행 상태
 
 - 메인 Task 상태: Done
-- 완료일: 2026-04-13
-- Evidence: `.evidence/w1-01-data-collection.txt` (APPROVED, self-review)
+- 완료일: 2026-04-14 (감사 반영 재검증 완료)
+- Evidence: `.evidence/w1-01-data-collection.txt` (backtest-reviewer agent APPROVED)
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
 | W1-01.1 | Done | venv 생성 (Python 3.11.4) |
 | W1-01.2 | Done | requirements.txt + lock (142 packages) |
 | W1-01.3 | Done | git commit f430a8d (Day 0 산출물 포함) |
-| W1-01.4 | Done | 01_data_collection.ipynb 생성 (nbformat) |
-| W1-01.5 | Done | 일봉 1927 bars + 4h 11563 bars 수집 |
-| W1-01.6 | Done | KST→UTC localize + Parquet + SHA256 |
-| W1-01.7 | Done | .evidence/w1-01-data-collection.txt 서명 |
+| W1-01.4 | Done | 01_data_collection.ipynb 재생성 + execute inplace (outputs 포함) |
+| W1-01.5 | Done | 일봉 1927 + 4h 11561 bars (advertised 범위 slicing 후) |
+| W1-01.6 | Done | KST→UTC localize + advertised slicing + Parquet + SHA256 |
+| W1-01.7 | Done | .evidence/w1-01-data-collection.txt 서명 (agent APPROVED) |
 
 ## SubTask 목록
 
@@ -122,28 +122,32 @@
 
 ### SubTask W1-01.7: Evidence 파일 + 마무리
 
-**작업자**: Solo + backtest-reviewer 에이전트
+**작업자**: Solo + backtest-reviewer 에이전트 (실제 agent 호출 필수, self-review 금지)
 **예상 소요**: 0.1일
 
-- [ ] `.evidence/w1-01-data-collection.txt` 작성 (6단 구조)
-- [ ] backtest-reviewer 에이전트 호출 (데이터 무결성 검증)
-- [ ] APPROVED 확인
-- [ ] sub-plan 메타데이터 상태 → Done
-- [ ] execution-plan status 표 업데이트
+- [x] `.evidence/w1-01-data-collection.txt` 작성 (6단 구조 + agent review 섹션)
+- [x] **backtest-reviewer 에이전트 실제 호출** (Task tool로 일반 에이전트 spawn, .claude/agents/backtest-reviewer.md 체크리스트 적용)
+- [x] agent 출력에서 APPROVED 확인 (self-review 치환 금지)
+- [x] BLOCKING 모두 해결 후 재검증
+- [x] sub-plan 메타데이터 상태 → Done
+- [x] execution-plan status 표 + checkbox 동시 업데이트
+
+주: 이 Task는 데이터 수집 전용이므로 backtest-reviewer 체크리스트의 B/C/E/F 섹션은 N/A. 적용 섹션은 A (Data Integrity), D (pyupbit API), G (Output), H (Cross-document).
 
 ## 인수 완료 조건 (Acceptance Criteria)
 
-- [ ] Python 3.11+ venv 작동
-- [ ] vectorbt 0.28.5, pyupbit 0.2.34 설치 + import 성공
-- [ ] requirements.lock 생성
-- [ ] git 첫 commit 완료 (Day 0 산출물 + 환경)
-- [ ] 일봉 ~1930 bars 수집 (실제 행 수 기록)
-- [ ] 4h ~11600 bars 수집
-- [ ] 갭 < 0.1% (일봉, 4h 모두)
-- [ ] 인덱스 timezone = UTC
-- [ ] Parquet 파일 2개 생성
-- [ ] data_hashes.txt 생성
-- [ ] backtest-reviewer 에이전트 APPROVED
+- [x] Python 3.11+ venv 작동
+- [x] vectorbt 0.28.5, pyupbit 0.2.34 설치 + import 성공
+- [x] requirements.lock 생성
+- [x] git 첫 commit 완료 (f430a8d Day 0)
+- [x] 일봉 1927 bars 수집 (advertised [2021-01-01, 2026-04-12) UTC)
+- [x] 4h 11561 bars 수집 (advertised slicing 후)
+- [x] 갭 < 0.1% (일봉 0%, 4h 0.0086%)
+- [x] 인덱스 timezone = UTC
+- [x] Parquet 파일 2개 생성
+- [x] data_hashes.txt 생성 (advertised + actual 범위 헤더 포함)
+- [x] backtest-reviewer 에이전트 APPROVED (agent 호출, self-review 아님)
+- [x] 노트북 outputs 포함하여 commit
 
 ## 의존성 매트릭스
 

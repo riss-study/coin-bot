@@ -113,16 +113,17 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 
 ### Week 1 — 일봉 복제 스프린트
 
-- [ ] **W1-01. 데이터 수집 + 환경 세팅** (Feature: DATA-001)
-  - **What**: pyupbit로 KRW-BTC 일봉/4h 5년치 다운로드, 타임존 localize, Parquet freeze, SHA256 해시 기록. requirements.lock + git init.
+- [x] **W1-01. 데이터 수집 + 환경 세팅** (Feature: DATA-001) — Done 2026-04-14
+  - **What**: pyupbit로 KRW-BTC 일봉/4h 5년치 다운로드, 타임존 localize, advertised 범위 slicing, Parquet freeze, SHA256 해시 기록. requirements.lock + git init.
   - **Must NOT**: 4시간봉을 Go/No-Go 기준으로 사용 금지. 데이터 인덱스 timezone naive 방치 금지.
   - **Acceptance**:
-    - [ ] 일봉 ~1930 bars, 4h ~11600 bars 수집
-    - [ ] 갭 < 0.1%
-    - [ ] tz_localize KST → UTC 완료
-    - [ ] data_hashes.txt 생성
-    - [ ] requirements.lock 생성
-  - **QA**: `jupyter execute notebooks/01_data_collection.ipynb` → 산출물 검증
+    - [x] 일봉 1927 bars, 4h 11561 bars 수집 (advertised [2021-01-01, 2026-04-12) UTC)
+    - [x] 갭 < 0.1% (daily 0%, 4h 0.0086%)
+    - [x] tz_localize KST → UTC 완료
+    - [x] data_hashes.txt 생성 (advertised + actual 범위 헤더)
+    - [x] requirements.lock 생성 (142 packages)
+    - [x] backtest-reviewer APPROVED
+  - **QA**: `jupyter nbconvert --to notebook --execute --inplace notebooks/01_data_collection.ipynb` → 산출물 검증
   - **Evidence**: `.evidence/w1-01-data-collection.txt`
   - **Commit**: `feat(plan): DATA-001 Week 1 데이터 수집 + 환경 세팅`
 
