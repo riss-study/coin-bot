@@ -72,7 +72,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 
 | Task | 상태 | 주차 | 상세 문서 |
 |------|------|:----:|-----------|
-| W1-01 | Pending | 1 | [데이터 수집](./stage1-subplans/w1-01-data-collection.md) |
+| W1-01 | Done | 1 | [데이터 수집](./stage1-subplans/w1-01-data-collection.md) |
 | W1-02 | Pending | 1 | [Strategy A 일봉](./stage1-subplans/w1-02-strategy-a-daily.md) |
 | W1-03 | Pending | 1 | [Strategy B 일봉](./stage1-subplans/w1-03-strategy-b-daily.md) |
 | W1-04 | Pending | 1 | [강건성 + 민감도](./stage1-subplans/w1-04-robustness.md) |

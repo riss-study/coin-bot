@@ -1,0 +1,10 @@
+jupyterlab
+pandas>=2.0,<3.0
+numpy
+matplotlib
+seaborn
+pyupbit==0.2.34
+ccxt
+vectorbt==0.28.5
+ta
+pyarrow

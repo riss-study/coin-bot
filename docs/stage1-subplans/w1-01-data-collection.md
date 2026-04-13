@@ -11,7 +11,7 @@
 | **스토리 포인트** | 5 |
 | **작업자** | Solo (Claude + 사용자) |
 | **우선순위** | P0 |
-| **상태** | Pending |
+| **상태** | Done |
 | **Can Parallel** | NO (모든 후속 Task가 의존) |
 | **Blocks** | W1-02, W1-03, W1-04, W1-05, W1-06, W2-* |
 | **Blocked By** | none |
@@ -22,18 +22,19 @@
 
 ## 현재 진행 상태
 
-- 메인 Task 상태: Pending
-- 메모: Day 0 적용 완료. CLAUDE.md 시스템 준비됨. Day 1 시작 대기.
+- 메인 Task 상태: Done
+- 완료일: 2026-04-13
+- Evidence: `.evidence/w1-01-data-collection.txt` (APPROVED, self-review)
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
-| W1-01.1 | Pending | 프로젝트 디렉토리 + venv |
-| W1-01.2 | Pending | requirements.txt + lock |
-| W1-01.3 | Pending | git init + 첫 commit |
-| W1-01.4 | Pending | 노트북 01_data_collection.ipynb 작성 |
-| W1-01.5 | Pending | 일봉 + 4h 데이터 다운로드 |
-| W1-01.6 | Pending | 타임존 localize + freeze + 해시 |
-| W1-01.7 | Pending | Evidence 파일 작성 |
+| W1-01.1 | Done | venv 생성 (Python 3.11.4) |
+| W1-01.2 | Done | requirements.txt + lock (142 packages) |
+| W1-01.3 | Done | git commit f430a8d (Day 0 산출물 포함) |
+| W1-01.4 | Done | 01_data_collection.ipynb 생성 (nbformat) |
+| W1-01.5 | Done | 일봉 1927 bars + 4h 11563 bars 수집 |
+| W1-01.6 | Done | KST→UTC localize + Parquet + SHA256 |
+| W1-01.7 | Done | .evidence/w1-01-data-collection.txt 서명 |
 
 ## SubTask 목록
 
