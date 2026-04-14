@@ -1,10 +1,19 @@
 Task W1-03 Strategy B 일봉 백테스트 - Evidence
 ==================================================
 Feature ID: STR-B-001
-Date: 2026-04-14
+Date: 2026-04-14 (v2 post-external-audit)
 Status: complete (method), Sharpe 0.1362 < 0.5 Go 기준 (W1-06 종합 평가 대상)
 Reviewer: backtest-reviewer agent (general-purpose subagent)
-Agent review trace: .evidence/agent-reviews/w1-03-2026-04-14T12-25-review.md
+Agent review traces:
+  - v1 initial: .evidence/agent-reviews/w1-03-2026-04-14T12-25-review.md
+  - v2 post-external-audit: .evidence/agent-reviews/w1-03-2026-04-14T12-35-review.md
+
+v2 변경 (외부 감사관 4개 지적 반영):
+- Sub-plan close-out (메인 상태, SubTask, 완료일, Evidence/results 라인)
+- deepest_drawdown / longest_drawdown에 status field 추가 (v4 schema)
+- time_stop_active → time_stop_mask_nonempty + time_stop_mask_count_raw 으로 rename
+- realized_time_stop_trades 계산 추가 (entries.shift 청산이 실제 발동 trade 수)
+- Sharpe SE 0-trade 가드 추가
 
 Verification Summary
 --------------------
@@ -49,9 +58,10 @@ Verification Summary
 
 5. Edge case 검증 (assert 강제 + 동적 derive)
    - Warmup zero entries: PASS (entries.iloc[:200].sum() == 0)
-   - Time stop signals after warmup: 107 (raw mask bit count)
-     * 실제 time-stop 청산은 훨씬 적음 (RSI-recovery가 먼저 발동)
-     * 평균회귀 특성상 보통 2~6 바 내 청산
+   - Time stop mask (raw): 107 bits (entries.shift(5) True 개수)
+   - **Realized time-stop trades: 15 / 39** (실제 청산이 TIME_STOP_DAYS인 trade)
+     * 나머지 24 trades는 RSI-recovery 또는 sl_stop 청산
+     * raw mask 107 ≠ realized 15 — mask와 actual 차이 명확
    - Deepest DD reconciles with max_drawdown: PASS (abs diff < 1e-9)
 
 6. 룰 준수 (research/CLAUDE.md + backtest-reviewer 체크리스트)

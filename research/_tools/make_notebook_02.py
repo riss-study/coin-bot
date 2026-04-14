@@ -252,7 +252,8 @@ deepest_idx = records['DD_pct'].idxmin()
 deepest_rec = records.loc[deepest_idx]
 deepest_dd_pct = float(deepest_rec['DD_pct'])
 deepest_dd_duration_days = int(deepest_rec['Duration_days'])
-deepest_dd_recovered = (deepest_rec['Status'] == 'Recovered')
+deepest_dd_status = str(deepest_rec['Status'])  # 'Active' or 'Recovered'
+deepest_dd_recovered = (deepest_dd_status == 'Recovered')
 deepest_dd_peak = pd.to_datetime(deepest_rec['Peak Timestamp']).isoformat()
 deepest_dd_end = pd.to_datetime(deepest_rec['End Timestamp']).isoformat()
 
@@ -261,7 +262,8 @@ longest_idx = records['Duration_days'].idxmax()
 longest_rec = records.loc[longest_idx]
 longest_dd_pct = float(longest_rec['DD_pct'])
 longest_dd_duration_days = int(longest_rec['Duration_days'])
-longest_dd_recovered = (longest_rec['Status'] == 'Recovered')
+longest_dd_status = str(longest_rec['Status'])
+longest_dd_recovered = (longest_dd_status == 'Recovered')
 
 # 일관성 검증: deepest DD %는 max_drawdown()와 매치
 assert abs(deepest_dd_pct - max_dd) < 1e-9, \\
@@ -288,14 +290,21 @@ print(f"Total Trades:  {total_trades}")
 # Sharpe 표준오차 — return-basis (Lo 2002, "The Statistics of Sharpe Ratios")
 # 가정: returns asymptotically normal, no autocorrelation.
 # 정규성 가정: ±1.96 * SE는 정규 근사 (large T 한계). 작은 T 또는 fat-tail에선 부정확.
-# Returns count = T - 1 (T prices에서 returns 계산), 차이 negligible.
+# Returns count = T - 1 (T prices에서 returns 계산).
+# 0-trade 가드: sharpe가 NaN일 수 있음 (no returns variance).
 T_returns = len(close) - 1
-sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T_returns))
-sharpe_ci_lo = sharpe - 1.96 * sharpe_se
-sharpe_ci_hi = sharpe + 1.96 * sharpe_se
-print(f"Sharpe SE (Lo 2002, return-basis, T_returns={T_returns}): {sharpe_se:.4f}")
-print(f"Sharpe 95% CI (정규 근사): [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}]")
-print(f"Note: trade-basis (N={total_trades}) SE는 더 큼. Bootstrap CI는 W2-02에서 정량화 예정.")
+if total_trades > 0 and not np.isnan(sharpe):
+    sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T_returns))
+    sharpe_ci_lo = sharpe - 1.96 * sharpe_se
+    sharpe_ci_hi = sharpe + 1.96 * sharpe_se
+    print(f"Sharpe SE (Lo 2002, return-basis, T_returns={T_returns}): {sharpe_se:.4f}")
+    print(f"Sharpe 95% CI (정규 근사): [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}]")
+    print(f"Note: trade-basis (N={total_trades}) SE는 더 큼. Bootstrap CI는 W2-02에서 정량화 예정.")
+else:
+    sharpe_se = float('nan')
+    sharpe_ci_lo = float('nan')
+    sharpe_ci_hi = float('nan')
+    print(f"Sharpe SE: N/A (no trades or NaN sharpe)")
 
 # Week 1 Go 기준 평가 (W1-06에서 종합, 여기선 기록만)
 print()
@@ -344,13 +353,15 @@ results = {
         'deepest_drawdown': {
             'pct': deepest_dd_pct,
             'duration_days': deepest_dd_duration_days,
+            'status': deepest_dd_status,  # 'Active' or 'Recovered'
             'recovered': deepest_dd_recovered,
             'peak_timestamp': deepest_dd_peak,
-            'end_timestamp': deepest_dd_end,
+            'end_timestamp': deepest_dd_end,  # Active이면 window boundary, Recovered이면 recovery 시점
         },
         'longest_drawdown': {
             'pct': longest_dd_pct,
             'duration_days': longest_dd_duration_days,
+            'status': longest_dd_status,
             'recovered': longest_dd_recovered,
         },
         'total_drawdown_records': len(records),

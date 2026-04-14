@@ -237,7 +237,8 @@ if len(records) > 0:
     deepest_rec = records.loc[deepest_idx]
     deepest_dd_pct = float(deepest_rec['DD_pct'])
     deepest_dd_duration_days = int(deepest_rec['Duration_days'])
-    deepest_dd_recovered = (deepest_rec['Status'] == 'Recovered')
+    deepest_dd_status = str(deepest_rec['Status'])
+    deepest_dd_recovered = (deepest_dd_status == 'Recovered')
     deepest_dd_peak = pd.to_datetime(deepest_rec['Peak Timestamp']).isoformat()
     deepest_dd_end = pd.to_datetime(deepest_rec['End Timestamp']).isoformat()
 
@@ -245,7 +246,8 @@ if len(records) > 0:
     longest_rec = records.loc[longest_idx]
     longest_dd_pct = float(longest_rec['DD_pct'])
     longest_dd_duration_days = int(longest_rec['Duration_days'])
-    longest_dd_recovered = (longest_rec['Status'] == 'Recovered')
+    longest_dd_status = str(longest_rec['Status'])
+    longest_dd_recovered = (longest_dd_status == 'Recovered')
 
     assert abs(deepest_dd_pct - max_dd) < 1e-9, \\
         f"Deepest DD reconciliation FAILED: {deepest_dd_pct} vs {max_dd}"
@@ -253,13 +255,30 @@ if len(records) > 0:
 else:
     deepest_dd_pct = 0.0
     deepest_dd_duration_days = 0
+    deepest_dd_status = 'None'
     deepest_dd_recovered = True
     deepest_dd_peak = None
     deepest_dd_end = None
     longest_dd_pct = 0.0
     longest_dd_duration_days = 0
+    longest_dd_status = 'None'
     longest_dd_recovered = True
     print("No drawdowns recorded")
+
+# === Realized time-stop trades 계산 ===
+# time_stop_signal_count (raw mask)는 "entries.shift(5)가 True인 바 수"로,
+# 실제 time-stop으로 청산된 trade 수와는 다름.
+# 실제 청산이 time-stop에 의한 것인지 확인: trades.records에서 exit bar - entry bar 관계.
+realized_time_stop_trades = 0
+if total_trades > 0:
+    tr = pf.trades.records_readable
+    # Entry/Exit bar는 records_readable에 'Entry Timestamp', 'Exit Timestamp'로 있음
+    tr['hold_bars'] = (pd.to_datetime(tr['Exit Timestamp']) - pd.to_datetime(tr['Entry Timestamp'])).dt.days
+    # Time stop으로 청산된 것은 보유일이 정확히 TIME_STOP_DAYS (또는 그 근처) 인 경우
+    # 더 정확히: rsi_exits가 먼저 발동되지 않은 상태에서 entries.shift(TIME_STOP_DAYS)으로 청산된 경우
+    # 간이 추정: hold_bars == TIME_STOP_DAYS인 trade 수
+    realized_time_stop_trades = int((tr['hold_bars'] == TIME_STOP_DAYS).sum())
+    print(f"\\nRealized time-stop trades (hold == {TIME_STOP_DAYS}d): {realized_time_stop_trades}/{total_trades}")
 
 print(f"\\nSharpe:        {sharpe:.4f}")
 print(f"Total Return:  {total_return*100:.2f}%")
@@ -272,12 +291,19 @@ if total_trades > 0:
     print(f"Profit Factor: {profit_factor:.3f}")
 
 # Sharpe SE + 95% CI (Lo 2002 정규 근사)
+# 0-trade 가드: sharpe가 NaN일 수 있음
 T_returns = len(close) - 1
-sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T_returns))
-sharpe_ci_lo = sharpe - 1.96 * sharpe_se
-sharpe_ci_hi = sharpe + 1.96 * sharpe_se
-print(f"\\nSharpe SE (Lo 2002, return-basis, T_returns={T_returns}): {sharpe_se:.4f}")
-print(f"Sharpe 95% CI (정규 근사): [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}]")
+if total_trades > 0 and not np.isnan(sharpe):
+    sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T_returns))
+    sharpe_ci_lo = sharpe - 1.96 * sharpe_se
+    sharpe_ci_hi = sharpe + 1.96 * sharpe_se
+    print(f"\\nSharpe SE (Lo 2002, return-basis, T_returns={T_returns}): {sharpe_se:.4f}")
+    print(f"Sharpe 95% CI (정규 근사): [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}]")
+else:
+    sharpe_se = float('nan')
+    sharpe_ci_lo = float('nan')
+    sharpe_ci_hi = float('nan')
+    print(f"\\nSharpe SE: N/A (no trades or NaN sharpe)")
 
 print(f"\\n=== Week 1 Go 기준 평가 (참고) ===")
 print(f"Sharpe > 0.5: {'PASS' if sharpe > 0.5 else 'FAIL'} ({sharpe:.4f})")
@@ -323,13 +349,15 @@ results = {
         'deepest_drawdown': {
             'pct': deepest_dd_pct,
             'duration_days': deepest_dd_duration_days,
+            'status': deepest_dd_status,  # 'Active' or 'Recovered'
             'recovered': deepest_dd_recovered,
             'peak_timestamp': deepest_dd_peak,
-            'end_timestamp': deepest_dd_end,
+            'end_timestamp': deepest_dd_end,  # Active이면 window boundary
         },
         'longest_drawdown': {
             'pct': longest_dd_pct,
             'duration_days': longest_dd_duration_days,
+            'status': longest_dd_status,
             'recovered': longest_dd_recovered,
         },
         'total_drawdown_records': len(records),
@@ -339,8 +367,11 @@ results = {
     },
     'edge_case_checks': {
         'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
-        'time_stop_active': bool(int(time_exits.iloc[MA_PERIOD:].sum()) > 0),
-        'time_stop_signal_count': int(time_exits.iloc[MA_PERIOD:].sum()),
+        # raw mask bit count (실제 청산과 다름)
+        'time_stop_mask_nonempty': bool(int(time_exits.iloc[MA_PERIOD:].sum()) > 0),
+        'time_stop_mask_count_raw': int(time_exits.iloc[MA_PERIOD:].sum()),
+        # 실제 time-stop으로 청산된 trade 수 (hold_bars == TIME_STOP_DAYS)
+        'realized_time_stop_trades': realized_time_stop_trades,
         'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else True,
     },
     'go_criteria_eval': {

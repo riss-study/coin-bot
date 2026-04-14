@@ -11,7 +11,7 @@
 | **스토리 포인트** | 3 |
 | **작업자** | Solo |
 | **우선순위** | P0 |
-| **상태** | Done |
+| **상태** | Done (v2, 2026-04-14) |
 | **Can Parallel** | NO (W1-01 필수, W1-02와 같은 데이터 사용) |
 | **Blocks** | W1-04, W1-06 |
 | **Blocked By** | W1-01 |
@@ -27,17 +27,20 @@ Larry Connors 스타일 평균 회귀 전략을 일봉으로 백테스트.
 
 ## 현재 진행 상태
 
-- 메인 Task 상태: Pending
-- 메모: W1-02와 동일 데이터 사용. 같은 노트북 패턴.
+- 메인 Task 상태: Done
+- 완료일: 2026-04-14 (v2 post-external-audit)
+- Evidence: `.evidence/w1-03-strategy-b-daily.txt` (backtest-reviewer agent APPROVED)
+- 결과: Sharpe 0.1362 (**FAIL < 0.5**), MDD -21.27%, Trades 39, PF 1.092
+- 해석: Method 정확, 결과는 W1-06 Go/No-Go 영역. Strategy A 단독 채택 가능성 높음.
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
-| W1-03.1 | Pending | 노트북 셋업 |
-| W1-03.2 | Pending | 지표 계산 (RSI, MA) |
-| W1-03.3 | Pending | 진입 + 청산 마스크 (시간 스톱 포함) |
-| W1-03.4 | Pending | vectorbt 백테스트 |
-| W1-03.5 | Pending | 결과 저장 |
-| W1-03.6 | Pending | Evidence + 리뷰 |
+| W1-03.1 | Done | 노트북 셋업 + data hash assert + monotonic + len==1927 |
+| W1-03.2 | Done | MA200 + RSI(4) Wilder (ta.momentum.RSIIndicator) |
+| W1-03.3 | Done | 진입/청산 마스크 + time stop entries.shift(5) + warmup assert |
+| W1-03.4 | Done | vectorbt Portfolio.from_signals (검증된 0.28.5 API) |
+| W1-03.5 | Done | strategy_b_daily.json (v4 schema: status field + realized_time_stop_trades) |
+| W1-03.6 | Done | Evidence + 2 agent review traces (v1 + v2) |
 
 ## SubTask 목록
 
@@ -177,7 +180,10 @@ SL_PCT = 0.08
       },
       'edge_case_checks': {
           'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
-          'time_stop_active': True,  # entries.shift(N) 패턴 사용 확인
+          'time_stop_mask_nonempty': bool(int(time_exits.iloc[MA_PERIOD:].sum()) > 0),
+          'time_stop_mask_count_raw': int(time_exits.iloc[MA_PERIOD:].sum()),
+          'realized_time_stop_trades': realized_time_stop_trades,
+          'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9),
       },
   }
   ```

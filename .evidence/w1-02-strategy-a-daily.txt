@@ -1,12 +1,17 @@
 Task W1-02 Strategy A 일봉 백테스트 - Evidence
 ==================================================
 Feature ID: STR-A-001
-Date: 2026-04-14 (post-fix v3 reconcile)
+Date: 2026-04-14 (v4 schema, DD status field 추가)
 Status: complete, backtest-reviewer agent APPROVED
 Reviewer: backtest-reviewer agent (general-purpose subagent)
 Agent review traces:
   - v2 post-fix: .evidence/agent-reviews/w1-02-2026-04-14T03-30-review.md
   - v3 reconcile: .evidence/agent-reviews/w1-02-2026-04-14T05-50-review.md
+  - v4 schema: .evidence/agent-reviews/w1-02-2026-04-14T12-35-review.md
+
+v4 schema 변경 (W1-03 외부 감사 지적 반영):
+- deepest_drawdown / longest_drawdown에 status field 추가 ("Active" or "Recovered")
+- Sharpe SE에 0-trade 가드 추가 (generator 재사용 안전)
 
 Verification Summary
 --------------------
