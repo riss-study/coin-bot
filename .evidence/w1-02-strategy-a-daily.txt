@@ -1,10 +1,12 @@
 Task W1-02 Strategy A 일봉 백테스트 - Evidence
 ==================================================
 Feature ID: STR-A-001
-Date: 2026-04-14 (post-fix v2)
+Date: 2026-04-14 (post-fix v3 reconcile)
 Status: complete, backtest-reviewer agent APPROVED
 Reviewer: backtest-reviewer agent (general-purpose subagent)
-Agent review trace: .evidence/agent-reviews/w1-02-2026-04-14T03-30-review.md
+Agent review traces:
+  - v2 post-fix: .evidence/agent-reviews/w1-02-2026-04-14T03-30-review.md
+  - v3 reconcile: .evidence/agent-reviews/w1-02-2026-04-14T05-50-review.md
 
 Verification Summary
 --------------------
@@ -27,16 +29,20 @@ Verification Summary
 
 3. 백테스트 결과
    - Sharpe:        1.0353  (Week 1 Go > 0.8: PASS)
-   - Sharpe SE:     0.0282  (return-basis, T=1927, Lo 2002)
-   - Sharpe 95% CI: [0.9800, 1.0906]
+   - Sharpe SE:     0.0282  (return-basis, T_returns=1926, Lo 2002)
+   - Sharpe 95% CI: [0.9799, 1.0906] (정규 근사)
    - Total Return:  171.76% (5년 누적, 수수료/슬리피지 포함)
    - Max Drawdown:  -22.45% (Week 1 Go < 50%: PASS)
-   - MDD Duration:  480 days, still underwater (recovery 미완료)
+   - **두 MDD metric 분리** (vectorbt 537 vs hand 480 reconcile 완료):
+     * Deepest DD:  -22.45%, 480 days, **still active** (record 26: 2024-12-17 ~ 2026-04-11)
+     * Longest DD:  -15.29%, 537 days, recovered (record 3: 2021-10-20 ~ 2023-04-10)
+   - Total drawdown records: 27
    - Win Rate:      50.00%
    - Profit Factor: 2.956
    - Total Trades:  14 (low-N caveat 적용)
 
-   주: trade-basis Sharpe SE는 더 큼. Bootstrap CI는 W2-02에서 정량화 예정.
+   주: 정규 근사 (±1.96·SE) 가정. Returns asymptotically normal, no autocorrelation.
+   trade-basis Sharpe SE는 더 큼. Bootstrap CI는 W2-02에서 정량화 예정.
 
 4. 자동 검증 (재실행)
    - Notebook regeneration (make_notebook_02.py) — PASS

@@ -4,6 +4,7 @@ Feature ID: DATA-001
 Date: 2026-04-14
 Status: complete, backtest-reviewer APPROVED
 Reviewer: backtest-reviewer agent (per .claude/agents/backtest-reviewer.md)
+Agent review trace: .evidence/agent-reviews/w1-01-2026-04-14T01-27-review.md
 
 Verification Summary
 --------------------

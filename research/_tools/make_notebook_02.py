@@ -72,7 +72,7 @@ from importlib.metadata import version
 print(f"pandas:   {version('pandas')}")
 print(f"numpy:    {version('numpy')}")
 print(f"vectorbt: {version('vectorbt')}")
-print(f"ta:       {version('ta')}")
+# 주: ta는 W1-02에서 직접 사용 안 함 (W1-04 강건성 분석에서 사용 예정).
 """))
 
 # Cell 3: Data hash verification (consumer notebook rule)
@@ -234,20 +234,39 @@ total_return = float(pf.total_return())
 max_dd       = float(pf.max_drawdown())
 total_trades = int(pf.trades.count())
 
-# Max drawdown duration — equity curve로 직접 계산 (peak → recovery까지 일수)
-equity = pf.value()
-running_max = equity.cummax()
-drawdown_pct = (equity / running_max - 1.0)
-underwater = drawdown_pct < 0  # 신규 peak 이전까지의 underwater 기간
-# 가장 깊은 dd가 일어난 시점 → 직전 peak → recovery 시점 까지의 일수
-max_dd_idx = drawdown_pct.idxmin()  # 가장 깊은 시점
-peak_before = equity.loc[:max_dd_idx].idxmax()  # 직전 peak
-# Recovery: max_dd_idx 이후 equity가 peak_before 수준 회복한 첫 시점 (없으면 마지막 시점까지)
-post = equity.loc[max_dd_idx:]
-recovery = post[post >= equity.loc[peak_before]]
-recovery_idx = recovery.index[0] if len(recovery) > 0 else equity.index[-1]
-max_dd_duration_days = (recovery_idx - peak_before).days
-mdd_recovered = len(recovery) > 0
+# === MDD duration 두 가지 명확히 분리 ===
+# vectorbt pf.drawdowns에는 27개 drawdown record 존재. 두 다른 metric:
+#   1. "가장 깊은 DD"의 duration (절대 손실 % 기준 worst)
+#   2. "가장 긴 DD"의 duration (recovery까지 시간 기준 longest)
+# vectorbt pf.drawdowns.max_duration()은 #2를 반환 (가장 긴 DD).
+# Hand-computed 480 days는 #1 (가장 깊은 DD의 기간, still active).
+
+records = pf.drawdowns.records_readable
+records['DD_pct'] = (records['Valley Value'] - records['Peak Value']) / records['Peak Value']
+records['Duration_days'] = (
+    pd.to_datetime(records['End Timestamp']) - pd.to_datetime(records['Peak Timestamp'])
+).dt.days
+
+# Metric 1: deepest DD
+deepest_idx = records['DD_pct'].idxmin()
+deepest_rec = records.loc[deepest_idx]
+deepest_dd_pct = float(deepest_rec['DD_pct'])
+deepest_dd_duration_days = int(deepest_rec['Duration_days'])
+deepest_dd_recovered = (deepest_rec['Status'] == 'Recovered')
+deepest_dd_peak = pd.to_datetime(deepest_rec['Peak Timestamp']).isoformat()
+deepest_dd_end = pd.to_datetime(deepest_rec['End Timestamp']).isoformat()
+
+# Metric 2: longest DD
+longest_idx = records['Duration_days'].idxmax()
+longest_rec = records.loc[longest_idx]
+longest_dd_pct = float(longest_rec['DD_pct'])
+longest_dd_duration_days = int(longest_rec['Duration_days'])
+longest_dd_recovered = (longest_rec['Status'] == 'Recovered')
+
+# 일관성 검증: deepest DD %는 max_drawdown()와 매치
+assert abs(deepest_dd_pct - max_dd) < 1e-9, \\
+    f"Deepest DD reconciliation FAILED: {deepest_dd_pct} vs {max_dd}"
+print(f"Deepest DD reconcile PASS: {deepest_dd_pct*100:.4f}% == {max_dd*100:.4f}%")
 
 # Trades-related (있을 때만)
 if total_trades > 0:
@@ -260,19 +279,22 @@ else:
 print(f"Sharpe:        {sharpe:.4f}")
 print(f"Total Return:  {total_return*100:.2f}%")
 print(f"Max Drawdown:  {max_dd*100:.2f}%")
-print(f"MDD Duration:  {max_dd_duration_days} days ({'recovered' if mdd_recovered else 'still underwater'})")
+print(f"  Deepest DD:  {deepest_dd_pct*100:.2f}%, duration {deepest_dd_duration_days} days, {'recovered' if deepest_dd_recovered else 'still active'}")
+print(f"  Longest DD:  {longest_dd_pct*100:.2f}%, duration {longest_dd_duration_days} days, {'recovered' if longest_dd_recovered else 'still active'}")
 print(f"Win Rate:      {win_rate*100:.2f}%" if total_trades > 0 else "Win Rate:      N/A")
 print(f"Profit Factor: {profit_factor:.3f}" if total_trades > 0 else "Profit Factor: N/A")
 print(f"Total Trades:  {total_trades}")
 
 # Sharpe 표준오차 — return-basis (Lo 2002, "The Statistics of Sharpe Ratios")
-import numpy as np
-T = len(close)  # 일일 관측 수
-sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T))
+# 가정: returns asymptotically normal, no autocorrelation.
+# 정규성 가정: ±1.96 * SE는 정규 근사 (large T 한계). 작은 T 또는 fat-tail에선 부정확.
+# Returns count = T - 1 (T prices에서 returns 계산), 차이 negligible.
+T_returns = len(close) - 1
+sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T_returns))
 sharpe_ci_lo = sharpe - 1.96 * sharpe_se
 sharpe_ci_hi = sharpe + 1.96 * sharpe_se
-print(f"Sharpe SE (return-basis, T={T}): {sharpe_se:.4f}")
-print(f"Sharpe 95% CI: [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}]")
+print(f"Sharpe SE (Lo 2002, return-basis, T_returns={T_returns}): {sharpe_se:.4f}")
+print(f"Sharpe 95% CI (정규 근사): [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}]")
 print(f"Note: trade-basis (N={total_trades}) SE는 더 큼. Bootstrap CI는 W2-02에서 정량화 예정.")
 
 # Week 1 Go 기준 평가 (W1-06에서 종합, 여기선 기록만)
@@ -313,18 +335,35 @@ results = {
     'metrics': {
         'sharpe': sharpe,
         'sharpe_se_return_basis': sharpe_se,
-        'sharpe_ci_95': [sharpe_ci_lo, sharpe_ci_hi],
+        'sharpe_se_t_returns': T_returns,
+        'sharpe_ci_95_normal': [sharpe_ci_lo, sharpe_ci_hi],
+        'sharpe_ci_method': 'Lo 2002 normal approximation, return-basis',
         'total_return': total_return,
         'max_drawdown': max_dd,
-        'max_drawdown_duration_days': max_dd_duration_days,
-        'max_drawdown_recovered': mdd_recovered,
+        # Drawdown duration: 두 metric 분리 (vectorbt 537 vs hand 480 혼동 방지)
+        'deepest_drawdown': {
+            'pct': deepest_dd_pct,
+            'duration_days': deepest_dd_duration_days,
+            'recovered': deepest_dd_recovered,
+            'peak_timestamp': deepest_dd_peak,
+            'end_timestamp': deepest_dd_end,
+        },
+        'longest_drawdown': {
+            'pct': longest_dd_pct,
+            'duration_days': longest_dd_duration_days,
+            'recovered': longest_dd_recovered,
+        },
+        'total_drawdown_records': len(records),
         'win_rate': win_rate if total_trades > 0 else None,
         'profit_factor': profit_factor if total_trades > 0 else None,
         'total_trades': total_trades,
     },
     'edge_case_checks': {
-        'warmup_zero_entries': True,  # asserted above
-        'volume_filter_active': True,  # asserted above
+        # 동적 derive (assert로 강제했지만 명시적 계산도 기록)
+        'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
+        'volume_filter_active': bool(filtered_out > 0),
+        'volume_filter_rejected_count': int(filtered_out),
+        'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9),
     },
     'go_criteria_eval': {
         'sharpe_gt_0.8': sharpe > 0.8,
@@ -383,9 +422,11 @@ print("Pre-registered parameters:")
 print(f"  MA={MA_PERIOD}, Donchian={DONCHIAN_HIGH}/{DONCHIAN_LOW}, Vol={VOL_AVG_PERIOD}*{VOL_MULT}, SL={SL_PCT}")
 print()
 print("Backtest results:")
-print(f"  Sharpe:        {sharpe:.4f} (95% CI [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}], return-basis)")
+print(f"  Sharpe:        {sharpe:.4f} (95% CI [{sharpe_ci_lo:.4f}, {sharpe_ci_hi:.4f}], 정규 근사)")
 print(f"  Total Return:  {total_return*100:.2f}%")
-print(f"  Max Drawdown:  {max_dd*100:.2f}% (duration {max_dd_duration_days} days, {'recovered' if mdd_recovered else 'still underwater'})")
+print(f"  Max Drawdown:  {max_dd*100:.2f}%")
+print(f"    Deepest DD:  {deepest_dd_pct*100:.2f}%, {deepest_dd_duration_days}d, {'recovered' if deepest_dd_recovered else 'still active'}")
+print(f"    Longest DD:  {longest_dd_pct*100:.2f}%, {longest_dd_duration_days}d, {'recovered' if longest_dd_recovered else 'still active'}")
 print(f"  Total Trades:  {total_trades}")
 if total_trades > 0:
     print(f"  Win Rate:      {win_rate*100:.2f}%")

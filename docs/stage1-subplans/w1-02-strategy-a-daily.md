@@ -214,8 +214,10 @@ SL_PCT = 0.08
 |--------|------|------|
 | Sharpe < 0.8 | High | W1-06에서 No-Go 결정, 전략 패밀리 재검토 |
 | vectorbt API 오용 | Medium | research/CLAUDE.md 룰 + backtest-reviewer 검증 |
-| 거래 횟수 과소 (< 20) | Medium | 통계적 의미 부족, 민감도에서 확인 |
-| 200 bar warmup으로 첫 200일 trade 없음 | Low | 알려진 동작, 경고 출력 |
+| 거래 횟수 과소 (< 20) | Medium | 통계적 의미 부족 (실제 결과 14), W2 bootstrap CI에서 정량화 |
+| MDD 1.3년 이상 underwater | High | Deepest DD가 still active 시 심리적/자금 압박. W1-06 Go 결정 시 명시 |
+| Deepest vs longest DD 혼동 | Low | JSON에 두 metric 분리 저장 (deepest_drawdown, longest_drawdown) |
+| 200 bar warmup으로 첫 200일 trade 없음 | Low | 알려진 동작, assert로 강제 |
 
 ## 산출물 (Artifacts)
 

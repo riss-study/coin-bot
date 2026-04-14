@@ -123,8 +123,21 @@ SL_PCT = 0.08
 **작업자**: Solo
 **예상 소요**: 0.1일
 
-- [ ] 핵심 지표 추출 (W1-02와 동일 형식):
+- [ ] 핵심 지표 추출 (W1-02 v3 schema 따름 — nested metrics + 추가 필드):
   ```python
+  # MDD duration 두 metric 분리 (deepest vs longest)
+  records = pf.drawdowns.records_readable
+  records['DD_pct'] = (records['Valley Value'] - records['Peak Value']) / records['Peak Value']
+  records['Duration_days'] = (
+      pd.to_datetime(records['End Timestamp']) - pd.to_datetime(records['Peak Timestamp'])
+  ).dt.days
+  deepest = records.loc[records['DD_pct'].idxmin()]
+  longest = records.loc[records['Duration_days'].idxmax()]
+
+  # Sharpe SE (Lo 2002, return-basis, T_returns=N-1)
+  T_returns = len(close) - 1
+  sharpe_se = float(np.sqrt((1 + 0.5 * sharpe**2) / T_returns))
+
   results = {
       'feature_id': 'STR-B-001',
       'task_id': 'W1-03',
@@ -137,12 +150,35 @@ SL_PCT = 0.08
           'time_stop_days': TIME_STOP_DAYS,
           'sl_pct': SL_PCT,
       },
-      'sharpe': float(pf.sharpe_ratio()),
-      'total_return': float(pf.total_return()),
-      'max_drawdown': float(pf.max_drawdown()),
-      'win_rate': float(pf.trades.win_rate()),
-      'profit_factor': float(pf.trades.profit_factor()),
-      'total_trades': int(pf.trades.count()),
+      'metrics': {  # nested (W1-02 v3 schema 일관성)
+          'sharpe': sharpe,
+          'sharpe_se_return_basis': sharpe_se,
+          'sharpe_se_t_returns': T_returns,
+          'sharpe_ci_95_normal': [sharpe - 1.96*sharpe_se, sharpe + 1.96*sharpe_se],
+          'sharpe_ci_method': 'Lo 2002 normal approximation, return-basis',
+          'total_return': total_return,
+          'max_drawdown': max_dd,
+          'deepest_drawdown': {
+              'pct': float(deepest['DD_pct']),
+              'duration_days': int(deepest['Duration_days']),
+              'recovered': deepest['Status'] == 'Recovered',
+              'peak_timestamp': pd.to_datetime(deepest['Peak Timestamp']).isoformat(),
+              'end_timestamp': pd.to_datetime(deepest['End Timestamp']).isoformat(),
+          },
+          'longest_drawdown': {
+              'pct': float(longest['DD_pct']),
+              'duration_days': int(longest['Duration_days']),
+              'recovered': longest['Status'] == 'Recovered',
+          },
+          'total_drawdown_records': len(records),
+          'win_rate': win_rate,
+          'profit_factor': profit_factor,
+          'total_trades': total_trades,
+      },
+      'edge_case_checks': {
+          'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
+          'time_stop_active': True,  # entries.shift(N) 패턴 사용 확인
+      },
   }
   ```
 - [ ] `outputs/strategy_b_daily.json` 저장
@@ -150,25 +186,28 @@ SL_PCT = 0.08
 
 ### SubTask W1-03.6: Evidence + 리뷰
 
-**작업자**: Solo + backtest-reviewer
+**작업자**: Solo + backtest-reviewer agent (실제 호출, self-review 금지)
 **예상 소요**: 0.1일
 
 - [ ] `.evidence/w1-03-strategy-b-daily.txt` 작성
-- [ ] backtest-reviewer 에이전트 호출
-- [ ] APPROVED 받음
-- [ ] 상태 업데이트
+- [ ] **backtest-reviewer agent 실제 호출** (Task tool, .claude/agents/backtest-reviewer.md 체크리스트 적용)
+- [ ] **Agent review trace 저장**: `.evidence/agent-reviews/w1-03-{timestamp}-review.md`
+- [ ] Evidence 파일에 trace 경로 명시 ("Agent review trace: ...")
+- [ ] APPROVED 받음 (BLOCKING 0)
+- [ ] 상태 업데이트 (sub-plan + execution-plan)
 
 ## 인수 완료 조건 (Acceptance Criteria)
 
 - [ ] 사전 지정 파라미터 상수 선언
-- [ ] 데이터 해시 검증 통과
+- [ ] 데이터 해시 검증 통과 (consumer 노트북 첫 셀 룰)
 - [ ] RSI는 ta 라이브러리 (Wilder 스무딩, 직접 구현 금지)
 - [ ] 시간 스톱은 entries.shift() 패턴 (td_stop 사용 금지)
 - [ ] 시간 스톱 한계 주석 포함 ("엔트리 N바 후 근사")
 - [ ] vectorbt 크래시 없이 실행
 - [ ] bars_held, entry_price 등 미정의 변수 참조 없음
-- [ ] outputs/strategy_b_daily.json 생성
-- [ ] backtest-reviewer APPROVED
+- [ ] outputs/strategy_b_daily.json 생성 (W1-02 v3 schema 일관)
+- [ ] JSON에 sharpe_se, sharpe_ci_95, deepest/longest_drawdown, edge_case_checks 포함
+- [ ] backtest-reviewer agent APPROVED + trace 파일 저장
 
 **Week 1 Go 기준 (W1-06에서 평가)**:
 - Sharpe > 0.5
