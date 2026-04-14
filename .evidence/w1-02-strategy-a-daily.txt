@@ -1,0 +1,139 @@
+Task W1-02 Strategy A 일봉 백테스트 - Evidence
+==================================================
+Feature ID: STR-A-001
+Date: 2026-04-14
+Status: complete, backtest-reviewer APPROVED
+Reviewer: backtest-reviewer agent (per .claude/agents/backtest-reviewer.md)
+
+Verification Summary
+--------------------
+1. 데이터 입력
+   - File: research/data/KRW-BTC_1d_frozen_20260412.parquet
+   - SHA256: da5b5a5bd74c1be06b6c363f71e0f74067008779a554f6a4884733fb066a8504
+   - Hash 검증: PASS (consumer notebook 첫 셀에서 data_hashes.txt와 매치 강제)
+   - Bars: 1927 (range 2021-01-01 ~ 2026-04-11 UTC)
+   - Timezone: UTC
+   - NaN: 0
+
+2. 사전 지정 파라미터 (변경 금지, Go/No-Go 평가 기준)
+   - MA_PERIOD = 200
+   - DONCHIAN_HIGH = 20
+   - DONCHIAN_LOW = 10
+   - VOL_AVG_PERIOD = 20
+   - VOL_MULT = 1.5
+   - SL_PCT = 0.08 (vectorbt fraction, 8% 하드 스톱)
+   - INIT_CASH = 1,000,000
+   - FEES = 0.0005 (업비트 0.05%)
+   - SLIPPAGE = 0.0005
+   - FREQ = '1D'
+
+3. 백테스트 결과
+   - Sharpe:        1.0353  (Week 1 Go 기준 > 0.8: PASS)
+   - Total Return:  171.76% (5년 누적, 수수료/슬리피지 포함)
+   - Max Drawdown:  -22.45% (Week 1 Go 기준 < 50%: PASS)
+   - Win Rate:      50.00%
+   - Profit Factor: 2.956
+   - Total Trades:  14
+
+4. 자동 검증
+   - Notebook regeneration (make_notebook_02.py) — PASS
+   - jupyter nbconvert --to notebook --execute --inplace — PASS (0 errors)
+   - 모든 13개 cell outputs 캡처됨
+   - vectorbt API 호출 (Portfolio.from_signals) — PASS (TypeError/AttributeError 없음)
+   - 데이터 해시 assert 검증 — PASS
+   - 200 bar warmup 기간 entries=0 sanity check — PASS
+   - outputs/strategy_a_daily.json 생성 — PASS
+   - outputs/strategy_a_equity.png 생성 — PASS
+
+5. 룰 준수 (research/CLAUDE.md + backtest-reviewer 체크리스트)
+   A. Data Integrity (PASS)
+      - Hash 검증 첫 셀 존재: PASS
+      - DATA_HASH 변수 바인딩 + JSON 출력 사용: PASS
+      - UTC tz assert: PASS
+   B. Pre-registered Parameters (PASS)
+      - 모든 파라미터 상수 선언: PASS
+      - 그리드 sweep 최고값 사용 안 함: PASS
+      - JSON parameters 필드에 모두 직렬화: PASS
+   C. vectorbt 0.28.5 API (PASS)
+      - sl_stop fraction (0.08): PASS
+      - sl_trail boolean (False): PASS
+      - freq='1D': PASS
+      - ts_stop, td_stop, max_duration 사용 안 함: PASS
+      - pf.sharpe_ratio() / pf.total_return() / pf.max_drawdown() 메서드 호출 (괄호): PASS
+      - entry_price, bars_held 미정의 변수 참조 없음: PASS
+   D. pyupbit API: N/A (consumer notebook, frozen parquet)
+   E. Wilder Smoothing: N/A (W1-02는 ATR/RSI 미사용, ATR은 W1-04 강건성 분석으로 연기)
+   F. Strategy Logic (PASS)
+      - MA_PERIOD = 200 → close.rolling(200): PASS
+      - donchian_high.shift(1): PASS (look-ahead 차단)
+      - donchian_low.shift(1): PASS
+      - vol_avg.shift(1): PASS (이전 감사 발견 사항 반영)
+      - 200 bar warmup entries=0 검증: PASS
+      - Dead code (사용 안 한 ATR 등) 없음: PASS
+   G. Output (PASS)
+      - JSON 필수 필드 모두 포함: PASS
+      - data_hash 바인딩 + JSON 사용: PASS
+      - freq vs 데이터 frequency 일치: PASS
+      - Equity curve PNG: PASS
+   H. Cross-document Consistency (PASS)
+      - Feature ID STR-A-001 일치: PASS
+      - task_id W1-02 일치: PASS
+      - Sub-plan 파라미터 값 일치: PASS
+      - Acceptance Criteria 모두 충족: PASS
+
+6. backtest-reviewer agent review
+   - 적용 섹션: A, B, C, F, G, H (D=pyupbit, E=Wilder는 N/A)
+   - BLOCKING: 0
+   - WARNING: 1 (낮은 trade 수 14, 통계적 신뢰구간 넓음 — sub-plan 리스크 매트릭스에 명시됨)
+   - NIT: 2 (JSON 중첩 구조 vs flat, MA NaN warmup 코멘트)
+   - Final verdict: APPROVED FOR PROGRESSION TO TASK W1-03
+
+Notes
+-----
+- **거래 수 14개 (5년)**: sub-plan 리스크 매트릭스 "거래 횟수 과소 (< 20)" Medium 위험에 해당.
+  - 통계적 신뢰구간이 넓음 (Sharpe 1.0353의 표준오차 ≈ 0.27, 95% CI 약 [0.50, 1.57])
+  - W1-06 종합 평가 시 명시 필요
+  - Week 2 walk-forward + Politis-Romano bootstrap에서 신뢰구간 정량화 예정
+  - Strategy B (RSI 기반)는 거래 수가 더 많을 것으로 예상 → 보완 가능
+
+- **Profit Factor 2.96**: 양호 영역 (1.8~3.0). >3은 과적합 의심이지만 2.96은 안전.
+
+- **MDD -22.45%**: BTC 자체 75% drawdown 대비 양호 (전략 위험 관리 효과). 하드 스톱 -8%가 이를 가능하게 함.
+
+- **Win Rate 50%**: 추세 추종의 전형. 평균 손실 대비 평균 이익이 크면 50% 승률로도 PF > 2 가능 (실제로 그러함).
+
+- **Total Return 171.76%**: 5년 누적, 약 22% CAGR. Buy-and-hold BTC 5년 (대략 +700%, MDD 75%)와 비교하면 절대 수익은 낮지만 risk-adjusted (Sharpe 1.04)는 의미 있음.
+
+- W1-04 강건성 분석에서 연도별 분할 + 민감도 그리드 + Bootstrap CI 계산 예정.
+
+Acceptance Criteria (sub-plan w1-02-strategy-a-daily.md)
+---------------------------------------------------------
+[PASS] 사전 지정 파라미터가 상수로 명시 선언됨
+[PASS] 데이터 해시 검증 통과
+[PASS] vectorbt 크래시 없이 실행 (TypeError, AttributeError, NameError 없음)
+[PASS] 진입 마스크에 미정의 변수 참조 없음
+[PASS] sl_stop fraction 형식 사용 (0.08)
+[PASS] sl_trail boolean (False)
+[PASS] freq='1D' 사용
+[PASS] pf.sharpe_ratio() 메서드 호출 (괄호 필수)
+[PASS] outputs/strategy_a_daily.json 생성
+[PASS] backtest-reviewer 에이전트 APPROVED (agent 호출, self-review 아님)
+[PASS] 결과 정확히 기록 (목표 달성 여부와 무관)
+
+Week 1 Go 기준 평가 (W1-06에서 종합)
+------------------------------------
+[PASS] Sharpe > 0.8: 1.0353
+[PASS] MDD < 50%:    -22.45%
+
+Approval
+--------
+[PASS] All Acceptance Criteria met
+[PASS] All sub-plan tests passed (warmup zero entries, volume filter active)
+[PASS] backtest-reviewer agent APPROVED (0 BLOCKING)
+[PASS] APPROVED FOR PROGRESSION TO TASK W1-03 (Strategy B 일봉 백테스트)
+
+Caveats for W1-06 (Week 1 Report)
+----------------------------------
+1. Trade count 14 < 20 → 통계적 신뢰구간 넓음, "low N" caveat 필요
+2. Strategy B 결과와 합쳐서 종합 Go 결정
+3. W1-04 강건성 분석에서 연도별 분할 결과 확인 필수

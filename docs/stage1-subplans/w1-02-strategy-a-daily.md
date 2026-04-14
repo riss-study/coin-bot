@@ -11,7 +11,7 @@
 | **스토리 포인트** | 3 |
 | **작업자** | Solo |
 | **우선순위** | P0 |
-| **상태** | Pending |
+| **상태** | Done |
 | **Can Parallel** | NO (W1-01 필수 선행) |
 | **Blocks** | W1-04, W1-05, W1-06 |
 | **Blocked By** | W1-01 |
@@ -27,17 +27,19 @@ Padysak/Vojtko 영감 추세 추종 전략을 일봉으로 백테스트.
 
 ## 현재 진행 상태
 
-- 메인 Task 상태: Pending
-- 메모: W1-01 완료 후 시작
+- 메인 Task 상태: Done
+- 완료일: 2026-04-14
+- Evidence: `.evidence/w1-02-strategy-a-daily.txt` (backtest-reviewer agent APPROVED)
+- 결과: Sharpe 1.0353, MDD -22.45%, Trades 14, PF 2.956 (Go 기준 PASS, low-N caveat)
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
-| W1-02.1 | Pending | 노트북 셋업 + 데이터 로드 |
-| W1-02.2 | Pending | 지표 계산 (MA, Donchian, ATR, Volume) |
-| W1-02.3 | Pending | 진입/청산 신호 마스크 |
-| W1-02.4 | Pending | vectorbt 백테스트 실행 |
-| W1-02.5 | Pending | 결과 저장 (JSON) |
-| W1-02.6 | Pending | Evidence + 리뷰 |
+| W1-02.1 | Done | 노트북 셋업 + 데이터 해시 검증 + 데이터 로드 |
+| W1-02.2 | Done | 지표 계산 (MA200, Donchian.shift(1), Volume.shift(1)) |
+| W1-02.3 | Done | 진입/청산 신호 마스크 (warmup zero entries 검증) |
+| W1-02.4 | Done | vectorbt Portfolio.from_signals (검증된 0.28.5 API) |
+| W1-02.5 | Done | strategy_a_daily.json + equity PNG 저장 |
+| W1-02.6 | Done | Evidence + agent review APPROVED |
 
 ## SubTask 목록
 

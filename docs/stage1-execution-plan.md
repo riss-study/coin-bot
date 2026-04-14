@@ -73,7 +73,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | Task | 상태 | 주차 | 상세 문서 |
 |------|------|:----:|-----------|
 | W1-01 | Done | 1 | [데이터 수집](./stage1-subplans/w1-01-data-collection.md) |
-| W1-02 | Pending | 1 | [Strategy A 일봉](./stage1-subplans/w1-02-strategy-a-daily.md) |
+| W1-02 | Done | 1 | [Strategy A 일봉](./stage1-subplans/w1-02-strategy-a-daily.md) |
 | W1-03 | Pending | 1 | [Strategy B 일봉](./stage1-subplans/w1-03-strategy-b-daily.md) |
 | W1-04 | Pending | 1 | [강건성 + 민감도](./stage1-subplans/w1-04-robustness.md) |
 | W1-05 | Pending | 1 | [4시간봉 실험](./stage1-subplans/w1-05-4h-experiment.md) |
@@ -127,17 +127,17 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
   - **Evidence**: `.evidence/w1-01-data-collection.txt`
   - **Commit**: `feat(plan): DATA-001 Week 1 데이터 수집 + 환경 세팅`
 
-- [ ] **W1-02. Strategy A 일봉 백테스트** (Feature: STR-A-001)
-  - **What**: 200MA + Donchian(20/10) + 거래량 1.5x + 고정 8% 하드 스톱(sl_stop=0.08). 사전 지정 파라미터로 vectorbt 백테스트. (ATR은 W1-04 강건성 분석용 참고 지표, Week 2+에서 ATR 트레일링 검토)
+- [x] **W1-02. Strategy A 일봉 백테스트** (Feature: STR-A-001) — Done 2026-04-14
+  - **What**: 200MA + Donchian(20/10) + 거래량 1.5x + 고정 8% 하드 스톱(sl_stop=0.08). 사전 지정 파라미터로 vectorbt 백테스트.
   - **Must NOT**: ts_stop, td_stop 사용 금지. 데이터 스누핑 금지. MA200 윈도우 ≠ 200 금지.
   - **Acceptance**:
-    - [ ] 사전 지정 파라미터 명시 선언
-    - [ ] 데이터 해시 검증 통과
-    - [ ] vectorbt 크래시 없이 실행
-    - [ ] outputs/strategy_a_daily.json 생성
-    - [ ] backtest-reviewer 에이전트 APPROVED
-  - **목표 (Week 1 Go 기준)**: Sharpe > 0.8, MDD < 50%
-  - **QA**: 노트북 실행 + reviewer 호출
+    - [x] 사전 지정 파라미터 명시 선언
+    - [x] 데이터 해시 검증 통과
+    - [x] vectorbt 크래시 없이 실행
+    - [x] outputs/strategy_a_daily.json 생성
+    - [x] backtest-reviewer 에이전트 APPROVED
+  - **결과**: Sharpe 1.0353 (PASS > 0.8), MDD -22.45% (PASS < 50%), Trades 14, PF 2.956, Win Rate 50%
+  - **WARNING**: Trade 수 14 < 20 (sub-plan 리스크), W1-06에서 low-N caveat 명시 필요
   - **Evidence**: `.evidence/w1-02-strategy-a-daily.txt`
   - **Commit**: `feat(plan): STR-A-001 Strategy A 일봉 백테스트`
 
