@@ -1,0 +1,150 @@
+Task W1-03 Strategy B 일봉 백테스트 - Evidence
+==================================================
+Feature ID: STR-B-001
+Date: 2026-04-14
+Status: complete (method), Sharpe 0.1362 < 0.5 Go 기준 (W1-06 종합 평가 대상)
+Reviewer: backtest-reviewer agent (general-purpose subagent)
+Agent review trace: .evidence/agent-reviews/w1-03-2026-04-14T12-25-review.md
+
+Verification Summary
+--------------------
+1. 데이터 입력
+   - File: research/data/KRW-BTC_1d_frozen_20260412.parquet
+   - SHA256: da5b5a5bd74c1be06b6c363f71e0f74067008779a554f6a4884733fb066a8504
+   - Hash 검증: PASS (assert + data_hashes.txt 매치)
+   - 추가 검증: monotonic_increasing + len(df)==1927 (W1-02 v3 NIT 반영)
+   - Bars: 1927, TZ: UTC, NaN: 0
+
+2. 사전 지정 파라미터
+   - MA_PERIOD = 200
+   - RSI_PERIOD = 4
+   - RSI_BUY = 25
+   - RSI_SELL = 50
+   - TIME_STOP_DAYS = 5
+   - SL_PCT = 0.08 (vectorbt fraction, 하드 스톱)
+
+3. 백테스트 결과
+   - Sharpe:        0.1362  (Week 1 Go > 0.5: FAIL)
+   - Sharpe SE:     0.0229  (Lo 2002, T_returns=1926)
+   - Sharpe 95% CI: [0.0913, 0.1810] (정규 근사)
+   - Total Return:  4.94% (5년, 수수료/슬리피지 포함)
+   - Max Drawdown:  -21.27% (Go < 50%: PASS)
+   - Deepest DD:    -21.27%, 715 days, still active
+     (peak 2024-04-26 → end 2026-04-11, Status Active)
+   - Longest DD:    -17.62%, 856 days, recovered
+   - Total drawdown records: 4
+   - Win Rate:      53.85%
+   - Profit Factor: 1.092 (1.0 근처, margin 얇음)
+   - Total Trades:  39
+
+4. 자동 검증
+   - Notebook generation (make_notebook_03.py) — PASS
+   - jupyter nbconvert --execute --inplace — PASS (0 errors)
+   - 13 cells (1 markdown + 12 code), 모든 code cell outputs 캡처
+   - vectorbt API 호출 — PASS (TypeError/AttributeError 없음)
+   - 데이터 해시 assert — PASS
+   - Monotonic + bar count asserts — PASS
+   - outputs/strategy_b_daily.json 생성 — PASS (v3 schema)
+   - outputs/strategy_b_equity.png 생성 — PASS
+
+5. Edge case 검증 (assert 강제 + 동적 derive)
+   - Warmup zero entries: PASS (entries.iloc[:200].sum() == 0)
+   - Time stop signals after warmup: 107 (raw mask bit count)
+     * 실제 time-stop 청산은 훨씬 적음 (RSI-recovery가 먼저 발동)
+     * 평균회귀 특성상 보통 2~6 바 내 청산
+   - Deepest DD reconciles with max_drawdown: PASS (abs diff < 1e-9)
+
+6. 룰 준수 (research/CLAUDE.md + backtest-reviewer 체크리스트)
+
+   A. Data Integrity (PASS)
+   B. Pre-registered Parameters (PASS) — 상수 선언, 그리드 미사용, JSON 직렬화
+   C. vectorbt 0.28.5 API (PASS)
+      - sl_stop fraction (0.08), sl_trail=False, freq='1D'
+      - ts_stop, td_stop, max_duration 사용 안 함
+      - 메서드 괄호 호출 전부 확인
+      - 미정의 변수 (entry_price, bars_held) 참조 없음
+   D. pyupbit API: N/A (frozen parquet)
+   E. Wilder Smoothing (PASS)
+      - ta.momentum.RSIIndicator 사용
+      - 직접 구현 금지 준수
+   F. Strategy Logic (PASS)
+      - MA200 window=200 정확
+      - RSI(4) Wilder
+      - 시간 스톱: entries.shift(5) canonical pattern
+      - 시간 스톱 캐비어트 주석 포함 ("엔트리 N바 후 근사")
+      - Warmup zero entries assert
+      - No look-ahead
+   G. Output v3 schema (PASS)
+      - nested metrics dict
+      - sharpe_se_return_basis, sharpe_se_t_returns, sharpe_ci_95_normal, sharpe_ci_method
+      - deepest_drawdown / longest_drawdown 분리 + reconcile
+      - total_drawdown_records
+      - edge_case_checks 동적 derive
+   H. Cross-document Consistency (PASS)
+      - Feature ID STR-B-001 일치
+      - task_id W1-03 일치
+      - Sub-plan 파라미터 일치
+      - Acceptance Criteria 모두 충족
+
+7. backtest-reviewer agent review (v1 first review)
+   - 호출 trace: .evidence/agent-reviews/w1-03-2026-04-14T12-25-review.md
+   - 적용 섹션: A, B, C, E, F, G, H (D는 N/A)
+   - BLOCKING: 0
+   - WARNING: 0
+   - NIT: 2 (변수명 차이, time_stop_count 해석)
+   - Final verdict: APPROVED FOR PROGRESSION TO TASK W1-04
+   - Note: Sharpe 0.1362 < 0.5는 실제 결과이며 method 결함 아님
+
+Notes
+-----
+- **Strategy B 결과 해석 (W1-06 Go/No-Go용)**:
+  * Profit Factor 1.092 — 1.0 근처, margin 거의 없음
+  * Win Rate 53.85% — 양호하지만 per-trade 평균 이익이 평균 손실보다 약간만 큼
+  * Deepest DD 715일 still active — 평균회귀 전략이 장기간 underperform
+  * 업비트 KRW-BTC 5년 (2021-2026) 기간에서 RSI(4) 극단 과매도 재진입 전략이
+    수수료+슬리피지 포함 시 거의 무수익
+  * Strategy A (Sharpe 1.0353) 대비 현저히 낮음
+
+- **Strategy A (W1-02) vs Strategy B (W1-03) 비교**:
+  * A: Sharpe 1.0353, Return 171.76%, Trades 14 (low-N caveat)
+  * B: Sharpe 0.1362, Return 4.94%, Trades 39 (N sufficient)
+  * Strategy B는 거래 수는 충분하지만 effect size 작음
+  * W1-06 종합 평가에서 **Strategy A 단독 채택** 가능성 높음
+  * 앙상블 (Strategy C) Week 2 구현 시 B의 기여도 제한적
+
+- **Time stop 분석**:
+  * Raw mask 107 signals (entries.shift(5))
+  * 실제 time-stop 청산은 훨씬 적음 — RSI-recovery가 먼저 발동
+  * vectorbt는 동일 바에 exit signal이 여럿이면 자동 dedup
+  * 평균 보유 기간 ~2-6 bars (예상대로)
+
+- **Sharpe CI 해석**:
+  * 정규 근사 [0.0913, 0.1810] — 0.5 기준과 크게 벌어짐
+  * Bootstrap CI (W2-02)로도 > 0.5 가능성 매우 낮음
+  * 결론: Strategy B는 현 파라미터로는 Go 기준 미달이 robust
+
+Acceptance Criteria (sub-plan w1-03-strategy-b-daily.md)
+---------------------------------------------------------
+[PASS] 사전 지정 파라미터 상수 선언
+[PASS] 데이터 해시 검증 통과
+[PASS] RSI는 ta 라이브러리 (Wilder 스무딩)
+[PASS] 시간 스톱은 entries.shift() 패턴 (td_stop 사용 금지)
+[PASS] 시간 스톱 한계 주석 포함 ("엔트리 N바 후 근사")
+[PASS] vectorbt 크래시 없이 실행
+[PASS] bars_held, entry_price 등 미정의 변수 참조 없음
+[PASS] outputs/strategy_b_daily.json 생성 (v3 schema 일관)
+[PASS] JSON에 sharpe_se, sharpe_ci_95, deepest/longest_drawdown, edge_case_checks 포함
+[PASS] backtest-reviewer agent APPROVED + trace 파일 저장
+
+Week 1 Go 기준 평가 (W1-06에서 종합, 여기선 기록만)
+--------------------------------------------------
+[FAIL] Sharpe > 0.5: 0.1362 (정규 근사 CI [0.0913, 0.1810], 0.5에 크게 미달)
+[PASS] MDD < 50%:    -21.27%
+
+Approval
+--------
+[PASS] Method correctness (backtest-reviewer APPROVED)
+[PASS] Agent review trace 저장
+[PASS] v3 schema 일관 (deepest/longest_drawdown, sharpe_se/ci, edge_case 동적)
+[PASS] APPROVED FOR PROGRESSION TO TASK W1-04
+[INFO] Result quality: Sharpe < Go 기준, W1-06 종합 평가에서 Strategy B 미채택 가능성

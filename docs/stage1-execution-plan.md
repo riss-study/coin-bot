@@ -74,7 +74,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 |------|------|:----:|-----------|
 | W1-01 | Done | 1 | [데이터 수집](./stage1-subplans/w1-01-data-collection.md) |
 | W1-02 | Done | 1 | [Strategy A 일봉](./stage1-subplans/w1-02-strategy-a-daily.md) |
-| W1-03 | Pending | 1 | [Strategy B 일봉](./stage1-subplans/w1-03-strategy-b-daily.md) |
+| W1-03 | Done | 1 | [Strategy B 일봉](./stage1-subplans/w1-03-strategy-b-daily.md) |
 | W1-04 | Pending | 1 | [강건성 + 민감도](./stage1-subplans/w1-04-robustness.md) |
 | W1-05 | Pending | 1 | [4시간봉 실험](./stage1-subplans/w1-05-4h-experiment.md) |
 | W1-06 | Pending | 1 | [Week 1 리포트](./stage1-subplans/w1-06-week1-report.md) |
@@ -141,17 +141,17 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
   - **Evidence**: `.evidence/w1-02-strategy-a-daily.txt`
   - **Commit**: `feat(plan): STR-A-001 Strategy A 일봉 백테스트`
 
-- [ ] **W1-03. Strategy B 일봉 백테스트** (Feature: STR-B-001)
+- [x] **W1-03. Strategy B 일봉 백테스트** (Feature: STR-B-001) — Done 2026-04-14
   - **What**: 200MA + RSI(4)<25 진입 + RSI(4)>50 청산 + entries.shift(5) 시간 스톱 + sl_stop=0.08.
   - **Must NOT**: bars_held 변수 참조 금지. RSI 직접 구현 금지 (ta 라이브러리 사용).
   - **Acceptance**:
-    - [ ] 사전 지정 파라미터 명시
-    - [ ] 시간 스톱 entries.shift(N) 패턴 사용
-    - [ ] outputs/strategy_b_daily.json 생성
-    - [ ] backtest-reviewer 에이전트 APPROVED
-  - **목표 (Week 1 Go 기준)**: Sharpe > 0.5
+    - [x] 사전 지정 파라미터 명시
+    - [x] 시간 스톱 entries.shift(N) 패턴 사용
+    - [x] outputs/strategy_b_daily.json 생성 (v3 schema)
+    - [x] backtest-reviewer 에이전트 APPROVED (trace 저장)
+  - **결과**: Sharpe 0.1362 (**FAIL < 0.5**), MDD -21.27% (PASS), Trades 39, PF 1.092
+  - **해석**: Method 정확, 결과는 W1-06 Go/No-Go 영역. Strategy A 단독 채택 가능성 높음.
   - **Evidence**: `.evidence/w1-03-strategy-b-daily.txt`
-  - **Commit**: `feat(plan): STR-B-001 Strategy B 일봉 백테스트`
 
 - [ ] **W1-04. 강건성 + 민감도 분석** (Feature: BT-001)
   - **What**: 연도별 분할 (2021~2026Q1) + 파라미터 민감도 그리드 (참고용)
