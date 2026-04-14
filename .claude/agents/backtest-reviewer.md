@@ -151,6 +151,17 @@ Agent({
 })
 ```
 
+## Trace 저장 정책 (필수)
+
+agent 호출 후 결과를 반드시 다음 위치에 저장:
+
+- 경로: `.evidence/agent-reviews/{task-id}-{timestamp}.md`
+- 형식: agent 호출 prompt + 전체 출력 + 최종 verdict
+- Evidence 파일에서 이 trace 파일을 참조 (`Agent review trace: .evidence/agent-reviews/...`)
+- self-review 절대 금지 — agent 호출 trace 없으면 task 미완료
+
+이 정책은 W1-01 감사에서 발견된 "self-review 치환 의심" 문제를 해결하기 위함.
+
 ## Approval Gate
 
 - 모든 BLOCKING 해결 → 다음 Task 진행 가능

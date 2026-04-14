@@ -2,7 +2,7 @@
 
 ## Module Context
 
-Week 1~3 복제 스프린트(원 논문 결과 재현 단기 프로젝트) 작업 공간. Jupyter + pandas + vectorbt 0.28.5 + pyupbit 0.2.34. W1-01 데이터 수집 완료 (2026-04-14, backtest-reviewer APPROVED). W1-02 (Strategy A 일봉 백테스트) 대기.
+Week 1~3 복제 스프린트(원 논문 결과 재현 단기 프로젝트) 작업 공간. Jupyter + pandas + vectorbt 0.28.5 + pyupbit 0.2.34. W1-01 데이터 수집 + W1-02 Strategy A 완료 (2026-04-14, 두 Task 모두 backtest-reviewer APPROVED). W1-03 (Strategy B 평균 회귀) 대기.
 
 ## Tech Stack & Constraints
 

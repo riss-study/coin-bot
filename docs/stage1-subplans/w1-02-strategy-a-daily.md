@@ -141,7 +141,7 @@ SL_PCT = 0.08
 **작업자**: Solo
 **예상 소요**: 0.1일
 
-- [ ] 핵심 지표 추출 (모두 메서드 호출, 괄호 필수):
+- [ ] 핵심 지표 추출 (모두 메서드 호출, 괄호 필수). ATR은 W1-02 미사용 (W1-04에서 도입), atr_period 필드 없음:
   ```python
   results = {
       'feature_id': 'STR-A-001',
@@ -151,16 +151,19 @@ SL_PCT = 0.08
           'ma_period': MA_PERIOD,
           'donchian_high': DONCHIAN_HIGH,
           'donchian_low': DONCHIAN_LOW,
+          'vol_avg_period': VOL_AVG_PERIOD,
           'vol_mult': VOL_MULT,
-          'atr_period': ATR_PERIOD,
           'sl_pct': SL_PCT,
       },
-      'sharpe': float(pf.sharpe_ratio()),
-      'total_return': float(pf.total_return()),
-      'max_drawdown': float(pf.max_drawdown()),
-      'win_rate': float(pf.trades.win_rate()),
-      'profit_factor': float(pf.trades.profit_factor()),
-      'total_trades': int(pf.trades.count()),
+      'metrics': {
+          'sharpe': float(pf.sharpe_ratio()),
+          'total_return': float(pf.total_return()),
+          'max_drawdown': float(pf.max_drawdown()),
+          'max_drawdown_duration_days': int(...),  # 추가
+          'win_rate': float(pf.trades.win_rate()),
+          'profit_factor': float(pf.trades.profit_factor()),
+          'total_trades': int(pf.trades.count()),
+      },
   }
   ```
 - [ ] `outputs/strategy_a_daily.json` 저장
