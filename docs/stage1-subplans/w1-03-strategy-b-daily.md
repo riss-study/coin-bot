@@ -182,8 +182,16 @@ SL_PCT = 0.08
           'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
           'time_stop_mask_nonempty': bool(int(time_exits.iloc[MA_PERIOD:].sum()) > 0),
           'time_stop_mask_count_raw': int(time_exits.iloc[MA_PERIOD:].sum()),
-          'realized_time_stop_trades': realized_time_stop_trades,
-          'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9),
+          # Exit reason breakdown (bar-based, 타임프레임 독립)
+          # 각 trade exit bar에서 time_exits/rsi_exits 조건 검사로 정확 분류
+          'exit_reason_breakdown': {
+              'time_stop_exclusive': ...,   # time only (순수 time-stop)
+              'time_stop_coincident': ...,  # time + rsi 동시 (ambiguous)
+              'rsi_exclusive': ...,         # rsi only
+              'sl_stop_or_other': ...,      # sl_stop 또는 unknown
+          },
+          'total_time_stop_contribution': ...,  # exclusive + coincident
+          'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else None,
       },
   }
   ```

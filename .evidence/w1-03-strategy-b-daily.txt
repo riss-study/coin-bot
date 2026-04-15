@@ -12,8 +12,17 @@ v2 변경 (외부 감사관 4개 지적 반영):
 - Sub-plan close-out (메인 상태, SubTask, 완료일, Evidence/results 라인)
 - deepest_drawdown / longest_drawdown에 status field 추가 (v4 schema)
 - time_stop_active → time_stop_mask_nonempty + time_stop_mask_count_raw 으로 rename
-- realized_time_stop_trades 계산 추가 (entries.shift 청산이 실제 발동 trade 수)
 - Sharpe SE 0-trade 가드 추가
+
+v3 변경 (2차 외부 감사관 WARNING 2건 반영):
+- `realized_time_stop_trades` 제거 → `exit_reason_breakdown` nested dict로 대체
+  * time_stop_exclusive (순수 time stop), time_stop_coincident (time+rsi 동시),
+    rsi_exclusive (순수 rsi), sl_stop_or_other
+  * 모든 trade 분류 보장 (합계 == total_trades)
+- `hold_bars` 계산을 .dt.days 대신 index.get_indexer() 기반으로 변경
+  * W1-05 4h 재사용 시 silent false negative landmine 제거
+  * 1D/4h/1h 타임프레임 모두 동일하게 작동
+- `deepest_dd_reconciles_with_max_drawdown` 0-trade 시 None (vacuous True 제거)
 
 Verification Summary
 --------------------
@@ -56,12 +65,19 @@ Verification Summary
    - outputs/strategy_b_daily.json 생성 — PASS (v3 schema)
    - outputs/strategy_b_equity.png 생성 — PASS
 
-5. Edge case 검증 (assert 강제 + 동적 derive)
+5. Edge case 검증 (assert 강제 + 동적 derive, bar-based 분류)
    - Warmup zero entries: PASS (entries.iloc[:200].sum() == 0)
    - Time stop mask (raw): 107 bits (entries.shift(5) True 개수)
-   - **Realized time-stop trades: 15 / 39** (실제 청산이 TIME_STOP_DAYS인 trade)
-     * 나머지 24 trades는 RSI-recovery 또는 sl_stop 청산
-     * raw mask 107 ≠ realized 15 — mask와 actual 차이 명확
+   - **Exit reason breakdown** (bar-index 기반, 타임프레임 독립):
+     * time_stop_exclusive:  15 (time_exits만 True, 순수 time-stop 기여)
+     * time_stop_coincident:  5 (time + rsi 동시, ambiguous)
+     * rsi_exclusive:        16 (rsi_exits만 True, 순수 RSI 기여)
+     * sl_stop_or_other:      3 (둘 다 False, sl_stop 또는 unknown)
+     * **합계: 39 = total_trades** ✓ (모든 trade 분류됨)
+   - Total time_stop contribution: 20 (exclusive 15 + coincident 5)
+   - 이전 `realized_time_stop_trades`는 `time_stop_exclusive`와 동일 카운트 (15)
+     하지만 이제 coincident와 명확히 분리 → 더 정확한 reporting
+   - Bar-based hold_bars: `index.get_indexer()`로 계산 → W1-05 4h 재사용 안전
    - Deepest DD reconciles with max_drawdown: PASS (abs diff < 1e-9)
 
 6. 룰 준수 (research/CLAUDE.md + backtest-reviewer 체크리스트)

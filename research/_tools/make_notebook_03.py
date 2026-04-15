@@ -265,20 +265,48 @@ else:
     longest_dd_recovered = True
     print("No drawdowns recorded")
 
-# === Realized time-stop trades 계산 ===
-# time_stop_signal_count (raw mask)는 "entries.shift(5)가 True인 바 수"로,
-# 실제 time-stop으로 청산된 trade 수와는 다름.
-# 실제 청산이 time-stop에 의한 것인지 확인: trades.records에서 exit bar - entry bar 관계.
-realized_time_stop_trades = 0
+# === Exit reason 분류 (bar-based, 타임프레임 독립) ===
+# time_exits raw mask bit count ≠ 실제 time-stop 청산 수.
+# 정확한 분류를 위해 각 trade의 exit bar에서 어떤 조건이 True였는지 검사.
+#
+# 중요: hold_bars를 bar count 기반으로 계산 (타임프레임 독립).
+#   .dt.days 사용 시 4h 타임프레임에서 silent false negative 발생.
+#   index 위치 차이로 계산 → 1D, 4h, 1h 모두 동일하게 작동.
+time_stop_exclusive = 0    # exit 바에 time_exits=True, rsi_exits=False → 순수 time stop
+time_stop_coincident = 0   # 둘 다 True → ambiguous (time이 기여했을 가능성)
+rsi_exclusive = 0          # exit 바에 rsi_exits=True, time_exits=False → 순수 RSI
+sl_stop_or_other = 0       # 둘 다 False → sl_stop 또는 기타
+
 if total_trades > 0:
     tr = pf.trades.records_readable
-    # Entry/Exit bar는 records_readable에 'Entry Timestamp', 'Exit Timestamp'로 있음
-    tr['hold_bars'] = (pd.to_datetime(tr['Exit Timestamp']) - pd.to_datetime(tr['Entry Timestamp'])).dt.days
-    # Time stop으로 청산된 것은 보유일이 정확히 TIME_STOP_DAYS (또는 그 근처) 인 경우
-    # 더 정확히: rsi_exits가 먼저 발동되지 않은 상태에서 entries.shift(TIME_STOP_DAYS)으로 청산된 경우
-    # 간이 추정: hold_bars == TIME_STOP_DAYS인 trade 수
-    realized_time_stop_trades = int((tr['hold_bars'] == TIME_STOP_DAYS).sum())
-    print(f"\\nRealized time-stop trades (hold == {TIME_STOP_DAYS}d): {realized_time_stop_trades}/{total_trades}")
+    entry_positions = close.index.get_indexer(pd.to_datetime(tr['Entry Timestamp']))
+    exit_positions  = close.index.get_indexer(pd.to_datetime(tr['Exit Timestamp']))
+    # Bar-based hold count (타임프레임 독립)
+    tr['hold_bars'] = exit_positions - entry_positions
+
+    for i in range(len(tr)):
+        exit_bar = exit_positions[i]
+        if exit_bar == -1:
+            sl_stop_or_other += 1
+            continue
+        time_trig = bool(time_exits.iloc[exit_bar])
+        rsi_trig = bool(rsi_exits.iloc[exit_bar])
+        if time_trig and rsi_trig:
+            time_stop_coincident += 1
+        elif time_trig:
+            time_stop_exclusive += 1
+        elif rsi_trig:
+            rsi_exclusive += 1
+        else:
+            sl_stop_or_other += 1
+
+total_time_stop_contrib = time_stop_exclusive + time_stop_coincident
+print(f"\\nExit reason 분류 (bar-based, {total_trades} trades 기준):")
+print(f"  time_stop_exclusive:  {time_stop_exclusive} (time_exits only)")
+print(f"  time_stop_coincident: {time_stop_coincident} (time + rsi, ambiguous)")
+print(f"  rsi_exclusive:        {rsi_exclusive} (rsi_exits only)")
+print(f"  sl_stop_or_other:     {sl_stop_or_other} (neither — sl_stop or unknown)")
+print(f"  Total time_stop contribution (exclusive + coincident): {total_time_stop_contrib}")
 
 print(f"\\nSharpe:        {sharpe:.4f}")
 print(f"Total Return:  {total_return*100:.2f}%")
@@ -367,12 +395,19 @@ results = {
     },
     'edge_case_checks': {
         'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
-        # raw mask bit count (실제 청산과 다름)
+        # raw mask bit count (signal 수, 실제 청산과 다름)
         'time_stop_mask_nonempty': bool(int(time_exits.iloc[MA_PERIOD:].sum()) > 0),
         'time_stop_mask_count_raw': int(time_exits.iloc[MA_PERIOD:].sum()),
-        # 실제 time-stop으로 청산된 trade 수 (hold_bars == TIME_STOP_DAYS)
-        'realized_time_stop_trades': realized_time_stop_trades,
-        'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else True,
+        # Exit reason 분류 (bar-based, 타임프레임 독립)
+        # 각 trade의 exit bar에서 time_exits / rsi_exits 조건 검사
+        'exit_reason_breakdown': {
+            'time_stop_exclusive': int(time_stop_exclusive),   # time only (가장 확실한 time-stop 기여)
+            'time_stop_coincident': int(time_stop_coincident), # time + rsi 동시 (ambiguous)
+            'rsi_exclusive': int(rsi_exclusive),               # rsi only
+            'sl_stop_or_other': int(sl_stop_or_other),         # sl_stop 또는 unknown
+        },
+        'total_time_stop_contribution': int(total_time_stop_contrib),  # exclusive + coincident
+        'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else None,
     },
     'go_criteria_eval': {
         'sharpe_gt_0.5': sharpe > 0.5,
@@ -443,7 +478,12 @@ if total_trades > 0:
 print()
 print("Edge case checks:")
 print(f"  Warmup zero entries: PASS")
-print(f"  Time stop signals after warmup: {int(time_exits.iloc[MA_PERIOD:].sum())}")
+print(f"  Time stop mask count (raw): {int(time_exits.iloc[MA_PERIOD:].sum())}")
+print(f"  Exit reason breakdown:")
+print(f"    time_stop_exclusive:  {time_stop_exclusive}")
+print(f"    time_stop_coincident: {time_stop_coincident}")
+print(f"    rsi_exclusive:        {rsi_exclusive}")
+print(f"    sl_stop_or_other:     {sl_stop_or_other}")
 print()
 print("Go criteria (W1-06에서 종합 평가):")
 print(f"  Sharpe > 0.5: {'PASS' if sharpe > 0.5 else 'FAIL'} ({sharpe:.4f})")
