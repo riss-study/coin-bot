@@ -11,7 +11,7 @@
 | **스토리 포인트** | 5 |
 | **작업자** | Solo |
 | **우선순위** | P0 |
-| **상태** | Pending |
+| **상태** | Done (2026-04-16) |
 | **Can Parallel** | NO |
 | **Blocks** | W1-06 |
 | **Blocked By** | W1-02, W1-03 |
@@ -26,16 +26,18 @@ W1-02, W1-03 결과의 강건성을 두 측면에서 검증:
 
 ## 현재 진행 상태
 
-- 메인 Task 상태: Pending
+- 메인 Task 상태: Done
+- 완료일: 2026-04-16
+- Evidence: `.evidence/w1-04-robustness.txt` (backtest-reviewer APPROVED)
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
-| W1-04.1 | Pending | 노트북 셋업 |
-| W1-04.2 | Pending | 연도별 분할 분석 |
-| W1-04.3 | Pending | 민감도 그리드 (Strategy A) |
-| W1-04.4 | Pending | 민감도 그리드 (Strategy B) |
-| W1-04.5 | Pending | 등고선 시각화 |
-| W1-04.6 | Pending | Evidence + 리뷰 |
+| W1-04.1 | Done | 노트북 셋업 + 함수화 + Sharpe 재현 assert |
+| W1-04.2 | Done | 연도별 분할 (6년 x 2전략, domination check) |
+| W1-04.3 | Done | 민감도 그리드 A (125조합, NaN 0) |
+| W1-04.4 | Done | 민감도 그리드 B (125조합, NaN 0) |
+| W1-04.5 | Done | Heatmap 2개 (sns.heatmap, pre-reg 빨간 테두리) |
+| W1-04.6 | Done | Evidence + review trace 저장 |
 
 ## SubTask 목록
 
