@@ -153,24 +153,26 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
   - **해석**: Method 정확, 결과는 W1-06 Go/No-Go 영역. Strategy A 단독 채택 가능성 높음.
   - **Evidence**: `.evidence/w1-03-strategy-b-daily.txt`
 
-- [ ] **W1-04. 강건성 + 민감도 분석** (Feature: BT-001)
+- [x] **W1-04. 강건성 + 민감도 분석** (Feature: BT-001) — Done 2026-04-16
   - **What**: 연도별 분할 (2021~2026Q1) + 파라미터 민감도 그리드 (참고용)
   - **Must NOT**: 그리드 최고값을 Go/No-Go에 사용 금지. 사전 지정 파라미터만 결정 근거.
   - **Acceptance**:
-    - [ ] 5개 연도별 Sharpe/MDD/Return 계산
-    - [ ] 민감도 등고선 차트 (MA, Donchian, RSI 임계)
-    - [ ] 사전 지정 파라미터가 평탄 영역에 위치 확인
-  - **목표**: 5개 연도 중 최소 2개 양수 수익
+    - [x] 5개 연도별 Sharpe/MDD/Return 계산
+    - [x] 민감도 등고선 차트 (MA, Donchian, RSI 임계)
+    - [x] 사전 지정 파라미터가 평탄 영역에 위치 확인
+  - **결과**: A 평탄성 std=0.044 PASS, B std=0.170 PASS. A 3/5년 양수, B 4/5년 양수.
+  - **목표**: 5개 연도 중 최소 2개 양수 수익 — Strategy A PASS (3개), B PASS (4개)
   - **Evidence**: `.evidence/w1-04-robustness.txt`
   - **Commit**: `feat(plan): BT-001 강건성 + 민감도 분석`
 
-- [ ] **W1-05. 4시간봉 포팅 실험** (Feature: BT-002)
+- [x] **W1-05. 4시간봉 포팅 실험** (Feature: BT-002) — Done 2026-04-17
   - **What**: 동일 전략을 4시간봉으로 (MA1200, Donchian 120/60, RSI(4))
   - **Must NOT**: Week 1 Go/No-Go 기준으로 사용 금지 (참고용 only)
   - **Acceptance**:
-    - [ ] 4h 윈도우 환산 정확 (200일 = 1200 bars)
-    - [ ] 일봉 결과와 비교 표
-    - [ ] outputs/strategy_4h_comparison.json
+    - [x] 4h 윈도우 환산 정확 (200일 = 1200 bars)
+    - [x] 일봉 결과와 비교 표
+    - [x] outputs/strategy_4h_comparison.json
+  - **결과**: A 4h Sharpe 1.12 (robust), B 4h Sharpe -0.61 (실패). 참고용.
   - **Evidence**: `.evidence/w1-05-4h-experiment.txt`
   - **Commit**: `feat(plan): BT-002 4시간봉 포팅 실험`
 
