@@ -1,0 +1,82 @@
+Task W1-05 4시간봉 포팅 실험 - Evidence
+==================================================
+Feature ID: BT-002
+Date: 2026-04-17
+Status: complete (참고용, Go/No-Go에 영향 없음)
+Reviewer: backtest-reviewer agent
+Agent review trace: .evidence/agent-reviews/w1-05-2026-04-17T-review.md
+  Initial: CHANGES REQUIRED (1 BLOCKING + 2 WARNING)
+  Post-fix: APPROVED (win_rate 수정, ATR phantom 제거, time stop caveat 추가)
+
+Verification Summary
+--------------------
+1. 데이터 입력
+   - 4h: KRW-BTC_4h_frozen_20260412.parquet, 11561 bars, UTC, NaN 0
+   - 1d: KRW-BTC_1d_frozen_20260412.parquet, 1927 bars, UTC, NaN 0
+   - Hash 검증: PASS (양쪽 모두)
+
+2. 윈도우 환산 (일봉 x6)
+   - MA: 200 -> 1200
+   - Donchian High: 20 -> 120
+   - Donchian Low: 10 -> 60
+   - Vol Avg: 20 -> 120
+   - Time Stop: 5 -> 30 bars
+   - RSI Period: 4 -> 4 (bars 단위, 환산 없음)
+   - freq: '4h' (vectorbt 0.28.5)
+
+3. 1d Sharpe 재현 검증
+   - Strategy A 1d: 1.0352900038 (expected 1.0352900038) -> MATCH
+   - Strategy B 1d: 0.1361541837 (expected 0.1361541837) -> MATCH
+
+4. 비교 결과
+
+   | Strategy | TF | Sharpe | Return   | MDD     | Trades | Win Rate |
+   |----------|----|--------|----------|---------|--------|----------|
+   | A        | 1d |  1.0353| 171.76%  | -22.45% |     14 |   50.00% |
+   | A        | 4h |  1.1241| 211.70%  | -23.72% |     20 |   50.00% |
+   | B        | 1d |  0.1362|   4.94%  | -21.27% |     39 |   53.85% |
+   | B        | 4h | -0.6088| -40.94%  | -42.91% |    207 |   60.39% |
+
+   Strategy A:
+   - 4h Sharpe 1.12 vs 1d 1.04 (diff +0.09): 시간프레임 간 Sharpe 차이 작음 (±0.2 이내)
+   - 4h trades 20 > 1d 14: 4h가 더 많은 신호 → 더 나은 통계 기반
+   - MDD 비슷 (-23.72% vs -22.45%)
+   - 결론: Strategy A는 타임프레임에 robust함
+
+   Strategy B:
+   - 4h Sharpe -0.61 vs 1d 0.14 (diff -0.75): 4h에서 심각한 열화
+   - 4h trades 207 (1d 39 대비 5배): RSI(4)가 4h에서 너무 자주 트리거
+   - MDD -42.91% (1d -21.27% 대비 2배)
+   - 결론: 평균 회귀 전략은 4h 타임프레임에서 작동하지 않음
+
+5. Edge case 검증
+   - 4h warmup 1200 bars 내 entries = 0: PASS (Strategy A, B 모두)
+   - freq='4h' 사용 확인
+   - vectorbt 크래시 없음
+
+6. 룰 준수
+   A. Data Integrity: PASS (hash assert, UTC, monotonic)
+   B. Pre-registered Parameters: PASS (4h 환산 상수 명시, 환산 주석 포함)
+   C. vectorbt 0.28.5 API: PASS (sl_stop, sl_trail, freq='4h', 금지 API 미사용)
+   D. pyupbit: N/A
+   E. Wilder Smoothing: PASS (RSIIndicator 사용)
+   F. Strategy Logic: PASS (shift(1), fillna, warmup assert)
+   G. Output: PASS (strategy_4h_comparison.json)
+   H. Cross-doc: PASS (BT-002, task_id W1-05)
+
+Acceptance Criteria (sub-plan w1-05-4h-experiment.md)
+-----------------------------------------------------
+[PASS] 4h Parquet 데이터 로드 + 해시 검증
+[PASS] 윈도우 환산 정확: MA1200, Donchian 120/60, 시간스톱 30 bars
+[PASS] freq='4h' 사용
+[PASS] vectorbt 크래시 없이 실행
+[PASS] 일봉 vs 4h 비교 표 작성
+[PASS] outputs/strategy_4h_comparison.json 생성
+[PASS] 결과는 W1-06 리포트에 "참고용"으로만 포함 (명시)
+[PASS] backtest-reviewer APPROVED (BLOCKING 1 수정, WARNING 2 수정)
+
+W1-06 참고 사항
+---------------
+- Strategy A: 4h에서도 robust (Sharpe 1.12, trades 20). 일봉 우위 확정 필요 없음.
+- Strategy B: 4h에서 완전 실패 (Sharpe -0.61). 일봉에서도 FAIL이므로 더 강력한 미채택 근거.
+- 4h 결과는 walk-forward 미적용이므로 절대값 신뢰 금지.

@@ -11,7 +11,7 @@
 | **스토리 포인트** | 2 |
 | **작업자** | Solo |
 | **우선순위** | P2 (참고용) |
-| **상태** | Pending |
+| **상태** | Done (2026-04-17) |
 | **Can Parallel** | YES (W1-04와 별개) |
 | **Blocks** | (없음, W1-06에 참고로만 입력) |
 | **Blocked By** | W1-02, W1-03 |
@@ -30,16 +30,17 @@
 
 ## 현재 진행 상태
 
-- 메인 Task 상태: Pending
-- 메모: 일봉이 메인이고 4h는 실험. Go/No-Go에 영향 없음.
+- 메인 Task 상태: Done
+- 완료일: 2026-04-17
+- Evidence: `.evidence/w1-05-4h-experiment.txt` (backtest-reviewer APPROVED)
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
-| W1-05.1 | Pending | 노트북 셋업 + 4h 데이터 |
-| W1-05.2 | Pending | Strategy A 4h 백테스트 (1200/120/60) |
-| W1-05.3 | Pending | Strategy B 4h 백테스트 |
-| W1-05.4 | Pending | 일봉 vs 4h 비교 |
-| W1-05.5 | Pending | Evidence + 리뷰 |
+| W1-05.1 | Done | 노트북 셋업 + 4h/1d 데이터 로드 + 해시 검증 |
+| W1-05.2 | Done | Strategy A 4h: Sharpe 1.12, 20 trades |
+| W1-05.3 | Done | Strategy B 4h: Sharpe -0.61, 207 trades (실패) |
+| W1-05.4 | Done | 비교 표 + 해석 + JSON 저장 |
+| W1-05.5 | Done | Evidence + review trace |
 
 ## SubTask 목록
 
@@ -64,8 +65,8 @@ DONCHIAN_HIGH_4H = 120    # 20일 × 6
 DONCHIAN_LOW_4H = 60      # 10일 × 6
 VOL_AVG_PERIOD_4H = 120
 VOL_MULT = 1.5
-ATR_PERIOD = 14           # 일관성, 14 bars (= 56h)
 SL_PCT = 0.08
+# 주: ATR은 Strategy A에서 사용 안 함 (W1-02와 동일, W1-04 참조)
 ```
 
 - [ ] vectorbt 백테스트 (`freq='4h'`)
