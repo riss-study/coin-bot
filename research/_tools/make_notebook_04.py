@@ -127,39 +127,45 @@ print("Pre-registered parameters loaded (constants, no tweaking)")
 # Cell 6: Strategy functions + metric extractor
 cells.append(nbf.v4.new_code_cell("""\
 def run_strategy_a(close, high, low, volume, ma_period, donchian_high, donchian_low,
-                   vol_avg_period, vol_mult, sl_pct, fees=0.0005, slippage=0.0005):
+                   vol_avg_period, vol_mult, sl_pct,
+                   init_cash=INIT_CASH, fees=0.0005, slippage=0.0005):
     \"\"\"Run Strategy A (trend-following) backtest. Returns vectorbt Portfolio.\"\"\"
     ma = close.rolling(window=ma_period).mean()
     dh = high.rolling(window=donchian_high).max().shift(1)
     dl = low.rolling(window=donchian_low).min().shift(1)
     va = volume.rolling(window=vol_avg_period).mean().shift(1)
 
-    entries = ((close > ma) & (close > dh) & (volume > va * vol_mult)).fillna(False).astype(bool)
-    exits = (close < dl).fillna(False).astype(bool)
+    entries = ((close > ma) & (close > dh) & (volume > va * vol_mult)).fillna(False)
+    entries = entries.astype(bool)
+    exits = (close < dl).fillna(False)
+    exits = exits.astype(bool)
 
     pf = vbt.Portfolio.from_signals(
         close=close, entries=entries, exits=exits,
         sl_stop=sl_pct, sl_trail=False,
-        init_cash=INIT_CASH, fees=fees, slippage=slippage, freq=FREQ,
+        init_cash=init_cash, fees=fees, slippage=slippage, freq=FREQ,
     )
     return pf
 
 
 def run_strategy_b(close, ma_period, rsi_period, rsi_buy, rsi_sell, time_stop_days,
-                   sl_pct, fees=0.0005, slippage=0.0005):
+                   sl_pct, init_cash=INIT_CASH, fees=0.0005, slippage=0.0005):
     \"\"\"Run Strategy B (mean-reversion) backtest. Returns vectorbt Portfolio.\"\"\"
     ma = close.rolling(window=ma_period).mean()
     rsi = RSIIndicator(close=close, window=rsi_period).rsi()
 
-    entries = ((close > ma) & (rsi < rsi_buy)).fillna(False).astype(bool)
-    rsi_exits = (rsi > rsi_sell).fillna(False).astype(bool)
-    time_exits = entries.shift(time_stop_days).fillna(False).astype(bool)
+    entries = ((close > ma) & (rsi < rsi_buy)).fillna(False)
+    entries = entries.astype(bool)
+    rsi_exits = (rsi > rsi_sell).fillna(False)
+    rsi_exits = rsi_exits.astype(bool)
+    time_exits = entries.shift(time_stop_days).fillna(False)
+    time_exits = time_exits.astype(bool)
     exits = (rsi_exits | time_exits).astype(bool)
 
     pf = vbt.Portfolio.from_signals(
         close=close, entries=entries, exits=exits,
         sl_stop=sl_pct, sl_trail=False,
-        init_cash=INIT_CASH, fees=fees, slippage=slippage, freq=FREQ,
+        init_cash=init_cash, fees=fees, slippage=slippage, freq=FREQ,
     )
     return pf
 
@@ -274,6 +280,9 @@ for strat in ['A', 'B']:
         print(f"{r['year']:<10} {r['return']*100:>9.2f}% {r['sharpe']:>10.4f} {r['mdd']*100:>9.2f}% {r['trading_days']:>6d}")
 
 # === 70% 지배 경고 (full year만, 2021-2025) ===
+# 방법론 한계: 연도별 simple return을 복리 total return으로 나누므로 단위가 불일치.
+# total return이 극소(~0)일 때 비율이 폭발적으로 커짐 (Strategy B 해당).
+# W1-06에서는 이 수치를 그대로 인용하지 말고 연도별 absolute return 비교 사용 권장.
 domination_warning_a = False
 domination_warning_b = False
 domination_details = []
