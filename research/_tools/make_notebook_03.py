@@ -279,6 +279,7 @@ sl_stop_or_other = 0       # SL priority (return ≈ -sl_pct) 또는 unknown
 
 # SL priority tolerance: sl_stop(8%) + slippage(0.1% RT) + fees(0.1% RT) + intrabar noise 여유
 # W1-05 4h 재사용 시 SL↔time_exits 동일 바 충돌 false-positive 방지
+# 한계: gap-down으로 RSI/time exit인데 return <= -7%면 SL로 오분류. 일봉 해당 0건.
 SL_RETURN_TOLERANCE = 0.01  # 1% 버퍼 (fees+slippage+body impact)
 
 if total_trades > 0:
@@ -417,7 +418,7 @@ results = {
             'sl_stop_or_other': int(sl_stop_or_other),         # sl_stop 또는 unknown
         },
         'total_time_stop_contribution': int(total_time_stop_contrib),  # exclusive + coincident
-        'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else None,
+        'deepest_dd_reconciles_with_max_drawdown': (bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else None),
     },
     'go_criteria_eval': {
         'sharpe_gt_0.5': sharpe > 0.5,

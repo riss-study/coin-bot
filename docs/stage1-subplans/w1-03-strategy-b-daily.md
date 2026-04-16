@@ -39,8 +39,8 @@ Larry Connors 스타일 평균 회귀 전략을 일봉으로 백테스트.
 | W1-03.2 | Done | MA200 + RSI(4) Wilder (ta.momentum.RSIIndicator) |
 | W1-03.3 | Done | 진입/청산 마스크 + time stop entries.shift(5) + warmup assert |
 | W1-03.4 | Done | vectorbt Portfolio.from_signals (검증된 0.28.5 API) |
-| W1-03.5 | Done | strategy_b_daily.json (v4 schema: status field + realized_time_stop_trades) |
-| W1-03.6 | Done | Evidence + 2 agent review traces (v1 + v2) |
+| W1-03.5 | Done | strategy_b_daily.json (v4 schema: status field + exit_reason_breakdown) |
+| W1-03.6 | Done | Evidence + 3 agent review traces (v1, v2, v4) |
 
 ## SubTask 목록
 

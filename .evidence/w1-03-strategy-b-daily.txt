@@ -15,16 +15,8 @@ v2 변경 (외부 감사관 4개 지적 반영):
 - time_stop_active → time_stop_mask_nonempty + time_stop_mask_count_raw 으로 rename
 - Sharpe SE 0-trade 가드 추가
 
-v4 변경 (3차 외부 감사관 NIT1 반영 — W1-05 4h 재사용 대비):
-- exit_reason_classifier에 SL priority pre-check 추가
-  * trade Return <= -(SL_PCT - tolerance) 이면 mask 검사 전에 sl_stop_or_other 분류
-  * SL과 time_exits가 동일 바에서 충돌할 때 false-positive time_stop 차단
-  * W1-03 일봉에서는 3개 SL trade 모두 mask 둘 다 False였으므로 결과 불변 (15/5/16/3)
-- sub-plan 상태 라벨 v2 → v4, research/CLAUDE.md 상태 동기화
-- W1-02 schema mirror: deepest_dd_reconciles 0-trade 가드 (v5)
-
 v3 변경 (2차 외부 감사관 WARNING 2건 반영):
-- `realized_time_stop_trades` 제거 → `exit_reason_breakdown` nested dict로 대체
+- `realized_time_stop_trades` 제거 → `exit_reason_breakdown` nested dict 대체
   * time_stop_exclusive (순수 time stop), time_stop_coincident (time+rsi 동시),
     rsi_exclusive (순수 rsi), sl_stop_or_other
   * 모든 trade 분류 보장 (합계 == total_trades)
@@ -32,6 +24,16 @@ v3 변경 (2차 외부 감사관 WARNING 2건 반영):
   * W1-05 4h 재사용 시 silent false negative landmine 제거
   * 1D/4h/1h 타임프레임 모두 동일하게 작동
 - `deepest_dd_reconciles_with_max_drawdown` 0-trade 시 None (vacuous True 제거)
+
+v4 변경 (3차 외부 감사관 NIT1 반영 — W1-05 4h 재사용 대비):
+- exit_reason_classifier에 SL priority pre-check 추가
+  * trade Return <= -(SL_PCT - tolerance) 이면 mask 검사 전에 sl_stop_or_other 분류
+  * SL과 time_exits가 동일 바에서 충돌할 때 false-positive time_stop 차단
+  * W1-03 일봉에서는 3개 SL trade 모두 mask 둘 다 False였으므로 결과 불변 (15/5/16/3)
+  * **한계**: gap-down 시 RSI/time exit이지만 return <= -(SL_PCT - tolerance) 인 경우
+    SL로 오분류 가능. 일봉에서는 해당 사례 0건. W1-05 4h 변동성 증가 시 주의.
+- sub-plan 상태 라벨 v2 → v4, research/CLAUDE.md 상태 동기화
+- W1-02 schema mirror: deepest_dd_reconciles 0-trade 가드 (v5)
 
 Verification Summary
 --------------------
