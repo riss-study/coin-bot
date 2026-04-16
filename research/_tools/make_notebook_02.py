@@ -374,7 +374,7 @@ results = {
         'warmup_zero_entries': bool(int(entries.iloc[:MA_PERIOD].sum()) == 0),
         'volume_filter_active': bool(filtered_out > 0),
         'volume_filter_rejected_count': int(filtered_out),
-        'deepest_dd_reconciles_with_max_drawdown': bool(abs(deepest_dd_pct - max_dd) < 1e-9),
+        'deepest_dd_reconciles_with_max_drawdown': (bool(abs(deepest_dd_pct - max_dd) < 1e-9) if total_trades > 0 else None),
     },
     'go_criteria_eval': {
         'sharpe_gt_0.8': sharpe > 0.8,

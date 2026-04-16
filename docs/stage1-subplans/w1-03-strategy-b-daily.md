@@ -11,7 +11,7 @@
 | **스토리 포인트** | 3 |
 | **작업자** | Solo |
 | **우선순위** | P0 |
-| **상태** | Done (v2, 2026-04-14) |
+| **상태** | Done (v4, 2026-04-15) |
 | **Can Parallel** | NO (W1-01 필수, W1-02와 같은 데이터 사용) |
 | **Blocks** | W1-04, W1-06 |
 | **Blocked By** | W1-01 |
@@ -28,7 +28,7 @@ Larry Connors 스타일 평균 회귀 전략을 일봉으로 백테스트.
 ## 현재 진행 상태
 
 - 메인 Task 상태: Done
-- 완료일: 2026-04-14 (v2 post-external-audit)
+- 완료일: 2026-04-15 (v4 post-external-audit, SL priority pre-check)
 - Evidence: `.evidence/w1-03-strategy-b-daily.txt` (backtest-reviewer agent APPROVED)
 - 결과: Sharpe 0.1362 (**FAIL < 0.5**), MDD -21.27%, Trades 39, PF 1.092
 - 해석: Method 정확, 결과는 W1-06 Go/No-Go 영역. Strategy A 단독 채택 가능성 높음.
@@ -184,6 +184,7 @@ SL_PCT = 0.08
           'time_stop_mask_count_raw': int(time_exits.iloc[MA_PERIOD:].sum()),
           # Exit reason breakdown (bar-based, 타임프레임 독립)
           # 각 trade exit bar에서 time_exits/rsi_exits 조건 검사로 정확 분류
+          # 아래 `...`는 런타임 계산값 자리 표시(예시일 뿐, TODO 아님 — 실제 값은 노트북에서 derive)
           'exit_reason_breakdown': {
               'time_stop_exclusive': ...,   # time only (순수 time-stop)
               'time_stop_coincident': ...,  # time + rsi 동시 (ambiguous)

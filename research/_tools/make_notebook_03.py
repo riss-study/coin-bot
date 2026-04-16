@@ -275,7 +275,11 @@ else:
 time_stop_exclusive = 0    # exit 바에 time_exits=True, rsi_exits=False → 순수 time stop
 time_stop_coincident = 0   # 둘 다 True → ambiguous (time이 기여했을 가능성)
 rsi_exclusive = 0          # exit 바에 rsi_exits=True, time_exits=False → 순수 RSI
-sl_stop_or_other = 0       # 둘 다 False → sl_stop 또는 기타
+sl_stop_or_other = 0       # SL priority (return ≈ -sl_pct) 또는 unknown
+
+# SL priority tolerance: sl_stop(8%) + slippage(0.1% RT) + fees(0.1% RT) + intrabar noise 여유
+# W1-05 4h 재사용 시 SL↔time_exits 동일 바 충돌 false-positive 방지
+SL_RETURN_TOLERANCE = 0.01  # 1% 버퍼 (fees+slippage+body impact)
 
 if total_trades > 0:
     tr = pf.trades.records_readable
@@ -287,6 +291,12 @@ if total_trades > 0:
     for i in range(len(tr)):
         exit_bar = exit_positions[i]
         if exit_bar == -1:
+            sl_stop_or_other += 1
+            continue
+        # SL priority pre-check: trade return이 -sl_pct 근처면 SL 처리.
+        # mask-based 분류보다 우선 → SL이 time_exits 바와 겹쳐도 false-positive 차단.
+        trade_ret = float(tr.iloc[i]['Return'])
+        if trade_ret <= -(SL_PCT - SL_RETURN_TOLERANCE):
             sl_stop_or_other += 1
             continue
         time_trig = bool(time_exits.iloc[exit_bar])

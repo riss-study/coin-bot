@@ -2,7 +2,7 @@
 
 ## Module Context
 
-Week 1~3 복제 스프린트(원 논문 결과 재현 단기 프로젝트) 작업 공간. Jupyter + pandas + vectorbt 0.28.5 + pyupbit 0.2.34. W1-01 + W1-02 v4 + W1-03 v2 완료 (2026-04-15, 세 Task 모두 backtest-reviewer APPROVED). W1-04 (강건성 + 민감도 분석) 대기.
+Week 1~3 복제 스프린트(원 논문 결과 재현 단기 프로젝트) 작업 공간. Jupyter + pandas + vectorbt 0.28.5 + pyupbit 0.2.34. W1-01 + W1-02 v5 + W1-03 v4 완료 (2026-04-15, 세 Task 모두 backtest-reviewer APPROVED). W1-04 (강건성 + 민감도 분석) 대기.
 
 ## Tech Stack & Constraints
 
