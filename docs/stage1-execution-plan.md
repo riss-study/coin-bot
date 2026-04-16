@@ -77,10 +77,10 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W1-03 | Done | 1 | [Strategy B 일봉](./stage1-subplans/w1-03-strategy-b-daily.md) |
 | W1-04 | Done | 1 | [강건성 + 민감도](./stage1-subplans/w1-04-robustness.md) |
 | W1-05 | Done | 1 | [4시간봉 실험](./stage1-subplans/w1-05-4h-experiment.md) |
-| W1-06 | Pending | 1 | [Week 1 리포트](./stage1-subplans/w1-06-week1-report.md) |
-| W2-01 | Pending | 2 | TBD (Week 1 Go 후 작성) |
-| W2-02 | Pending | 2 | TBD |
-| W2-03 | Pending | 2 | TBD |
+| W1-06 | Done | 1 | [Week 1 리포트](./stage1-subplans/w1-06-week1-report.md) (No-Go 결정, 2026-04-17) |
+| W2-01 | Re-scope | 2 | TBD (Week 1 No-Go → "전략 패밀리 재탐색 + 알트 확장"으로 범위 재설정) |
+| W2-02 | Re-scope | 2 | TBD |
+| W2-03 | Re-scope | 2 | TBD |
 | W3-01 | Pending | 3 | TBD |
 | W4-01 | Pending | 4 | TBD |
 | W4-02 | Pending | 4 | TBD |

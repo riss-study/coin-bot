@@ -1,0 +1,155 @@
+Task W1-06 Week 1 종합 리포트 + Go/No-Go 결정 - Evidence
+==================================================
+Feature ID: REPORT-001
+Date: 2026-04-17
+Status: complete (결정: No-Go, Option B)
+Reviewer: backtest-reviewer agent
+Agent review trace: .evidence/agent-reviews/w1-06-2026-04-17-review.md
+  Initial: CHANGES REQUIRED (1 BLOCKING + 3 WARNING + 3 NIT)
+  Post-fix: APPROVED
+  Fixes:
+    - BLOCKING-1 "1승 4패" -> "2승 3패 (40% 승률)" 4곳 정정
+    - WARNING-1 sub-plan Acceptance Criteria 9개 [x] 체크
+    - WARNING-2 entries.shift() 캐비어트 주석 추가 (make_notebook_06.py run_b)
+    - WARNING-3 week1_report.md §6.1에 Volatile cutoff look-ahead caveat 추가
+    - NIT-1/2/3: 원본 리뷰에서 "조치 불요/필수 아님" 명시, 미수정 합의
+
+Verification Summary
+--------------------
+1. 데이터 입력
+   - 1d: KRW-BTC_1d_frozen_20260412.parquet, 1927 bars, UTC
+     Hash: da5b5a5bd74c1be06b6c363f71e0f74067008779a554f6a4884733fb066a8504
+   - 4h: KRW-BTC_4h_frozen_20260412.parquet, 11561 bars, UTC
+     Hash: 0b43e3b86da8534c994beff2e784656fdfc16e7d84db79ef8bc68d5383c29d46
+   - 모든 W1-0* JSON이 동일한 data hash 참조 확인 (노트북 cell assert): PASS
+   - Hash 재검증 (노트북 실행 시 SHA256 재계산): PASS
+
+2. 입력 JSON 정합성
+   - strategy_a_daily.json: W1-02 원본 그대로 로드
+   - strategy_b_daily.json: W1-03 원본 그대로 로드
+   - robustness_sensitivity.json: W1-04 원본 그대로 로드
+   - strategy_4h_comparison.json: W1-05 원본 그대로 로드
+   - 재계산한 Sharpe와 JSON 저장값 tol=1e-4 이내 일치 (A/B × 1d/4h 모두): PASS
+
+3. Go 기준 5개 자동 평가 (사전 지정 파라미터만)
+
+   | # | 기준                                       | 값                         | 판정   |
+   |---|-------------------------------------------|---------------------------|--------|
+   | 1 | A Sharpe > 0.8                            | 1.0353                    | PASS   |
+   | 2 | B Sharpe > 0.5                            | 0.1362                    | **FAIL** |
+   | 3 | 두 전략 중 하나라도 MDD < 50%            | A -22.45%, B -21.27%      | PASS   |
+   | 4 | 두 전략 중 하나라도 5개 연도 중 2+ 양수  | A 3개 / B 4개 (정규 5년)  | PASS   |
+   | 5 | 사전 지정 파라미터 민감도 평탄            | A std=0.0440, B std=0.1695| PASS   |
+
+   - "모두 충족" 룰 엄격 적용 -> No-Go
+   - Strategy A 단독 평가 (B 제외): 4개 조건 모두 PASS -> Conditional Go 가능했으나 심화 분석으로 반려
+
+4. 심화 분석 (W1-06.1b, 사용자 요청)
+
+   가격 기반 시장 국면(regime) 라벨링. 뉴스/거시 해석 금지 (post-hoc rationalization 및 LLM
+   Phase 10+ Immutable 룰 준수).
+
+   Regime 정의 (우선순위 순):
+     - Volatile: 20일 returns std > 전체 기간 상위 20% 초과 (cutoff annualized 0.6147)
+     - Bear: close < MA200 AND MA200 slope(20d) < 0
+     - Bull: close > MA200 AND MA200 slope(20d) > 0
+     - Choppy: 나머지
+
+   전체 기간 regime 분포 (1727 valid days):
+     Bull: 810 (47.4%) | Bear: 393 (23.0%) | Choppy: 268 (15.7%) | Volatile: 237 (13.9%)
+
+   Regime × Strategy 성과 (전체 기간):
+     | Regime   | Days | A_ann_ret | A_Sharpe | B_ann_ret | B_Sharpe |
+     |----------|------|-----------|----------|-----------|----------|
+     | Bull     |  810 |   17.85%  |  0.739   |    2.24%  |  0.157   |
+     | Bear     |  393 |    0.00%  |  0.000   |    0.00%  |  0.000   |
+     | Choppy   |  268 |   26.54%  |  1.638   |  -12.35%  | -0.773   |
+     | Volatile |  237 |   79.37%  |  2.467   |   19.54%  |  1.458   |
+
+     주: Bear regime 0은 MA200 필터 때문에 진입 자체 없음 (A/B 동일 구조).
+     A는 Volatile+Choppy에서 강함, B는 Volatile에서만 강함.
+     A/B 모두 Volatile에서 최고 -> 상호 보완성 제한적.
+
+   2024-12-17 (A DD peak) 이후 구간 (481 valid days):
+     Regime 분포: Bull 280 (58.2%), Bear 113 (23.5%), Choppy 46 (9.6%), Volatile 42 (8.7%)
+     누적 성과:
+       - Strategy A: -21.53% (Sharpe -1.1435)
+       - Strategy B:  +7.84% (Sharpe  0.5409)
+     Trade 수:
+       - A: 5 trades (2승 3패, 승률 40%)
+         2025-01-17 -> 2025-02-24: -13.40%  LOSS
+         2025-04-22 -> 2025-05-30:  +9.64%  WIN
+         2025-07-10 -> 2025-08-02:  +0.35%  WIN (marginal, 수수료·슬리피지 적용된 순 수익)
+         2025-08-13 -> 2025-08-19:  -6.66%  LOSS
+         2025-10-01 -> 2025-10-17:  -3.04%  LOSS
+       - B: 15 trades (소폭 이익 축적)
+       - Ground truth: week1_summary.json.regime_analysis.post_2024_12_17.strategy_a_recent_trades
+         (Return 필드 부호 기준 집계)
+
+   핵심 관찰: **최근 1.3년에 A/B 성과가 역전**. 5년 평균 A 압승 vs 최근 B 우세.
+   이는 A의 엣지 decay 또는 regime shift 징후. Walk-forward 미적용 상태에서
+   단독 Go 결정은 위험.
+
+5. 사용자 의사결정 옵션 제시 (W1-06.4)
+
+   Option A: Strategy A 단독 Go (Week 2 walk-forward 진행)
+     - 심화 분석 후 설득력 감소: 최근 481일 Sharpe -1.14
+   Option B: No-Go (Stage 1 킬 카운터 +1, Week 2 재탐색)
+     - 심화 분석 후 설득력 증가: 둘 다 구조적/최근 취약
+   Option C: A Go + B 자리 재탐색 (병행)
+     - Regime 상호 보완성 제한 확인으로 프레이밍 변경 필요
+
+   사용자 명시적 결정: **Option B (No-Go)**
+   근거 기록: research/outputs/week1_report.md §7.5, outputs/week1_summary.json decision
+
+6. 룰 준수
+   A. Data Integrity: PASS (hash assert, UTC, frozen parquet, 재계산 일치)
+   B. Pre-registered Parameters: PASS (사전 지정 파라미터만 Go/No-Go 평가)
+   C. vectorbt 0.28.5 API: PASS (sl_stop/sl_trail/freq, 금지 API 미사용)
+   D. pyupbit: N/A (데이터는 W1-01 frozen)
+   E. Wilder Smoothing: PASS (RSIIndicator; equity 재계산 시)
+   F. Strategy Logic: PASS (shift(1), fillna, entries.shift(time_stop))
+   G. Output: PASS (week1_report.md, week1_summary.json, week1_equity_comparison.png,
+      week1_regime_analysis.png 생성)
+   H. Cross-doc: PASS (REPORT-001, task_id W1-06)
+   I. No Data Snooping: PASS (사전 지정 기준만 평가, 파라미터 재튜닝 없음)
+   J. No News/Macro Interpretation: PASS (심화 분석도 가격 기반만, 뉴스/LLM 미사용)
+   K. Regime Labeling Limits: volatile cutoff은 전체 기간 quantile로 일부 look-ahead
+      성격 있으나 서술용이며 전략 파라미터 결정에 쓰이지 않아 data snooping 아님 (evidence에 명시)
+
+Acceptance Criteria (sub-plan w1-06-week1-report.md)
+----------------------------------------------------
+[PASS] week1_report.md 생성 (outputs/week1_report.md, 한국어)
+[PASS] 모든 W1-* 결과 통합 (5개 노트북 산출 JSON 전부 로드)
+[PASS] Go 기준 5개 항목 자동 평가 (week1_summary.json go_criteria 필드)
+[PASS] 사전 지정 파라미터만 평가 (민감도 그리드 최고값 사용 X)
+[PASS] 4시간봉 결과는 "참고용" 라벨 (섹션 5, 명시)
+[PASS] 사용자 명시적 Go/No-Go 답변 받음: No-Go (Option B), 2026-04-17
+[PASS] backtest-reviewer APPROVED (post-fix re-review 2026-04-17, BLOCKING+WARNING 모두 해소)
+[PASS] sub-plan + execution-plan status 업데이트 (Done)
+[PASS] No-Go 시 자동 라이브 진행 안 함 (Stage 1 킬 카운터 +1 기록)
+
+추가 완료 사항 (W1-06.1b, 사용자 요청):
+[PASS] 2025-2026 구간 trade 단위 상세 분석 (A/B 전체 + 최근 cutoff 필터)
+[PASS] 가격 기반 시장 국면 라벨링 (Bull/Bear/Choppy/Volatile)
+[PASS] Regime × Strategy 성과 매트릭스
+[PASS] Regime-aware 시각화 (week1_regime_analysis.png)
+[PASS] 뉴스/거시 해석 미사용 (post-hoc rationalization 금지 준수)
+
+Files Generated
+---------------
+- notebooks/06_week1_report.ipynb (513KB, executed)
+- outputs/week1_report.md (~8KB, 한국어 리포트 + 7.5 결정 기록)
+- outputs/week1_summary.json (~15KB, 모든 수치 + regime_analysis + decision)
+- outputs/week1_equity_comparison.png (~172KB, A/B × 1d/4h)
+- outputs/week1_regime_analysis.png (~198KB, price + MA200 + regime bg + A trades)
+
+W2 재설계 요구사항
+-----------------
+- Week 1 No-Go -> Week 2를 "walk-forward"에서 "전략 재탐색 + 알트 확장"으로 변경
+- Week 2 sub-plan 작성 시 사전 지정 원칙:
+  - 알트 선정 기준: 시총 상위 N개 + 업비트 KRW 상장 3년+
+  - 후보 전략: Bull/Bear regime 보완형, 모멘텀(MACD/ADX), 변동성 브레이크아웃 등
+  - Strategy A 파라미터는 후보 풀 보관 (완전 폐기 X)
+  - Strategy B는 구조적 폐기
+  - 뉴스/LLM 전략은 Phase 10+ Immutable 룰 유지

@@ -453,6 +453,45 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
 
 **중요**: 8주 킬은 "라이브 가드"가 아닌 "연구 방향 재평가". 라이브 투입은 구조상 Week 12+에만 가능.
 
+### Stage 1 실행 기록
+
+#### Week 1 Go/No-Go 결정 (W1-06, 2026-04-17 UTC)
+
+**결정**: **No-Go (Option B)** — 사용자 명시적 승인
+
+**사전 지정 Go 기준 평가** (W1-06.3 자동 평가):
+
+| # | 기준 | 결과 | 판정 |
+|---|------|------|------|
+| 1 | A 일봉 Sharpe > 0.8 | 1.0353 | PASS |
+| 2 | B 일봉 Sharpe > 0.5 | 0.1362 | **FAIL** |
+| 3 | 두 전략 중 하나라도 MDD < 50% | A -22.45%, B -21.27% | PASS |
+| 4 | 두 전략 중 하나라도 2+ 연도 양수 | A 3개, B 4개 (정규 5년 기준) | PASS |
+| 5 | 사전 지정 파라미터 평탄 영역 | A std=0.0440, B std=0.1695 | PASS |
+
+→ "모두 충족" 룰 엄격 적용 시 **No-Go**.
+
+**심화 분석 추가 발견 (W1-06.1b 사용자 요청, 가격 기반 regime 라벨링)**:
+
+- Strategy A 최근 481일 (2024-12-17 A DD peak 이후) **Sharpe -1.1435, 누적 -21.53%**
+- Strategy A 해당 기간 5 trade 중 2승 3패 (40% 승률; 손실 -13.40%/-6.66%/-3.04%, 이익 +9.64%/+0.35%) — ground truth: `research/outputs/week1_summary.json.regime_analysis.post_2024_12_17.strategy_a_recent_trades` Return 필드 집계
+- **5년 Sharpe 1.04는 2024년 단년 집중** (2024 한 해 수익 68.3% 기여)
+- Regime × Strategy: A/B 모두 Volatile regime에서 최고 Sharpe → **앙상블 보완성 제한적**
+- A가 최근 Bull dominant 구간(58.2%)에서도 실패 → 엣지 decay 또는 regime 정의 불일치
+
+**Stage 1 킬 카운터**: +1 (Week 1 종료 시점)
+
+**후속 조치**:
+
+- Week 2 범위 재설정: 기존 "walk-forward"에서 **"전략 패밀리 재탐색 + 메이저 알트 확장"**으로 변경
+- Strategy A 파라미터 (MA=200, Donchian=20/10, Vol>1.5x, SL=8%)는 **후보 풀에 보관**, 즉시 메인 아님
+- Strategy B (MA=200, RSI(4)<25, RSI>50 exit, TimeStop=5d, SL=8%)는 **구조적 엣지 부재 확인 후 폐기**
+- Week 2 sub-plan 작성 시 사전 지정 기준 (시총 상위 N개, 상장 3년+) 으로 알트 선정
+- Week 2에 새 전략 철학 탐색 (후보: Bear/Bull regime 보완, momentum-on-Bull, 변동성 브레이크아웃 등)
+- 뉴스/LLM 기반 전략은 **Phase 10+ Immutable 룰** 유지 (거부권 전용, 매매 결정 생성 아님)
+
+**이 결정은 데이터 스누핑 금지 룰을 준수**: 결과 보고 파라미터를 튜닝하지 않았으며, 사전 지정 Go 기준에 따라 객관적으로 평가. 심화 분석은 Option 선택 근거로만 사용, 전략 재튜닝에는 사용 안 함.
+
 ---
 
 ## 다음 단계
