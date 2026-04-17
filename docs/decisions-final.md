@@ -492,6 +492,70 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
 
 **이 결정은 데이터 스누핑 금지 룰을 준수**: 결과 보고 파라미터를 튜닝하지 않았으며, 사전 지정 Go 기준에 따라 객관적으로 평가. 심화 분석은 Option 선택 근거로만 사용, 전략 재튜닝에는 사용 안 함.
 
+#### Week 2 재범위 결정 (2026-04-17, Week 1 No-Go 후속)
+
+**원래 Week 2** (walk-forward/DSR 중심)는 Strategy A/B 확정 엣지 전제였으나 Week 1에서 엣지 확보 실패. 사용자 승인으로 Week 2를 **"전략 후보 재탐색 + 메이저 알트 확장"**으로 재설계.
+
+**재설계된 Week 2 구조**:
+
+- **W2-01 데이터 확장 + 페어 선정 사전 지정** (BT-003, 2일)
+  - 기준: 시총 상위 30위 + 업비트 KRW 상장 3년+ + 일거래대금 100억+
+  - Tier 1 필수: BTC (W1 재사용), ETH
+  - Tier 2 후보: XRP, SOL, ADA, DOGE (기준 충족 여부에 따라)
+  - 영구 제외: PEPE (상장 <3년) 등 소형/신생 알트
+  - SHIB 등 밈코인은 별도 실험 트랙 후보 (Week 2 불포함)
+- **W2-02 새 전략 후보 사전 등록** (STR-NEW-001, 2일)
+  - Candidate C: Slow Momentum (MA50/200 crossover + ATR(14)×3 trail) — Moskowitz 2012 근거
+  - Candidate D: Volatility Breakout (Keltner + Bollinger 동시 돌파)
+  - (옵션) Candidate E: BTC/ETH spread — 복잡도 높아 Week 4+로 이전 고려
+  - Strategy A 파라미터는 후보 풀 보관 (W2-03 grid 포함)
+  - Strategy B는 구조적 폐기 (grid 미포함)
+- **W2-03 In-sample 백테스트 grid + Week 2 리포트** (BT-005, 2-3일)
+  - **Primary 대상**: Tier 1 {BTC, ETH} × {A, C, D} = 6셀 (Go 기준 적용)
+  - **Exploratory 대상**: Tier 2 {XRP, SOL, ADA, DOGE} × {A, C, D} = 12셀 (참고용, Go 기여 X)
+  - 사전 지정 파라미터 고정, 알트별 튜닝 금지
+  - **Week 2 게이트 (사전 지정, DSR 포함)**:
+    - Primary: Primary 6셀 중 적어도 1개 전략이 BTC 또는 ETH에서 `Sharpe > 0.8 AND DSR > 0`
+    - Secondary 마킹 (Go 기여 X): 동일 전략이 Tier 1+2 3+ 페어에서 Sharpe > 0.5 → ensemble 후보
+    - 미달 → Stage 1 킬 카운터 +1, Week 3 재탐색
+  - **다중 검정 한계 고지**: 6 primary 셀도 family-wise 오류 여지. DSR로 부분 완화, 최종 검증은 Week 3 walk-forward
+
+**Week 3로 이전**:
+- Walk-forward analysis (원래 W2-01 → W3-01)
+- Deflated Sharpe + Bootstrap + Monte Carlo (원래 W2-02 → W3-02)
+- 전략 채택 결정 (W3-03)
+
+**W2-01 sub-plan 작성 완료**: `docs/stage1-subplans/w2-01-data-expansion.md`. W2-02/W2-03 sub-plan은 직전 Task 완료 후 작성 (프로젝트 컨벤션).
+
+#### Week 2 한계 및 독립성 서약 (W2-01 외부 감사 후 추가, 2026-04-17)
+
+외부 감사관 리뷰(`.evidence/agent-reviews/w2-01-preplan-review-2026-04-17.md`) BLOCKING-4 + WARNING-7 대응:
+
+**Strategy C/D 파라미터 출처 명시**:
+- **Candidate C — Slow Momentum (MA50/200 crossover + ATR(14)×3 trailing)**:
+  - MA50/200 crossover: Faber, Mebane T. (2007) "A Quantitative Approach to Tactical Asset Allocation" (일반 타이밍 지표, BTC-specific 튜닝 아님)
+  - ATR(14): Wilder (1978) "New Concepts in Technical Trading Systems" 창시자 기본값
+  - Multiplier ×3: Wilder 원 제안 값 (Chandelier Exit 등 후속 문헌에서도 2-3 범위 표준)
+- **Candidate D — Volatility Breakout (Keltner(20, 1.5 ATR) + Bollinger(20, 2σ) 동시 돌파)**:
+  - Keltner Channel (20, 1.5): Keltner (1960) 원 설계값
+  - Bollinger Band (20, 2): Bollinger (1983) 기본값
+
+**독립성 한계 서약 (Soft Contamination 인정)**:
+- 본 프로젝트 팀은 Week 1에서 BTC 5년 일봉 데이터를 이미 분석했고, W1-06.1b에서 "A/B Volatile regime 편중" 결과를 관찰했다. 따라서 Candidate C/D는 **"완전히 BTC-unseen 환경"에서 선택된 것이 아니다**.
+- 위의 파라미터 값은 모두 문헌의 **기본값**이며 W1 regime 분석 결과에 맞춘 튜닝 값이 아님을 서약한다.
+- 그럼에도 전략 **철학 자체**의 선택(momentum + volatility breakout)은 W1 regime 편중 발견의 영향을 받았다 → **soft contamination**이 존재함을 인정.
+- 이 한계의 실질 영향은 **Week 3 walk-forward가 최종 평가**. Week 2 In-sample Go는 예비 판단.
+
+**Strategy A 후보 풀 물리적 정의**:
+- `docs/candidate-pool.md`에 Strategy A 파라미터 + 재진입 조건 저장 (W2-01.1 직후 신설)
+- Recall mechanism: W2-03 grid에서 재등장 시 DSR-adjusted 평가 필수. Week 3 이후 재등장 시 새 사전 등록 사이클 요구.
+
+**Tier 2 Fallback 정책 (B-5 대응)**:
+- Tier 2 후보 <2 인 경우:
+  - (i) **완화 없이** Tier 1 2개(BTC+ETH)만으로 primary 그리드 축소 — Go 기준 그대로 유지
+  - (ii) 또는 Task 전체 재설계 → 새 사전 등록 + backtest-reviewer + 사용자 승인 루프
+- **임계값 완화는 금지**. 후보 수를 맞추려 기준을 움직이는 행위는 data snooping.
+
 ---
 
 ## 다음 단계

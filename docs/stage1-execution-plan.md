@@ -78,10 +78,12 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W1-04 | Done | 1 | [강건성 + 민감도](./stage1-subplans/w1-04-robustness.md) |
 | W1-05 | Done | 1 | [4시간봉 실험](./stage1-subplans/w1-05-4h-experiment.md) |
 | W1-06 | Done | 1 | [Week 1 리포트](./stage1-subplans/w1-06-week1-report.md) (No-Go 결정, 2026-04-17) |
-| W2-01 | Re-scope | 2 | TBD (Week 1 No-Go → "전략 패밀리 재탐색 + 알트 확장"으로 범위 재설정) |
-| W2-02 | Re-scope | 2 | TBD |
-| W2-03 | Re-scope | 2 | TBD |
-| W3-01 | Pending | 3 | TBD |
+| W2-01 | Pending | 2 | [데이터 확장 + 페어 선정](./stage1-subplans/w2-01-data-expansion.md) (재범위 후 재정의) |
+| W2-02 | Pending (sub-plan 미작성) | 2 | TBD — 새 전략 후보 사전 등록 (W2-01 완료 후 sub-plan 작성) |
+| W2-03 | Pending (sub-plan 미작성) | 2 | TBD — In-sample 백테스트 grid (W2-02 완료 후 sub-plan 작성) |
+| W3-01 | Pending | 3 | TBD — Walk-forward analysis (원래 W2-01에서 이전) |
+| W3-02 | Pending | 3 | TBD — DSR + Bootstrap (원래 W2-02에서 이전) |
+| W3-03 | Pending | 3 | TBD — 전략 채택 결정 |
 | W4-01 | Pending | 4 | TBD |
 | W4-02 | Pending | 4 | TBD |
 | W6-01 | Pending | 6 | TBD |
@@ -96,11 +98,13 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W1-03 | W1-01 | W1-04, W1-05, W1-06 |
 | W1-04 | W1-02, W1-03 | W1-06 |
 | W1-05 | W1-02, W1-03 | (W1-06에 참고만, 차단 X) |
-| W1-06 | W1-02, W1-03, W1-04 | W2-* (W1-05는 참고만 사용) |
-| W2-01 | W1-06 (Go) | W2-02, W3-01 |
-| W2-02 | W2-01 | W3-01 |
-| W2-03 | W2-01 | W3-01 |
-| W3-01 | W2-* | W4-01 |
+| W1-06 | W1-02, W1-03, W1-04 | W2-* (재범위 후) |
+| W2-01 | W1-06 (결정 완료) | W2-02 |
+| W2-02 | W2-01 (데이터 freeze) | W2-03 |
+| W2-03 | W2-01, W2-02 | W3-01 (Go 시) |
+| W3-01 | W2-03 (Go) | W3-02, W3-03 |
+| W3-02 | W3-01 | W3-03 |
+| W3-03 | W3-02 | W4-01 |
 | W4-01 | W3-01 | W4-02 |
 | W4-02 | W4-01 | W6-01 |
 | W6-01 | W4-02 | W8-01 |
@@ -193,18 +197,56 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
   - **Evidence**: `.evidence/w1-06-week1-report.txt`
   - **Commit**: `docs(plan): Week 1 리포트 + Go/No-Go 결정`
 
-### Week 2~8 — Sub-plan 미정 (Week 1 Go 후 작성)
+### Week 2 — 재범위 (Week 1 No-Go 후, 2026-04-17 결정)
 
-- [ ] **W2-01. Walk-forward analysis** (Feature: BT-003)
-- [ ] **W2-02. Deflated Sharpe + Monte Carlo + Bootstrap** (Feature: BT-004)
-- [ ] **W2-03. 알트코인 확장 + 앙상블** (Feature: STR-C-001)
-- [ ] **W3-01. 전략 채택 결정 + Stage 1 체크포인트 #1** (Feature: STR-FINAL-001)
+**원래 Week 2** (walk-forward/DSR 중심)는 Strategy A/B 확정 엣지 전제였으나 Week 1에서 엣지 확보 실패. Week 2를 **"전략 후보 재탐색 + 메이저 알트 확장"**으로 재설계. Walk-forward는 Week 3로 이전. DSR은 Week 2 Go 기준에 **부분 포함** (B-3 CRITICAL 이슈 해소).
+
+- [ ] **W2-01. 데이터 확장 + 페어 선정 사전 지정** (Feature: BT-003)
+  - 페어 선정 기준 사전 지정 (시총 상위, 상장 3년+, 유동성)
+  - Tier 1 필수: BTC (W1 재사용), ETH
+  - Tier 2 후보: XRP, SOL, ADA, DOGE
+  - 영구 제외: 상장 <3년 (PEPE), 시총 <50위
+  - SHIB는 옵션 (밈 특성으로 Week 2 불포함, 추후 별도 실험 트랙 검토)
+  - 5년 일봉/4h 데이터 수집 + SHA256 freeze + data_hashes.txt 갱신
+  - Sub-plan: `stage1-subplans/w2-01-data-expansion.md`
+  - Depends: W1-06 (No-Go 결정 완료)
+
+- [ ] **W2-02. 새 전략 후보 사전 등록** (Feature: STR-NEW-001)
+  - Candidate C: Slow Momentum (MA50/200 crossover + ATR(14)×3 trailing stop) - Moskowitz et al. 2012 시계열 모멘텀 기반
+  - Candidate D: Volatility Breakout (Keltner Channel + Bollinger Band 동시 돌파)
+  - (옵션) Candidate E: BTC/ETH 스프레드 차익거래 - 복잡도 높아 Week 4+로 이전 가능
+  - 파라미터 freeze (BTC 데이터 보지 않고 문헌 근거로 결정)
+  - Strategy A 파라미터는 **후보 풀에 보관** (W2-03 grid 포함)
+  - Strategy B는 구조적 엣지 부재 확인으로 폐기 (grid 미포함)
+  - 사전 등록 문서: `docs/strategy-preregistration-week2.md`
+  - Sub-plan: `stage1-subplans/w2-02-strategy-preregistration.md` (W2-01 완료 후 작성)
+  - Depends: W2-01
+
+- [ ] **W2-03. In-sample 백테스트 grid + Week 2 리포트** (Feature: BT-005)
+  - **Primary 대상 (Go 기준 적용)**: Tier 1 {BTC, ETH} × {A, C, D} = **6셀**
+  - **Exploratory 대상 (참고용, Go 기여 X)**: Tier 2 {XRP, SOL, ADA, DOGE} × {A, C, D} = 12셀
+  - 사전 지정 파라미터 고정 (알트별 튜닝 금지, data snooping 금지)
+  - 결과 표: Sharpe, MDD, PF, Trades + **DSR (Bailey & López de Prado 2014)** per primary cell
+  - **Week 2 게이트 기준 (사전 지정, 다중 검정 보정 포함)**:
+    - Primary: Primary 6셀 중 적어도 **1개 전략이 BTC 또는 ETH에서 Sharpe > 0.8 AND DSR > 0**
+    - Secondary (마킹용, Go 기여 X): 동일 전략이 Tier 1+2 3+ 페어에서 Sharpe > 0.5 → ensemble 후보로 표시
+    - 미달 → Stage 1 킬 카운터 +1, Week 3 재탐색
+  - **다중 검정 한계 인정**: 6 primary 셀은 여전히 family-wise 오류 여지 있음. DSR은 이를 부분적으로 완화. 최종 엣지 검증은 Week 3 walk-forward에서 이뤄짐.
+  - 사용자 명시적 Go/No-Go 승인
+  - Sub-plan: `stage1-subplans/w2-03-in-sample-grid.md` (W2-02 완료 후 작성)
+  - Depends: W2-01, W2-02
+
+### Week 3~8 — Sub-plan 미정 (Week 2 Go 후 작성)
+
+- [ ] **W3-01. Walk-forward analysis** (Feature: BT-004) — 원래 W2-01에서 이전
+- [ ] **W3-02. Deflated Sharpe + Monte Carlo + Bootstrap** (Feature: BT-006) — 원래 W2-02에서 이전
+- [ ] **W3-03. 전략 채택 결정 + Stage 1 체크포인트 #1** (Feature: STR-FINAL-001)
 - [ ] **W4-01. Freqtrade 이식** (Feature: PAPER-001)
 - [ ] **W4-02. Docker + TimescaleDB + 시크릿** (Feature: PAPER-002)
 - [ ] **W6-01. 페이퍼 트레이딩 시작** (Feature: PAPER-003)
 - [ ] **W8-01. Stage 1 게이트 평가** (Feature: GATE-001) ← **결정적 분기**
 
-각 Task의 sub-plan은 직전 Task 종료 후 작성. Week 1 Go 못 받으면 W2~ 자동 무효화.
+각 Task의 sub-plan은 직전 Task 종료 후 작성. Week 2 Go 못 받으면 W3~ 추가 재탐색.
 
 ## QA / Evidence Rules
 
