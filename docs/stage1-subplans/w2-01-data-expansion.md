@@ -28,7 +28,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 - **데이터 freeze + SHA256** — W1-01 패턴 재사용, advertised 범위 slicing
 - **CoinGecko 응답 원본 freeze** — 스냅샷 재현 가능성 보장
 - **알트별 파라미터 튜닝 금지** — W2-03에서 동일 파라미터로만 평가
-- **임계값 변경 금지** — Tier 2 후보 부족 시 완화 대신 Tier 1 축소 또는 재설계 루프
+- **임계값 변경 금지** — Tier 2 후보 부족 시 완화 대신 **Fallback (i) Tier 2 제거 (primary 6셀 유지, exploratory만 감소)** 또는 **(ii) Task 재설계** 루프. 상세는 `docs/pair-selection-criteria-week2.md` 섹션 3
 
 ## 개요
 
@@ -62,7 +62,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 |------|--------|------------------|
 | 시가총액 (CoinGecko) | 상위 30위 | `GET /coins/markets?vs_currency=krw&order=market_cap_desc&per_page=30&page=1`. **스냅샷: 2026-04-17 00:00 UTC (W1-06 결정일 자정 기준)**. 응답 JSON 원본 `research/data/coingecko_top30_snapshot_20260417.json`로 저장 + SHA256 `data_hashes.txt` 기록 |
 | 업비트 KRW 페어 상장일 | **≤ 2023-04-17** | W1-06 결정일(2026-04-17) 기준 정확히 3년 전. 5년 advertised 범위 중 60%+ 확보. 상장일 출처: 업비트 공식 공지 또는 `pyupbit.get_ohlcv_from()` 최초 캔들 날짜 |
-| 업비트 거래대금 | 30일 rolling 평균 **≥ 100억 원** | 측정 창: 2026-03-12 ~ 2026-04-11 (30 trading days, UTC 기준). value = `close × volume` (KRW). 일봉 데이터로 계산. **24h 스팟 거래대금 사용 금지** (노이즈 크고 후보별 유리한 창 사후 선택 여지) |
+| 업비트 거래대금 | 측정 창 내 30 UTC-day 단순 평균 **≥ 100억 원** | 측정 창: **2026-03-13 ~ 2026-04-11 (UTC, inclusive 양끝, 정확히 30 UTC days, W1 freeze 2026-04-12 직전)**. 기본 산식: `daily_value_i = close_i × volume_i` (일봉 OHLCV 종가 근사, KRW). **업비트 API 응답에 실측 거래대금 필드(`value`/`candle_acc_trade_price`) 존재 시 해당 필드 직접 사용** (근사 오차 제거, `pair-selection-criteria-week2.md` L53 지시). 평균 산식: `Σ(daily_value_i) / 30`. **pandas `.rolling(30).mean()` 벡터 연산 아닌 단일 창 평균**. **24h 스팟 거래대금 사용 금지** |
 | 업비트 KRW 페어 존재 | 필수 | 프로젝트는 KRW 페어만 |
 | 선물/파생 여부 | 금지 | 현물만 |
 | 100억 임계값 근거 | 추정 | W2-01.2에서 실측 slippage 검증 전 잠정. 업비트 시총 상위 20위 알트의 2025 평균 거래대금 분포 기준 중앙값 수준 (W2-01.2 검증 결과 불일치 시 사용자 보고 후 결정, 임계값 변경은 새 사전 등록 사이클 필요) |
@@ -74,7 +74,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 - **영구 제외**: PEPE (상장 <3년), BONK/WIF 등 소형 밈, 시총 >30위
 
 - [ ] 기준 문서화: `docs/pair-selection-criteria-week2.md` 작성
-- [ ] 사용자 명시적 승인 (기준 임계값 수정 여지 있음)
+- [ ] 사용자 명시적 승인 (기준 임계값 수정 여지 있음) → **`pair-selection-criteria-week2.md` 섹션 6.1 기준 freeze 발효**
 - [ ] 승인 후 기준 freeze (W2 중간에 변경 금지, 변경 시 snooping)
 
 ### SubTask W2-01.2: 기준 충족 후보 조회 + 스냅샷 freeze
@@ -97,14 +97,14 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
       "api_endpoint": r.url,
       "data": r.json(),
   }
-  with open("data/coingecko_top30_snapshot_20260417.json", "w") as f:
+  with open("research/data/coingecko_top30_snapshot_20260417.json", "w") as f:
       json.dump(snapshot, f, indent=2)
   # SHA256 → data_hashes.txt 기록
   ```
 - [ ] pyupbit로 KRW 마켓 전체 페어 목록 조회 (`pyupbit.get_tickers("KRW")`)
 - [ ] CoinGecko top30 ∩ 업비트 KRW 페어 교집합 산출
 - [ ] **각 후보의 업비트 KRW 상장일 조회** (`pyupbit.get_ohlcv_from()` 최초 캔들 날짜 기준). **상장일 ≤ 2023-04-17**인 페어만 통과.
-- [ ] **각 후보의 30일 rolling 평균 거래대금 실측** (2026-03-12 ~ 2026-04-11, value = close × volume). **≥ 100억 원**인 페어만 통과.
+- [ ] **각 후보의 30 UTC-day 단순 평균 거래대금 실측** (측정 창 **2026-03-13 ~ 2026-04-11 UTC inclusive, 정확히 30일**, `daily_value = close × volume`). 구현: `df.loc["2026-03-13":"2026-04-11", "daily_value"].mean()`. **≥ 100억 원**인 페어만 통과.
 - [ ] 기준 3개 모두 충족하는 후보 리스트업 (표로 정리, 기록은 `docs/pair-selection-criteria-week2.md`)
 - [ ] **100억 임계값 sanity check**: 상위 20위 알트의 거래대금 분포와 비교. 중앙값과 크게 괴리 시 사용자 보고 (단 임계값 변경은 새 사전 등록 사이클 필요)
 - [ ] **CoinGecko rate limit 확인** (2026-04-17 공식 docs 기준). Retry-After 헤더 읽기 로직 포함
@@ -119,10 +119,11 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
   - Tier 2 (exploratory 대상): XRP, SOL, ADA, DOGE 중 기준 충족 페어
   - 기준 미달 시 대체 없음 (임의 대체 = snooping)
 - [ ] **Tier 2 <2 fallback 정책 명시**:
-  - (i) 완화 없이 Tier 1 2개(BTC+ETH)만으로 primary 그리드 축소 (임계값 변경 X)
+  - (i) **Tier 2 제거**: Tier 1 × {A,C,D} = primary 6셀 **그대로 유지**. Tier 2 exploratory만 통과 페어 수 × 3 전략으로 감소 (임계값 변경 X, Go 기준 변경 X)
   - (ii) 또는 Task 전체 재설계 → 새 사전 등록 + backtest-reviewer + 사용자 승인 루프
   - **임계값 완화 금지** (snooping의 정의 그대로임)
-- [ ] 사용자 승인 + 리스트 freeze
+  - 상세: `docs/pair-selection-criteria-week2.md` 섹션 3
+- [ ] 사용자 승인 + 리스트 freeze → **`pair-selection-criteria-week2.md` 섹션 6.2 확정 리스트 freeze 발효**
 - [ ] `docs/pair-selection-criteria-week2.md`에 확정 리스트 기록
 - [ ] **변경 금지 서약**: "W2 실행 중 결과 보고 페어 추가/제거 금지"
 - [ ] **Strategy A 후보 풀 물리화**: `docs/candidate-pool.md` 신설
@@ -148,7 +149,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
           assert df.index.tz is None  # naive KST
           df.index = df.index.tz_localize('Asia/Seoul').tz_convert('UTC')
           df = df.loc[RANGE[0]:RANGE[1]]  # advertised slicing
-          df.to_parquet(f"data/{pair}_{suffix}_frozen_20260412.parquet")
+          df.to_parquet(f"research/data/{pair}_{suffix}_frozen_20260412.parquet")
   ```
 - [ ] 상장 <2021-01-01 페어의 경우 실제 첫 캔들부터 수집 + metadata에 실제 범위 기록
 - [ ] period=0.2 (rate limit 안전 마진)
@@ -167,7 +168,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 - [ ] 상장 <2021-01-01 페어는 실제 범위 기록 (예: ADA가 2021-03-01 상장이면 bars=1867)
 - [ ] **Common-window 사전 결정 (W-2 대응)**:
   - 각 페어 actual 범위 수집 후, 상장 가장 늦은 페어의 start date를 common window 시작점으로 채택
-  - 예: SOL 상장 2021-04-07이 가장 늦으면 common window = 2021-04-07 ~ 2026-04-11
+  - 예: SOL 상장일(2021년 추정, W2-01.2 실측 확정)이 가장 늦으면 common window = SOL 상장일 ~ 2026-04-12 UTC (W1 freeze 종료일)
   - W2-03 grid에서 **primary metric은 페어별 max-span Sharpe**, **secondary metric은 common-window Sharpe** 둘 다 계산
   - Common-window 시작점을 `docs/pair-selection-criteria-week2.md`에 기록 (사전 freeze)
 - [ ] 샘플 시각화: 각 페어 normalized price plot + common-window 시작선 표시 (outputs에 저장)
@@ -206,7 +207,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 
 - [ ] 페어 선정 기준 문서 (`docs/pair-selection-criteria-week2.md`) 생성 + 사용자 승인 (측정 방법 박제 포함)
 - [ ] CoinGecko 시총 스냅샷 원본 JSON 저장 + SHA256 기록 (`research/data/coingecko_top30_snapshot_20260417.json`)
-- [ ] 각 후보의 상장일 + 30일 rolling 거래대금 실측 완료
+- [ ] 각 후보의 상장일 + 30 UTC-day 단순 평균 거래대금 실측 완료 (측정 창 2026-03-13 ~ 2026-04-11 UTC inclusive)
 - [ ] 최종 페어 리스트 확정 (Tier 1 2개 필수, Tier 2 0~4개)
 - [ ] Tier 2 <2 시 B-5 fallback 정책 적용 + 사용자 승인
 - [ ] Strategy A 후보 풀 물리화 (`docs/candidate-pool.md` 신설)
@@ -230,7 +231,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 
 | 리스크 | 영향 | 완화 |
 |--------|------|------|
-| Tier 2 후보 <2개 | Medium | **임계값 완화 금지**. Tier 1 2개(BTC+ETH) primary 축소 or Task 재설계 루프 중 택일 (B-5 fallback 정책) |
+| Tier 2 후보 <2개 | Medium | **임계값 완화 금지**. **Fallback (i) Tier 2 제거** (primary 6셀 그대로 유지, exploratory 통과 수 × 3 전략으로 감소) 또는 **(ii) Task 재설계** 루프 중 택일. 상세는 `docs/pair-selection-criteria-week2.md` 섹션 3 (B-5 fallback 정책) |
 | 상장 기간 <5년 페어 (SOL, DOGE 등) | Medium | 실제 상장일 기록 + **common-window 사전 결정** (W-2). W2-03에서 페어별 max-span + common-window 둘 다 metric 계산 |
 | CoinGecko rate limit | Low | **2026-04-17 공식 docs 기준** 무료 분당 10-30 requests. Retry-After 헤더 처리 + 단일 스냅샷 재사용 (재조회 금지) |
 | CoinGecko 스냅샷 비재현성 | Medium | 스냅샷 원본 JSON `coingecko_top30_snapshot_20260417.json` 저장 + SHA256 freeze. W2 중 재조회 절대 금지 |
@@ -274,10 +275,10 @@ feat(plan): BT-003 W2-01 데이터 확장 + 페어 선정 사전 지정
 - 페어 선정 기준 박제:
   - CoinGecko 시총 상위 30 (스냅샷 2026-04-17 00:00 UTC, JSON 원본 freeze)
   - 업비트 KRW 상장일 <= 2023-04-17
-  - 30일 rolling 평균 거래대금 >= 100억 원 (2026-03-12 ~ 2026-04-11 창)
+  - 30 UTC-day 단순 평균 거래대금 >= 100억 원 (측정 창 2026-03-13 ~ 2026-04-11 UTC inclusive, 정확히 30일)
 - Tier 1 필수: BTC (W1 재사용), ETH
 - Tier 2 확정: {XRP, SOL, ADA, DOGE} 중 기준 충족 페어
-- Tier 2 <2 fallback: 완화 금지, Tier 1 축소 or 재설계 루프
+- Tier 2 <2 fallback: 완화 금지, Tier 2 제거(primary 6셀 그대로) or 재설계 루프
 - Strategy A 후보 풀 물리화 (candidate-pool.md)
 - 5년 일봉/4h 데이터 freeze (UTC, SHA256)
 - Common-window 시작일 사전 결정 (페어별 max-span + common-window 이원 metric)

@@ -551,10 +551,11 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
 - Recall mechanism: W2-03 grid에서 재등장 시 DSR-adjusted 평가 필수. Week 3 이후 재등장 시 새 사전 등록 사이클 요구.
 
 **Tier 2 Fallback 정책 (B-5 대응)**:
-- Tier 2 후보 <2 인 경우:
-  - (i) **완화 없이** Tier 1 2개(BTC+ETH)만으로 primary 그리드 축소 — Go 기준 그대로 유지
-  - (ii) 또는 Task 전체 재설계 → 새 사전 등록 + backtest-reviewer + 사용자 승인 루프
+- Tier 2 후보 <2 (=0 또는 1) 인 경우:
+  - (i) **Tier 2 제거**: Tier 1 2개(BTC+ETH) × {A,C,D} = **primary 6셀 그대로 유지**. Tier 2 exploratory는 통과 페어 수 × 3 전략으로 감소 (0개 통과 → exploratory 0셀, 1개 통과 → exploratory 3셀). Go 기준 (Sharpe>0.8 AND DSR>0) 변경 없음.
+  - (ii) 또는 Task 전체 재설계 → 새 사전 등록 + backtest-reviewer + 사용자 승인 루프.
 - **임계값 완화는 금지**. 후보 수를 맞추려 기준을 움직이는 행위는 data snooping.
+- 상세 규정은 `docs/pair-selection-criteria-week2.md` 섹션 3 (본 결정을 물리화).
 
 ---
 
