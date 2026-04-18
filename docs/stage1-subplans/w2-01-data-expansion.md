@@ -82,12 +82,16 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 **작업자**: Solo
 **예상 소요**: 0.3일 (스냅샷 저장 + 실측 검증 추가)
 
-- [ ] **시총 스냅샷 조회 + 원본 저장**:
+#### cycle 1 시점 단계 (history, 사이클 중단으로 cancel)
+
+cycle 1 (2026-04-17)에 단계 1 (snapshot 조회)만 실시 → ADA top10 밖(14위) 확인 → Fallback (ii) 사이클 중단. 아래 단계는 cycle 1 시점 history 박제 (실행 안 함).
+
+- [x] **시총 스냅샷 조회 + 원본 저장** (cycle 1 완료, snapshot JSON + SHA256 `c70a1089...` 보존):
   ```python
   import requests, json, hashlib
   from datetime import datetime, timezone
   
-  SNAPSHOT_UTC = "2026-04-17T00:00:00+00:00"  # W1-06 결정일 자정 박제
+  SNAPSHOT_UTC = "2026-04-17T00:00:00+00:00"  # cycle 1 명목 시각 (cycle 2에서 폐기)
   r = requests.get("https://api.coingecko.com/api/v3/coins/markets",
       params={"vs_currency": "krw", "order": "market_cap_desc",
               "per_page": 30, "page": 1})
@@ -99,15 +103,46 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
   }
   with open("research/data/coingecko_top30_snapshot_20260417.json", "w") as f:
       json.dump(snapshot, f, indent=2)
-  # SHA256 → data_hashes.txt 기록
   ```
-- [ ] pyupbit로 KRW 마켓 전체 페어 목록 조회 (`pyupbit.get_tickers("KRW")`)
-- [ ] CoinGecko top30 ∩ 업비트 KRW 페어 교집합 산출
-- [ ] **각 후보의 업비트 KRW 상장일 조회** (`pyupbit.get_ohlcv_from()` 최초 캔들 날짜 기준). **상장일 ≤ 2023-04-17**인 페어만 통과.
-- [ ] **각 후보의 30 UTC-day 단순 평균 거래대금 실측** (측정 창 **2026-03-13 ~ 2026-04-11 UTC inclusive, 정확히 30일**, `daily_value = close × volume`). 구현: `df.loc["2026-03-13":"2026-04-11", "daily_value"].mean()`. **≥ 100억 원**인 페어만 통과.
-- [ ] 기준 3개 모두 충족하는 후보 리스트업 (표로 정리, 기록은 `docs/pair-selection-criteria-week2.md`)
-- [ ] **100억 임계값 sanity check**: 상위 20위 알트의 거래대금 분포와 비교. 중앙값과 크게 괴리 시 사용자 보고 (단 임계값 변경은 새 사전 등록 사이클 필요)
-- [ ] **CoinGecko rate limit 확인** (2026-04-17 공식 docs 기준). Retry-After 헤더 읽기 로직 포함
+- [ ] ~~pyupbit로 KRW 마켓 전체 페어 목록 조회~~ (cycle 1 미실시, cycle 2에서 진행)
+- [ ] ~~CoinGecko top30 ∩ 업비트 KRW 페어 교집합 산출~~
+- [ ] ~~각 후보 상장일 조회~~
+- [ ] ~~각 후보 30 UTC-day 평균 거래대금 실측~~
+- [ ] ~~100억 임계값 sanity check~~
+- [ ] ~~CoinGecko rate limit 확인~~
+
+#### cycle 2 v4 박제 반영 단계 (현행, 2026-04-19, NIT2-3 해소)
+
+cycle 2 v4 (`docs/pair-selection-criteria-week2-cycle2.md` v4) 박제 발효 후 본 sub-plan은 cycle 2 시점 단계로 갱신. cycle 1 snapshot JSON 재사용 + Tier 2 결정 규칙 코드 자동 적용 + **외부 감사관 검증 후 실행** (NIT2-3 해소).
+
+- [ ] **cycle 1 snapshot JSON 로드 + SHA256 무결성 재검증** (새 fetch 금지, cycle 2 v4 L40-45 박제):
+  ```python
+  import json, hashlib
+  EXPECTED_SHA = "c70a108905566f00f1b5b97fd3b08bf13be38d713f351027861d78869b3fcf59"
+  path = "research/data/coingecko_top30_snapshot_20260417.json"
+  with open(path, "rb") as f:
+      actual_sha = hashlib.sha256(f.read()).hexdigest()
+  assert actual_sha == EXPECTED_SHA, f"SHA256 불일치: cycle 2 중단 (expected {EXPECTED_SHA}, got {actual_sha})"
+  with open(path) as f:
+      snapshot = json.load(f)
+  ```
+- [ ] **업비트 KRW 페어 목록 조회**: `upbit_krw_tickers = pyupbit.get_tickers("KRW")` → `["KRW-XRP", ...]`
+- [ ] **pyupbit 일봉 응답 실측 필드 확인** (`value`/`candle_acc_trade_price`) → cycle 2 v4 L64 + 본 문서 L65 갱신
+- [ ] **Tier 2 결정 코드 작성** (cycle 2 v4 L99-122 의사 코드 정확 구현):
+  - 위치: `research/_tools/cycle2_tier2_decision.py` (단독 스크립트) 또는 노트북 셀
+  - 의사 코드 그대로: `top10` 필터링 + `BTC/ETH 제외` + `stablecoin_set 11개 제외` + `KRW 페어 존재` 검증
+- [ ] **외부 감사관 호출** (NIT2-3 해소, `general-purpose` 에이전트):
+  - 페르소나: 적대적 외부 감사관
+  - 검증 대상: 작성된 Tier 2 결정 코드
+  - 검증 기준: cycle 2 v4 L99-122 의사 코드와 정확히 일치 / pyupbit/json/hashlib 호출 정확 / SHA256 재검증 포함 / stablecoin_set 11개 정확 / "인간 개입 금지" 원칙 위반 X
+  - APPROVED 받은 후에만 실행
+- [ ] **코드 실행 + 결과 산출**: Tier 2 후보 자동 산출 (인간 개입 절대 금지, 코드 결과 = 최종)
+  - 새 스테이블 발견 시 (top10에 stablecoin_set 외 가치 고정 토큰 진입) → **즉시 사용자 보고 + cycle 3 신규 박제 필요** (단순 추가 금지, cycle 2 v4 L123-127 안전판)
+- [ ] **각 후보 상장일 조회** (`pyupbit.get_ohlcv_from(ticker, "day", "2017-01-01")` 후 `df.index.min()`). 상장일 ≤ 2023-04-17 통과
+- [ ] **각 후보 30 UTC-day 평균 거래대금 실측** (측정 창 **2026-03-13 ~ 2026-04-11 UTC inclusive 30일**). 산식: `value` 또는 `candle_acc_trade_price` 필드 우선, 부재 시 `close × volume`. **≥ 100억 원** 통과
+- [ ] **100억 sanity check**: 상위 20위 알트 거래대금 분포 비교 ±30% 이원화 (cycle 2 v4 L68 그대로). 초과 시 사용자 보고 + 현 사이클 완주 (임계값 변경은 cycle 3)
+- [ ] 기준 3개 모두 충족 후보 리스트 산출 → cycle 2 v4 섹션 5 실측 표에 페어별 행 분리 기록 (Tier 2 0개 통과 시 'Fallback 발동' 표기)
+- [ ] **CoinGecko rate limit 확인 불필요** (새 fetch 안 함, cycle 1 JSON 재사용)
 
 ### SubTask W2-01.3: 최종 후보 확정 + freeze + Strategy A 후보 풀 물리화
 
