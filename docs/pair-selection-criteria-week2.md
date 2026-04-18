@@ -13,7 +13,7 @@
 - `docs/decisions-final.md` "Stage 1 실행 기록 — Week 2 재범위 결정" + "Week 2 한계 및 독립성 서약"
 - `.evidence/agent-reviews/w2-01-preplan-review-2026-04-17.md` (외부 감사 APPROVED)
 
-**상태**: v4 **사이클 중단 (Fallback ii 발동, 2026-04-17 07:08 UTC)**. 단계 1 CoinGecko 실측 결과 ADA가 top10 밖(14위)으로 확인되어 박제 Tier 2 리스트 {XRP,SOL,ADA,DOGE}와 불일치. cherry-pick 차단 장치(L78, L117) 발동 조건 충족. 본 문서는 참고 자료로 격리되며 primary Go 평가에 반영 금지. 섹션 6.1 freeze 효력 정지(사이클 종료). 새 W2-01' 사이클은 별도 문서(criteria v5 또는 cycle2)로 설계 예정.
+**상태**: v4 **사이클 중단 (Fallback ii 발동, 2026-04-17 07:08 UTC)**. 단계 1 CoinGecko 실측 결과 ADA가 top10 밖(14위)으로 확인되어 박제 Tier 2 리스트 {XRP,SOL,ADA,DOGE}와 불일치. cherry-pick 차단 장치(L78, L117) 발동 조건 충족. 본 문서는 참고 자료로 격리되며 primary Go 평가에 반영 금지. 섹션 6.1 freeze 효력 정지(사이클 종료). 새 사이클(잠정: cycle 2)은 별도 문서(criteria v5 또는 cycle2)로 설계 예정.
 
 ---
 
