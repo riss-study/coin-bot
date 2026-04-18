@@ -590,6 +590,28 @@ W2-01.2 단계 1 (CoinGecko top30 KRW 시총 스냅샷) 실측 결과 ADA가 시
 
 상세 trace: `.claude/handover-2026-04-17.md` v5
 
+#### cycle 1 격리 양성 목록 박제 (cycle 2 2차 외부 감사 W2-1 해소, 2026-04-19)
+
+cycle 1 (`pair-selection-criteria-week2.md` v4) 격리 대상 = 다음 cycle 1 고유 결정만 격리:
+
+1. **Tier 2 리스트 추정 박제** ({XRP, SOL, ADA, DOGE} 사전 박제 자체)
+2. **snapshot_utc 명목 시각 박제** ("2026-04-17T00:00:00+00:00" 명목 시각 채택 정책)
+
+위 2개 외 cycle 1 결정 (임계값 100억, 측정 창 2026-03-13~04-11 UTC, Tier 1 {BTC, ETH}, Fallback (i)/(ii), Common-window 정책, 갭 처리 정책, 승인 2단계 구조, 다중 검정 한계 인정 등)은 **격리 비대상**. cycle 2/3/...에서 그대로 채택 가능.
+
+**박제 목적**: 다음 사이클 작성자(Claude 또는 미래의 누구)의 자가 분할 통로 차단. 양성 목록을 사이클 작성자가 결과 보고 정의하면 cherry-pick 위험. 본 decisions-final.md 박제로 양성 목록을 사후 변경 불가능하게 고정.
+
+**박제 시점 = cycle 2 사용자 승인 시점 (2026-04-19, 사용자 위임 발화 "너가 결정해줘 모든걸"), 아래 "Fallback (ii) 누적 한도 박제"와 동시 발효** (시점 일관성, cycle 1 freeze 시점 순환 정의 B-A 패턴 재발 차단).
+
+#### Fallback (ii) 누적 한도 박제 (cycle 2 2차 외부 감사 W2-2 해소, 2026-04-19)
+
+- **W2-01 Fallback (ii) 누적 한도 = 3회** (cycle 1 + cycle 2 + cycle 3 = 최대 3회)
+- 3회 누적 후 추가 Fallback (ii) 발동 시: **W2-01 자체 폐기 + Stage 1 킬 카운터 +1 + Week 2 재범위 결정 사용자 승인 강제**
+- **박제 시점 = cycle 2 사용자 승인 시점** (2026-04-19). cycle 3 결과 보고 한도 변경 시도 = cherry-pick 차단 (시간적 미러)
+- **한도 3회 근거**: cycle 1 외부 감사 3회 사례 + 학습 곡선 상한 + Week 2 일정 균형 (3 cycle × ~2일 = 6일+α)
+
+상세 trace: `.evidence/agent-reviews/w2-01-cycle2-pair-criteria-review-2026-04-18.md` 2차 감사 W2-1/W2-2
+
 ---
 
 ## 다음 단계
