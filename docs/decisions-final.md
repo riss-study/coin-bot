@@ -557,6 +557,39 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
 - **임계값 완화는 금지**. 후보 수를 맞추려 기준을 움직이는 행위는 data snooping.
 - 상세 규정은 `docs/pair-selection-criteria-week2.md` 섹션 3 (본 결정을 물리화).
 
+#### Week 2 W2-01 v4 사이클 중단 (Fallback ii 발동, 2026-04-17)
+
+W2-01.2 단계 1 (CoinGecko top30 KRW 시총 스냅샷) 실측 결과 ADA가 시총 14위(top10 밖)로 확인되어 `pair-selection-criteria-week2.md` v4에 박제된 Tier 2 리스트 {XRP, SOL, ADA, DOGE}와 불일치. cherry-pick 차단 장치(criteria L78, L117 "실측 불일치 시 Fallback (ii) 사이클 중단 강제")가 정상 발동.
+
+**단계 1 실측 결과** (fetched_at 2026-04-17 07:08:56 UTC):
+- 시총 top10 (KRW 환산): BTC, ETH, USDT, XRP, BNB, USDC, SOL, TRX, FIGR_HELOC, DOGE
+- ADA: 14위, 시총 약 14.0조 KRW
+- FIGR_HELOC: 9위, 시총 25.79조 KRW. CoinGecko id `figure-heloc`. HELOC = Home Equity Line of Credit, Figure (fintech 회사)의 RWA(Real-World Asset) 토큰. 24h 거래량 232억 KRW = 시총의 **0.09%** (= 비율 0.0009, 사실상 정상 spot 거래 없음). 업비트 KRW 미상장 매우 유력 (단계 2 미실시로 미확정)
+- snapshot 산출물 **로컬 보존만** (gitignored, `.gitignore` L24 `research/data/` 룰): `research/data/coingecko_top30_snapshot_20260417.json` + SHA256 `c70a108905566f00f1b5b97fd3b08bf13be38d713f351027861d78869b3fcf59`. git tracked 여부는 새 사이클 설계 시 결정 (sub-plan W2-01.6 박제 "git tracked" vs `.gitignore` 룰 충돌은 별도 정정 작업, W1-01 `data_hashes.txt`도 동일 누락 누적)
+- 한계: snapshot 명목 시각 `snapshot_utc=2026-04-17T00:00:00+00:00` 박제와 실제 fetched_at 약 7시간 차이. CoinGecko 무료 API는 historical snapshot 미제공 → snapshot 재현 불가능
+
+**Fallback (ii) 발동 결과**:
+- v4 본 사이클(W2-01 cycle 1) 중단. v4 문서는 "참고 자료" 격리. primary Go 평가 반영 절대 금지
+- 단계 2~7 미실시 (자동 cancel)
+- snapshot JSON + SHA256은 새 사이클에서 동일 명목 시각 채택 시 재사용 가능 (로컬 보존만, gitignored 유지)
+- 사용자 명시 승인: 2026-04-17 07:08 UTC ("그래 추천한걸로 가")
+
+**다음 단계 (사용자 결정 대기)**:
+- 단계 2 (업비트 KRW 페어 + 상장일 + 30일 거래대금) 진행 여부: (a) 새 사이클 설계 전 별도 진행 / (b) 새 사이클 설계 단계 통합
+- 새 사이클 명칭(잠정: W2-01 cycle 2 또는 W2-01b) 확정은 새 사이클 설계 시점
+
+**다음 사이클 설계 권고 (cycle 1 학습)**:
+- "Tier 2 리스트 추정 박제" 방식 → "**규칙만 박제 + 코드 자동 결정**" 방식으로 변경. 추정 빗나감 위험 자체 제거. 인간 개입 단계(= cherry-pick 유혹 발생 지점)를 코드로 차단
+- snapshot 시각 약점 새 사이클에서 어떻게 다룰지 명시 (CoinGecko 무료 API historical 미제공 한계 인정)
+- FIGR_HELOC 같은 RWA/유동성 극단 낮은 토큰 자동 배제 장치 검토 (예: `vol_24h / market_cap` 비율 임계값)
+
+**한계 인정 (정직 기록)**:
+- v4 cycle 1에서 추정 리스트 {XRP, SOL, ADA, DOGE}를 박제한 것은 사용자 + Claude 공동 책임. 사전에 ADA가 top10에 있다는 추정은 시장 변동 결과 빗나감 (정상 시나리오)
+- cherry-pick 차단 장치가 정확히 의도대로 작동하여 사이클 중단으로 이어짐 = **시스템 정상 작동**
+- 이 사례를 `.claude/handover-2026-04-17.md` v5 "과거 반복 버그 유형 #17 (사전 지정 추정 리스트의 빗나감 위험) + #18 (외부 코인 정체 추측)"로 박제
+
+상세 trace: `.claude/handover-2026-04-17.md` v5
+
 ---
 
 ## 다음 단계
