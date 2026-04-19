@@ -80,8 +80,8 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W1-06 | Done | 1 | [Week 1 리포트](./stage1-subplans/w1-06-week1-report.md) (No-Go 결정, 2026-04-17) |
 | W2-01 | Done (cycle 2, 2026-04-19) | 2 | [데이터 확장 + 페어 선정](./stage1-subplans/w2-01-data-expansion.md) cycle 2 v5 — Tier 2 = [XRP,SOL,TRX,DOGE] |
 | W2-02 | Done (v5 사용자 승인 발효, 2026-04-19) | 2 | [새 전략 후보 사전 등록](./stage1-subplans/w2-02-strategy-candidates.md) — Candidate C/D Active/Registered |
-| W2-03 | **W2-03.0 완료 + W2-03.2~.5 결과 생성 (2026-04-20) / W2-03.6 Pending** | 2 | [In-sample 백테스트 grid](./stage1-subplans/w2-03-insample-grid.md) v6 — sub-plan v6 정정 (B-1 vectorbt API + C-1 DSR V 선택). 자동 결과: **is_go=False** (conservative 기준), Secondary A/C/D 모두 마킹. W2-03.6 사용자 Go/No-Go 결정 대기 |
-| W3-01 | Pending | 3 | TBD — Walk-forward analysis (원래 W2-01에서 이전) |
+| W2-03 | **Done (Go 결정, 2026-04-20)** | 2 | [In-sample 백테스트 grid](./stage1-subplans/w2-03-insample-grid.md) **v8** — 사용자 Option C 명시 채택 ("ㄱㄱ"). V_empirical 채택 후 재평가: **is_go=True (5/6 Go cells)**. BTC_A/C/D, ETH_A/D Go 통과 / ETH_C FAIL. Strategy A Recall 발동 (Retained → Active). 외부 감사 2회 APPROVED with follow-up. Week 3 진입 |
+| W3-01 | **Pending → 진입 가능 (2026-04-20)** | 3 | Walk-forward analysis (Strategy A/C/D). V_empirical 일관 적용 + floor 재도입 금지 + 임계값 변경 금지 의무 (v8 2차 감사 WARNING-3). 실패 시 Stage 1 킬 카운터 +2 소급 (v8 2차 감사 WARNING-4) |
 | W3-02 | Pending | 3 | TBD — DSR + Bootstrap (원래 W2-02에서 이전) |
 | W3-03 | Pending | 3 | TBD — 전략 채택 결정 |
 | W4-01 | Pending | 4 | TBD |

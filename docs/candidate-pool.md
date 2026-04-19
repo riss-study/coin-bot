@@ -18,14 +18,16 @@
 
 | 항목 | 값 |
 |------|-----|
-| **상태** | Retained (Week 1 Conditional Pass, 2025 regime decay) |
+| **상태** | **Active (Recall 발동, 2026-04-20 W2-03 v8 Go 결정)** |
 | **최초 등록** | Week 1 W1-02 (2026-04-15) |
 | **파라미터** | MA_PERIOD=200, DONCHIAN_HIGH=20, DONCHIAN_LOW=10, VOL_AVG_PERIOD=20, VOL_MULT=1.5, SL_PCT=0.08 |
 | **출처** | Padysak/Vojtko 영감 (Padysak 2020 스타일 복제 아닌 변형) |
 | **W1 성적** | BTC 일봉 Sharpe 1.0353, 총수익 +171.76%, MDD -22.45%, 14 trades |
 | **W1 경고** | 2024년 단년 집중 (68.3% 기여), 2024-12-17 이후 481일 Sharpe -1.14 (2승 3패) |
-| **재진입 조건** | W2-03 grid에서 Tier 1 (BTC+ETH) 중 하나 이상 `Sharpe > 0.8 AND DSR > 0` |
-| **Recall 시 의무** | DSR > 0 필수 평가. Week 3 walk-forward 재검증 필수 |
+| **W2-03 v8 성적 (Recall 발동 근거)** | BTC 일봉 Sharpe 1.0353, DSR_z +23.22 / ETH 일봉 Sharpe 1.1445, DSR_z +29.37 (V_empirical=0.1023 기준). Tier 1 양 페어 `Sharpe>0.8 AND DSR>0` 모두 충족 → 재진입 조건 충족 |
+| **재진입 조건 (원본)** | W2-03 grid에서 Tier 1 (BTC+ETH) 중 하나 이상 `Sharpe > 0.8 AND DSR > 0` → **2026-04-20 충족 (BTC_A + ETH_A 둘 다)** |
+| **Recall 시 의무** | DSR > 0 필수 평가 (본 W2-03 완료). **Week 3 walk-forward 재검증 필수** (V_empirical 일관 + floor 재도입 금지 + 임계값 변경 금지) |
+| **Week 3 실패 시 소급** | Stage 1 킬 카운터 +2 가산 + 외부 감사 재수행 + 사용자 명시 결정 (decisions-final.md "W2-03 Go 결정" 참조) |
 
 ### Strategy C — Slow Momentum (MA50/200 crossover + ATR trail)
 
@@ -96,6 +98,7 @@
 | 2026-04-19 | **v2: Strategy C/D Pending → Active 전이** (W2-02 v4 사용자 승인 발효). 진입/청산 strict crossover 박제 + ta KeltnerChannel API 호출 명시 (`original_version=False, window_atr=14, multiplier=1.5`) + L48 Keltner 출처 정정 (ChartSchool 표준 변형, Keltner 1960 원 설계 ≠ 우리 박제값). 외부 감사 1차+2차+3차 APPROVED with follow-up | W2-02 v4 사용자 승인 |
 | 2026-04-19 | **v3: Strategy C/D Recall 의무 cross-document 박제** (NIT-N2 정정). L41 (Strategy C) + L55 (Strategy D)에 "Go 통과 시 DSR-adjusted + Week 3 walk-forward 의무 강제 (Strategy A Recall과 대칭, W2-03 v2 박제 인용)" 추가. cycle 1 학습 #15 (cross-document) 패턴 해소 | W2-03 sub-plan 2차 외부 감사 NIT-N2 |
 | 2026-04-19 | **v4: Strategy C 진입/청산 박제 정확화** (W2-03.1 W-1 미니 테스트 + 사용자 채택 결정). L37 trailing stop 표현 → **manual 매 bar 동적 ATR(14)×3 exit_mask (방법 B)** 명시. 방법 A (vectorbt sl_trail=True) 검증 결과 entry bar 시점 비율 freeze로 박제 의도 위반 발견 → 사용자 명시 채택 결정 ("ㄱㄱ"). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` | W2-03.1 W-1 미니 테스트 결과 |
+| 2026-04-20 | **v5: Strategy A Recall 발동 (Retained → Active)**. W2-03 v8 Go 결정 (Option C, V_empirical 채택) 반영: BTC_A Sharpe 1.0353 DSR_z +23.22 / ETH_A Sharpe 1.1445 DSR_z +29.37 → Tier 1 양 페어 `Sharpe>0.8 AND DSR>0` 충족 → L27 재진입 조건 충족. 상태 Retained → **Active** 전이. W2-03 v8 성적 행 추가. Recall 시 의무 (DSR 평가 완료 + Week 3 walk-forward 재검증 의무) 박제 강화. Week 3 실패 시 소급 절차 행 추가 (decisions-final.md "W2-03 Go 결정" cross-reference) | W2-03 v8 Go 결정 사용자 명시 승인 |
 
 ---
 
