@@ -27,6 +27,9 @@ research/outputs/
 *.csv
 data_hashes.txt
 
+# 사용자 백과사전 (개인정보 성격, 로컬만 유지)
+memories/
+
 # 시크릿 (절대 git 커밋 금지)
 .env
 .env.*
