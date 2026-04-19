@@ -204,12 +204,13 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 - [ ] **W2-01. 데이터 확장 + 페어 선정 사전 지정** (Feature: BT-003)
   - 페어 선정 기준 사전 지정 (시총 상위, 상장 3년+, 유동성)
   - Tier 1 필수: BTC (W1 재사용), ETH
-  - Tier 2 후보: XRP, SOL, ADA, DOGE
+  - Tier 2 후보 (cycle 1 박제, **cycle 2 v5에서 ADA → TRX 정정** 2026-04-19): **XRP, SOL, TRX, DOGE**
   - 영구 제외: 상장 <3년 (PEPE), 시총 <50위
   - SHIB는 옵션 (밈 특성으로 Week 2 불포함, 추후 별도 실험 트랙 검토)
   - 5년 일봉/4h 데이터 수집 + SHA256 freeze + data_hashes.txt 갱신
   - Sub-plan: `stage1-subplans/w2-01-data-expansion.md`
   - Depends: W1-06 (No-Go 결정 완료)
+  - **상태**: cycle 1 v4 사이클 중단 (Fallback ii) → cycle 2 v5 완료 (2026-04-19, Tier 2 = [XRP, SOL, TRX, DOGE], Common-window = 2021-10-15 UTC)
 
 - [ ] **W2-02. 새 전략 후보 사전 등록** (Feature: STR-NEW-001)
   - Candidate C: Slow Momentum (MA50/200 crossover + ATR(14)×3 trailing stop) - Moskowitz et al. 2012 시계열 모멘텀 기반
@@ -224,7 +225,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 
 - [ ] **W2-03. In-sample 백테스트 grid + Week 2 리포트** (Feature: BT-005)
   - **Primary 대상 (Go 기준 적용)**: Tier 1 {BTC, ETH} × {A, C, D} = **6셀**
-  - **Exploratory 대상 (참고용, Go 기여 X)**: Tier 2 {XRP, SOL, ADA, DOGE} × {A, C, D} = 12셀
+  - **Exploratory 대상 (참고용, Go 기여 X)**: Tier 2 {XRP, SOL, **TRX**, DOGE} × {A, C, D} = 12셀 (cycle 2 v5 박제 ADA → TRX 정정)
   - 사전 지정 파라미터 고정 (알트별 튜닝 금지, data snooping 금지)
   - 결과 표: Sharpe, MDD, PF, Trades + **DSR (Bailey & López de Prado 2014)** per primary cell
   - **Week 2 게이트 기준 (사전 지정, 다중 검정 보정 포함)**:

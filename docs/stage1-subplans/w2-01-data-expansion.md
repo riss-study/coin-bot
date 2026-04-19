@@ -278,7 +278,7 @@ cycle 2 v4 (`docs/pair-selection-criteria-week2-cycle2.md` v4) 박제 발효 후
 - `research/notebooks/07_data_expansion.ipynb`
 
 ### 데이터 (parquet gitignored, JSON snapshot은 git tracked)
-- `research/data/KRW-{ETH,XRP,SOL,ADA,DOGE}_{1d,4h}_frozen_20260412.parquet` (gitignored)
+- `research/data/KRW-{ETH,XRP,SOL,TRX,DOGE}_{1d,4h}_frozen_20260412.parquet` (gitignored, **cycle 2 v5 박제 ADA → TRX 정정 2026-04-19**)
 - `research/data/coingecko_top30_snapshot_20260417.json` (git tracked, 재현성 위해)
 - `research/data/data_hashes.txt` (갱신, git tracked, parquet + JSON 해시 포함)
 

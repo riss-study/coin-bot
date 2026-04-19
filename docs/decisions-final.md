@@ -512,7 +512,7 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
   - Strategy B는 구조적 폐기 (grid 미포함)
 - **W2-03 In-sample 백테스트 grid + Week 2 리포트** (BT-005, 2-3일)
   - **Primary 대상**: Tier 1 {BTC, ETH} × {A, C, D} = 6셀 (Go 기준 적용)
-  - **Exploratory 대상**: Tier 2 {XRP, SOL, ADA, DOGE} × {A, C, D} = 12셀 (참고용, Go 기여 X)
+  - **Exploratory 대상**: Tier 2 {XRP, SOL, **TRX**, DOGE} × {A, C, D} = 12셀 (참고용, Go 기여 X) — **cycle 1 박제 ADA → cycle 2 v5 TRX 정정 (2026-04-19, W2-01 cycle 2 완료 + W2-02 v5 사용자 승인 발효)**
   - 사전 지정 파라미터 고정, 알트별 튜닝 금지
   - **Week 2 게이트 (사전 지정, DSR 포함)**:
     - Primary: Primary 6셀 중 적어도 1개 전략이 BTC 또는 ETH에서 `Sharpe > 0.8 AND DSR > 0`

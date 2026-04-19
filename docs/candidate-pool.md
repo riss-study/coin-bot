@@ -38,6 +38,7 @@
 | **출처** | Faber 2007 "A Quantitative Approach to Tactical Asset Allocation" (MA crossover 타이밍) + Wilder 1978 (ATR) |
 | **독립성 한계** | W1에서 BTC 5년 데이터를 이미 본 이후 선택. 문헌 **기본값** 사용이나 완전 OOS 독립 주장 불가 (soft contamination). `decisions-final.md` "Week 2 한계 및 독립성 서약" 참조 |
 | **평가 조건** | W2-03 grid에서 Tier 1 평가. Primary `Sharpe>0.8 AND DSR>0`. Secondary 마킹: 동일 전략이 Tier 1+2 3+ 페어에서 `Sharpe>0.5` → ensemble 후보 |
+| **Recall 시 의무 (NIT-N2 정정, B-4 cross-document)** | Go 통과 시 **DSR-adjusted 평가 + Week 3 walk-forward 재검증 의무 강제** (Strategy A Recall mechanism과 대칭, W2-03 v2 박제 인용) |
 | **W2-03 책무 (W-1)** | vectorbt sl_stop Series + sl_trail=True 미니 테스트 동작 검증 강제 (backtest-reviewer) |
 
 ### Strategy D — Volatility Breakout (Keltner + Bollinger)
@@ -52,6 +53,7 @@
 | **출처** | **Bollinger 1983 (BB 기본값 20, 2σ)** + **ChartSchool/StockCharts 표준 변형 + Raschke 1990s 후속 (Keltner KC_PERIOD=20, KC_ATR_MULT=1.5)**. Chester Keltner (1960) 원 설계는 EMA(typical, 10) ± 1.0 × 10일 daily range로 다름 (ta venv 직접 검증, 2026-04-19, B-2 정정) |
 | **독립성 한계** | Strategy C와 동일 (soft contamination) |
 | **평가 조건** | W2-03 grid에서 Tier 1 평가. Primary `Sharpe>0.8 AND DSR>0`. Secondary 마킹 (Strategy C와 동일) |
+| **Recall 시 의무 (NIT-N2 정정, B-4 cross-document)** | Go 통과 시 **DSR-adjusted 평가 + Week 3 walk-forward 재검증 의무 강제** (Strategy A Recall mechanism과 대칭, W2-03 v2 박제 인용) |
 | **W3-1 책무** | ta 향후 버전 업데이트 시 KeltnerChannel signature 재검증 필수 (사이클 진입 시점 venv inspect) |
 
 ---
@@ -92,6 +94,7 @@
 |------|------|--------|
 | 2026-04-17 | 파일 신설. Strategy A Retained, Strategy B Deprecated, Strategy C/D Pending 등록 | W1-06 No-Go + W2-01 외부 감사 WARNING-5 |
 | 2026-04-19 | **v2: Strategy C/D Pending → Active 전이** (W2-02 v4 사용자 승인 발효). 진입/청산 strict crossover 박제 + ta KeltnerChannel API 호출 명시 (`original_version=False, window_atr=14, multiplier=1.5`) + L48 Keltner 출처 정정 (ChartSchool 표준 변형, Keltner 1960 원 설계 ≠ 우리 박제값). 외부 감사 1차+2차+3차 APPROVED with follow-up | W2-02 v4 사용자 승인 |
+| 2026-04-19 | **v3: Strategy C/D Recall 의무 cross-document 박제** (NIT-N2 정정). L41 (Strategy C) + L55 (Strategy D)에 "Go 통과 시 DSR-adjusted + Week 3 walk-forward 의무 강제 (Strategy A Recall과 대칭, W2-03 v2 박제 인용)" 추가. cycle 1 학습 #15 (cross-document) 패턴 해소 | W2-03 sub-plan 2차 외부 감사 NIT-N2 |
 
 ---
 
