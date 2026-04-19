@@ -1,6 +1,6 @@
 # Task W2-03 — In-sample 백테스트 grid + Week 2 리포트 + Go/No-Go
 
-**상태**: **v5** (W2-03.1 W-1 미니 테스트 완료 + 방법 B 사용자 채택 박제, 2026-04-19 "ㄱㄱ"). **변경 금지 서약 발효 중** (W2-03.0~.7 박제 + 방법 B 채택). 변경 시 새 사전 등록 사이클 + 외부 감사 + 새 승인 강제.
+**상태**: **v6** (B-1 vectorbt API 사실 오류 정정 + C-1 Go 기준 DSR V[SR_n] 선택 박제 명시화 + W2-03.0 노트북 빌드/실행 검증 완료, 2026-04-20). **변경 금지 서약 발효 중** (W2-03.0~.7 박제 + 방법 B 채택 + DSR conservative V_reported 채택). 의미 변경 X (사실 오류 정정 + 모호성 해소), **변경 금지 서약 위반 X**.
 
 ## 변경 이력
 
@@ -11,6 +11,7 @@
 | **v3** | **2026-04-19** | **2차 외부 감사 APPROVED with follow-up + 옵션 A 정정 (NIT-N1/N2/N3 + NIT-1~4 + W-N1)**: NIT-N1 (L94 "5 페어" → "신규 5 + BTC 재사용 = 6 페어 총") / NIT-N2 (candidate-pool.md L41/L55 Strategy C/D Recall 의무 cross-document 박제) / NIT-N3 (decisions-final.md L515 Tier 2 ADA → TRX cycle 2 정정) / NIT-1 (W2-03.7 외부 감사 SubTask 신설) / NIT-2 (Stage 1 킬 카운터 정의 + 현재 값 박제) / NIT-3 (6단 evidence 항목 명시) / NIT-4 (evidence 파일명 placeholder 실행 시점 결정) / W-N1 (DSR_z + DSR_prob 동시 보고 책무) | 2차 외부 감사 + 사용자 결정 (옵션 A) |
 | **v4** | **2026-04-19** | **3차 외부 감사 APPROVED (BLOCKING 0 + WARNING 0) + NIT-3rd-1 정정 (stage1-execution-plan.md L207/L227 + w2-01-data-expansion.md L281 ADA → TRX cycle 2 v5 cross-document 정정) + NIT-3rd-2 정정 (candidate-pool.md v3 변경 이력 행 추가) + 사용자 최종 승인 발효** ("ㄱㄱㄱㄱ"). 변경 금지 서약 발효 + W2-03.0 진입 가능 | 3차 외부 감사 + 사용자 명시 승인 |
 | **v5** | **2026-04-19** | **W2-03.1 W-1 미니 테스트 완료 + 방법 B 사용자 채택 박제** ("ㄱㄱ"). 결과: 방법 A return 23.51% vs 방법 B 26.52% (차이 3.01%p > 임계값 0.5%p) + 외부 감사 W-2 발견 (vectorbt sl_trail=True는 entry bar 시점 비율 freeze, 박제 의도 "매 bar 동적 ATR trailing"과 본질적으로 다름) → **방법 B (manual trailing_high - ATR_MULT × ATR(t) exit_mask) 채택**. Strategy C 구현 박제 정확화 + candidate-pool.md L37 cross-document 정정. **synthetic data 한계 인정 W2-03.6 리포트 박제 추가 (자가 검증 라운드 10 신규 발견)** | W2-03.1 + 외부 감사 + 사용자 채택 |
+| **v6** | **2026-04-20** | **외부 감사관 페르소나 재검증 + 노트북 실행 검증 + 2건 정정**: **B-1** (vectorbt 0.28.5 `Portfolio.from_signals`에 `year_freq` 파라미터 **실측 부재** 확인, `inspect.signature`로 cycle 1 학습 #16 "외부 API 추측" 재발 차단). L53/L98/L130 박제 정정 = `from_signals`에 `freq='1D'`만 전달 + `pf.sharpe_ratio(year_freq='365 days')` 메서드 호출로 연율화 적용. **C-1** (sub-plan L161-163 Go 기준 DSR V[SR_n] 선택 모호성 = cycle 1 학습 #7 "사전 지정 기준 미정의" 재발 소지). Go 기준 DSR = **v_reported = max(v_empirical, 1.0) 적용 (Bailey 2014 conservative 취지)** 박제 명시화 + v_empirical 결과는 투명 보고 목적 병기. **W2-03.0 노트북 빌드 + dry-run 실행 검증 완료** (`research/notebooks/08_insample_grid.ipynb` exit 0, 18셀 grid + DSR unit test 정상). 부수 효과로 W2-03.2~.5 자동 실행 결과 생성 (결과: **is_go=False, conservative 기준 Go 통과 셀 0개, Secondary 마킹 A/C/D 모두**) — W2-03.6 사용자 결정 시점에 병기 보고 | 외부 감사 재검증 + API 실측 + 노트북 실행 검증 |
 
 ## 메인 Task 메타데이터
 
@@ -50,7 +51,7 @@
 
 - **사전 지정 파라미터 고정 (튜닝 X)**: W2-02 v5 변경 금지 서약 발효 중. 알트별 튜닝 절대 금지 (cycle 1 학습 #2 + #17)
 - **Primary vs Secondary 분리**: Tier 1 = Primary Go 평가 / Tier 2 = Secondary 마킹 (Go 기여 X, 사용자 #4 결정 박제)
-- **SR annualization 박제 (W-1 정정)**: **`annualized_SR = sqrt(365) × daily_SR`** (W1-06 패턴 채택, freq=1D 기준). vectorbt 0.28.5 default `year_freq='252 days'`와 다름 → vectorbt `Portfolio.from_signals(..., freq='1D', year_freq='365 days')` 명시 또는 manual `np.sqrt(365) × pf.returns().mean() / pf.returns().std()` 산출. **W1-06 sqrt(365) vs W1-04 sqrt(252) 일관성 깨짐 발견** (handover 신규 패턴 #21 박제 권고, 별도 task로 W1 산출물 정정 필요). 본 W2-03은 sqrt(365) 채택 강제
+- **SR annualization 박제 (W-1 정정 + B-1 v6 정정)**: **`annualized_SR = sqrt(365) × daily_SR`** (W1-06 패턴 채택, freq=1D 기준). vectorbt 0.28.5 default `year_freq='252 days'`와 다름 → **vectorbt API 실측 (v6 `inspect.signature`)**: `Portfolio.from_signals`에는 `year_freq` 파라미터 **없음** (B-1 정정). 연율화는 `pf.sharpe_ratio(year_freq='365 days')` 메서드 호출로 전달 (sharpe_ratio에는 year_freq 인자 존재) 또는 manual `np.sqrt(365) × pf.returns().mean() / pf.returns().std()` 산출. **W1-06 sqrt(365) vs W1-04 sqrt(252) 일관성 깨짐 발견** (handover 신규 패턴 #21 박제 권고, 별도 task로 W1 산출물 정정 필요). 본 W2-03은 sqrt(365) 채택 강제
 - **DSR 계산 (Bailey & López de Prado 2014)**: Multiple testing 부분 완화. N_trials = 18 (6 primary + 12 exploratory) 또는 6만 (Primary만)? **본 sub-plan에서 박제 결정 필요 (외부 감사 검증 포커스)**
 - **Common-window vs max-span 이원 metric**: Primary = 페어별 max-span Sharpe / Secondary = common-window Sharpe (cycle 2 v5 박제)
 - **Strategy A 재등장 시 Recall mechanism**: candidate-pool.md L69-80 박제 강제 적용
@@ -64,13 +65,13 @@
 
 | SubTask | 상태 | 메모 |
 |---------|------|------|
-| W2-03.0 | Pending | `make_notebook_08.py` 작성 (vectorbt 0.28.5 grid 생성기) |
+| W2-03.0 | **완료 (2026-04-20)** | `make_notebook_08.py` 작성 + `08_insample_grid.ipynb` 빌드 + dry-run 실행 검증 (exit 0). 자가 검증 5라운드 + 외부 감사관 페르소나 재검증 → B-1 (vectorbt API 사실 오류) + C-1 (DSR V 선택 모호성) 발견 + 정정 (v6 박제). 노트북 실행 결과로 W2-03.2~.5 자동 생성 (`research/outputs/w2_03_*.json`) |
 | **W2-03.1** | **완료 (2026-04-19)** | **W-1 미니 테스트 결과: 방법 B 채택 박제** (return 차이 3.01%p > 임계값 + W-2 vectorbt sl_trail freeze 발견 → 박제 의도 위반). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` + `research/outputs/w2_03_w1_test.json` |
-| W2-03.2 | Pending | Primary grid 실행 (Tier 1 × {A,C,D} = 6셀) |
-| W2-03.3 | Pending | Exploratory grid 실행 (Tier 2 × {A,C,D} = 12셀, Go 기여 X) |
-| W2-03.4 | Pending | DSR 계산 (N_trials 박제 결정) + Multiple testing 평가 |
-| W2-03.5 | Pending | Go/No-Go 평가 (Primary 6셀 사전 지정 기준) |
-| W2-03.6 | Pending | Week 2 리포트 + backtest-reviewer + **사용자 Go/No-Go 결정** |
+| W2-03.2 | **결과 생성 (2026-04-20, v6 자동 실행)** | Primary grid 6셀 실행 완료. 결과 JSON = `research/outputs/w2_03_primary_grid.json`. Sharpe (max-span): BTC_A 1.0353, BTC_C 0.9380, BTC_D 1.1818, ETH_A 1.1445, ETH_C 0.3237, ETH_D 1.0928. W2-03.6 분석 대기 |
+| W2-03.3 | **결과 생성 (2026-04-20, v6 자동 실행)** | Exploratory grid 12셀 실행 완료. 결과 JSON = `research/outputs/w2_03_exploratory_grid.json`. Tier 2 Go 기여 X. W2-03.6 Secondary 마킹 분석 대기 |
+| W2-03.4 | **결과 생성 (2026-04-20, v6 자동 실행)** | DSR 계산 완료. V_empirical=0.1023, V_reported=1.0 (conservative, Bailey 2014). SR_0 (reported) = 1.3001. 모든 Primary 6셀 DSR_z < 0. 결과 JSON = `research/outputs/w2_03_dsr.json` + unit test `w2_03_dsr_unit_test.json`. W2-03.6 분석 대기 |
+| W2-03.5 | **결과 생성 (2026-04-20, v6 자동 실행)** | Go/No-Go 자동 평가 = **is_go=False** (conservative 기준, Go 통과 셀 0개). Secondary 마킹: A [BTC,ETH,SOL,DOGE] / C [BTC,XRP,SOL] / D [BTC,ETH,SOL,TRX,DOGE]. **사용자 명시 결정 (자동 진행 X)은 W2-03.6에서** |
+| W2-03.6 | Pending | Week 2 리포트 + backtest-reviewer + **사용자 Go/No-Go 결정** (현 자동 결과 = No-Go, Stage 1 킬 카운터 +1 옵션 또는 Week 3 재탐색 vs Stage 1 종료) |
 | **W2-03.7** | **Pending** | **외부 감사 (적대적, sub-plan + 결과 정합성, NIT-1 정정)**: cycle 1/2 W2-01.1/W2-02 패턴 = 1차/2차/3차 감사 사이클. 본 sub-plan은 v1 → v2 → v3 (1차+2차 감사 + 옵션 A 정정) 거침. W2-03.6 결과 사용자 Go/No-Go 결정 직전에 **추가 외부 감사 1회** (결과 정합성 + cherry-pick 통로 검증) 호출 |
 
 ## SubTask 목록
@@ -95,7 +96,7 @@
     - `KELTNER_WINDOW = 20`, `KELTNER_ATR_MULT = 1.5`, `BOLLINGER_WINDOW = 20`, `BOLLINGER_SIGMA = 2.0`, `ATR_WINDOW = 14`, `SL_HARD = 0.08`
     - `KeltnerChannel(window=20, window_atr=14, original_version=False, multiplier=1.5)` 명시 필수 (ta default와 다름, W2-02 v5 W3-1 박제)
 - [ ] 데이터 로드 + SHA256 무결성 재검증 (W1-01 BTC + W2-01.4 신규 5 페어 = **총 6 페어**, W-6 + NIT-N1 정정)
-- [ ] vectorbt 0.28.5 검증된 API만 사용 (research/CLAUDE.md L73-95 패턴) + **`year_freq='365 days'` 명시 강제 (W-1 정정)**
+- [x] vectorbt 0.28.5 검증된 API만 사용 (research/CLAUDE.md L73-95 패턴) + **`year_freq='365 days'` 메서드 호출 명시 강제 (W-1 정정 + B-1 v6 정정: `from_signals`에는 `freq='1D'`만, `pf.sharpe_ratio(year_freq='365 days')` 호출로 전달)**
 
 ### SubTask W2-03.1: W-1 미니 테스트 (ATR trailing stop)
 
@@ -127,7 +128,7 @@
   - **방식 A (각 페어 독립 Portfolio, 박제 채택)**: for-loop으로 페어별 Portfolio 산출 → metric 페어별 별도. 단순 + cash_sharing 무관 (단일 페어 평가)
   - **방식 B (multi-asset cash_sharing Portfolio)**: pd.concat으로 다중 close + entries/exits → group_by + cash_sharing=True. ensemble 시 사용
   - 본 박제 v2: **방식 A 채택** (Primary 6셀 = 페어별 단일 전략 평가, Go 기준 페어별 검증). 방식 B는 W3 ensemble 평가 시 적용
-  - vectorbt API: `vbt.Portfolio.from_signals(close=close_pair, entries=entries, exits=exits, sl_stop=..., sl_trail=..., init_cash=1_000_000, fees=0.0005, slippage=0.0005, freq='1D', year_freq='365 days')` 강제 명시 (year_freq W-1 정정)
+  - vectorbt API (B-1 v6 정정, `inspect.signature` 실측 기반): `vbt.Portfolio.from_signals(close=close_pair, entries=entries, exits=exits, sl_stop=..., sl_trail=..., init_cash=1_000_000, fees=0.0005, slippage=0.0005, freq='1D')` 강제 명시. **`year_freq`는 `pf.sharpe_ratio(year_freq='365 days')` 메서드 호출로 전달** (sharpe_ratio signature에 year_freq 파라미터 존재 실측 확인, from_signals에는 부재). W-1 sqrt(365) 박제 의도는 이 메서드 경로로 이행
 - [ ] 6셀 vectorbt Portfolio 생성 (방식 A):
   - BTC × A, BTC × C, BTC × D
   - ETH × A, ETH × C, ETH × D
@@ -157,9 +158,9 @@
 **작업자**: Solo + backtest-reviewer
 **예상 소요**: 0.3일
 
-- [ ] **N_trials 박제 결정 (B-1/B-2/W-2 정정)**:
+- [ ] **N_trials 박제 결정 (B-1/B-2/W-2 정정 + C-1 v6 정정)**:
   - **본 박제: N_trials = 6 (Primary만)** — Tier 2 exploratory는 Go 기여 X (사용자 #4 결정)이므로 multiple testing 분모에서 제외
-  - **W-2 alarm 박제**: V[SR_n]을 6셀 Sharpe sample variance로 산출 시 N=6 협소성으로 분산 추정 신뢰도 낮음. 보수적 보강 = `V[SR_n] = max(empirical_var, 1.0)` 또는 1.0 정규화 둘 다 산출 + 비교
+  - **W-2 alarm 박제 + C-1 v6 정정 (Go 기준 V 선택 명시화)**: V[SR_n]을 6셀 Sharpe sample variance로 산출 시 N=6 협소성으로 분산 추정 신뢰도 낮음. **두 버전 둘 다 산출**: (a) `V_empirical = np.var(primary_sharpes, ddof=1)`, (b) `V_normalized = 1.0` (보수적). **Go 기준 DSR 계산에는 `V_reported = max(V_empirical, 1.0)` 적용** (Bailey 2014 conservative 취지: multiple testing family-wise 오류 방어). **V_empirical 기준 DSR 결과도 리포트에 투명 병기** (사용자 결정 참고용이지만 Go 판정에는 V_reported만 사용). 사후에 V_empirical 채택으로 변경 = cherry-pick = cycle 3 강제 (cycle 1 학습 #7 + #10 재발 차단)
   - **Stage 2 게이트 시 재산정 의무**: ensemble 후보 마킹도 selection bias 기여. Stage 2 진입 시 N_trials 재계산 (별도 박제 사이클)
 
 - [ ] **DSR 정확 공식 박제 (B-1/B-2 정정, Bailey & López de Prado 2014 원문 인용)**:
