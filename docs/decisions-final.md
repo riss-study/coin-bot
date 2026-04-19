@@ -536,9 +536,9 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
   - MA50/200 crossover: Faber, Mebane T. (2007) "A Quantitative Approach to Tactical Asset Allocation" (일반 타이밍 지표, BTC-specific 튜닝 아님)
   - ATR(14): Wilder (1978) "New Concepts in Technical Trading Systems" 창시자 기본값
   - Multiplier ×3: Wilder 원 제안 값 (Chandelier Exit 등 후속 문헌에서도 2-3 범위 표준)
-- **Candidate D — Volatility Breakout (Keltner(20, 1.5 ATR) + Bollinger(20, 2σ) 동시 돌파)**:
-  - Keltner Channel (20, 1.5): Keltner (1960) 원 설계값
-  - Bollinger Band (20, 2): Bollinger (1983) 기본값
+- **Candidate D — Volatility Breakout (Keltner(window=20, window_atr=14, multiplier=1.5, original_version=False) + Bollinger(20, 2σ) 동시 돌파)**:
+  - **Bollinger Band (20, 2)**: Bollinger (1983) 기본값
+  - **Keltner Channel (20, 1.5 ATR)**: ChartSchool/StockCharts 표준 변형 + Raschke 1990s 후속. **Chester Keltner (1960) 원 설계는 EMA(typical price, 10) ± 1.0 × 10일 daily range로 다름** (ta venv 직접 검증 결과, 2026-04-19 W2-02 외부 감사 B-2 정정). ta `KeltnerChannel` 호출 시 `original_version=False` + `window_atr=14` + `multiplier=1.5` 모두 명시 필수 (default와 다름)
 
 **독립성 한계 서약 (Soft Contamination 인정)**:
 - 본 프로젝트 팀은 Week 1에서 BTC 5년 일봉 데이터를 이미 분석했고, W1-06.1b에서 "A/B Volatile regime 편중" 결과를 관찰했다. 따라서 Candidate C/D는 **"완전히 BTC-unseen 환경"에서 선택된 것이 아니다**.

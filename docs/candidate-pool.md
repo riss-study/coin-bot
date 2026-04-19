@@ -31,23 +31,28 @@
 
 | 항목 | 값 |
 |------|-----|
-| **상태** | Pending (W2-02에서 파라미터 공식 freeze) |
-| **최초 등록** | Week 2 (2026-04-17 결정, W2-02에서 세부 확정) |
-| **파라미터 (잠정)** | FAST_MA=50, SLOW_MA=200, ATR_PERIOD=14, ATR_MULT=3 (trailing stop) |
+| **상태** | **Active/Registered (W2-02 v4 사용자 승인 발효, 2026-04-19)** |
+| **최초 등록** | Week 2 (2026-04-17 결정, W2-02 v4 사전 등록 사용자 승인 2026-04-19 "ㄱㄱ") |
+| **파라미터 (확정)** | FAST_MA=50, SLOW_MA=200, ATR_PERIOD=14, ATR_MULT=3 (trailing stop) |
+| **진입/청산 (W2-02 v4 박제)** | Long entry: strict golden cross `(MA50>MA200) AND (MA50.shift(1)<=MA200.shift(1))`. Hard exit: strict death cross OR ATR(14)×3 trailing stop. Long-only. 청산 후 동일 추세 내 재진입 X |
 | **출처** | Faber 2007 "A Quantitative Approach to Tactical Asset Allocation" (MA crossover 타이밍) + Wilder 1978 (ATR) |
 | **독립성 한계** | W1에서 BTC 5년 데이터를 이미 본 이후 선택. 문헌 **기본값** 사용이나 완전 OOS 독립 주장 불가 (soft contamination). `decisions-final.md` "Week 2 한계 및 독립성 서약" 참조 |
-| **평가 조건** | W2-03 grid에서 Tier 1 평가 |
+| **평가 조건** | W2-03 grid에서 Tier 1 평가. Primary `Sharpe>0.8 AND DSR>0`. Secondary 마킹: 동일 전략이 Tier 1+2 3+ 페어에서 `Sharpe>0.5` → ensemble 후보 |
+| **W2-03 책무 (W-1)** | vectorbt sl_stop Series + sl_trail=True 미니 테스트 동작 검증 강제 (backtest-reviewer) |
 
 ### Strategy D — Volatility Breakout (Keltner + Bollinger)
 
 | 항목 | 값 |
 |------|-----|
-| **상태** | Pending (W2-02에서 파라미터 공식 freeze) |
-| **최초 등록** | Week 2 (2026-04-17 결정, W2-02에서 세부 확정) |
-| **파라미터 (잠정)** | KC_PERIOD=20, KC_ATR_MULT=1.5, BB_PERIOD=20, BB_SIGMA=2, 동시 상단 돌파 시 진입 / 반대 밴드 복귀 시 청산 |
-| **출처** | Keltner 1960 (Keltner Channel 원 설계값) + Bollinger 1983 (Bollinger Band 기본값) |
+| **상태** | **Active/Registered (W2-02 v4 사용자 승인 발효, 2026-04-19)** |
+| **최초 등록** | Week 2 (2026-04-17 결정, W2-02 v4 사전 등록 사용자 승인 2026-04-19 "ㄱㄱ") |
+| **파라미터 (확정)** | KC_PERIOD=20, KC_ATR_MULT=1.5, ATR_PERIOD=14, BB_PERIOD=20, BB_SIGMA=2, SL_HARD=0.08 |
+| **ta 라이브러리 호출 (W2-02 v4 박제)** | `KeltnerChannel(window=20, window_atr=14, original_version=False, multiplier=1.5)` 모두 명시 필수 (ta default와 다름). `BollingerBands(window=20, window_dev=2.0)` |
+| **진입/청산 (W2-02 v4 박제)** | Long entry: strict 동시 상단 돌파 `(close>kc_upper) AND (close.shift(1)<=kc_upper.shift(1)) AND (close>bb_upper) AND (close.shift(1)<=bb_upper.shift(1))`. Exit: strict Keltner mid 하향 돌파 OR Hard SL 8%. Keltner mid = `EMA(close, 20)` (SMA 아님). Long-only |
+| **출처** | **Bollinger 1983 (BB 기본값 20, 2σ)** + **ChartSchool/StockCharts 표준 변형 + Raschke 1990s 후속 (Keltner KC_PERIOD=20, KC_ATR_MULT=1.5)**. Chester Keltner (1960) 원 설계는 EMA(typical, 10) ± 1.0 × 10일 daily range로 다름 (ta venv 직접 검증, 2026-04-19, B-2 정정) |
 | **독립성 한계** | Strategy C와 동일 (soft contamination) |
-| **평가 조건** | W2-03 grid에서 Tier 1 평가 |
+| **평가 조건** | W2-03 grid에서 Tier 1 평가. Primary `Sharpe>0.8 AND DSR>0`. Secondary 마킹 (Strategy C와 동일) |
+| **W3-1 책무** | ta 향후 버전 업데이트 시 KeltnerChannel signature 재검증 필수 (사이클 진입 시점 venv inspect) |
 
 ---
 
@@ -86,6 +91,7 @@
 | 날짜 | 변경 | 트리거 |
 |------|------|--------|
 | 2026-04-17 | 파일 신설. Strategy A Retained, Strategy B Deprecated, Strategy C/D Pending 등록 | W1-06 No-Go + W2-01 외부 감사 WARNING-5 |
+| 2026-04-19 | **v2: Strategy C/D Pending → Active 전이** (W2-02 v4 사용자 승인 발효). 진입/청산 strict crossover 박제 + ta KeltnerChannel API 호출 명시 (`original_version=False, window_atr=14, multiplier=1.5`) + L48 Keltner 출처 정정 (ChartSchool 표준 변형, Keltner 1960 원 설계 ≠ 우리 박제값). 외부 감사 1차+2차+3차 APPROVED with follow-up | W2-02 v4 사용자 승인 |
 
 ---
 
