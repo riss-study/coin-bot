@@ -171,12 +171,14 @@ cycle 2 v4 (`docs/pair-selection-criteria-week2-cycle2.md` v4) 박제 발효 후
 **작업자**: Solo
 **예상 소요**: 0.5일
 
+**cycle 2 v5 박제 반영 (2026-04-19)**: cycle 2 W2-01.3 사용자 확정 리스트 = `[XRP, SOL, TRX, DOGE]` (cycle 1 ADA → cycle 2 TRX 변경). Common-window 시작일 = 2021-10-15 UTC (SOL 기준, cycle 2 v5 섹션 5 박제).
+
 - [ ] `research/_tools/make_notebook_07.py` 작성 (nbformat)
 - [ ] `research/notebooks/07_data_expansion.ipynb` 빌드
 - [ ] W1-01의 `fetch_with_retry` 함수 재사용
 - [ ] 각 Tier 1-2 페어 (BTC 제외) × 일봉 + 4시간봉 = 총 10개 dataset 수집
   ```python
-  PAIRS = ["KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-ADA", "KRW-DOGE"]
+  PAIRS = ["KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-TRX", "KRW-DOGE"]  # cycle 2 v5 박제
   RANGE = ("2021-01-01", "2026-04-12")  # W1-01과 동일 advertised 범위
   for pair in PAIRS:
       for interval, suffix in [("day", "1d"), ("minute240", "4h")]:
@@ -186,7 +188,7 @@ cycle 2 v4 (`docs/pair-selection-criteria-week2-cycle2.md` v4) 박제 발효 후
           df = df.loc[RANGE[0]:RANGE[1]]  # advertised slicing
           df.to_parquet(f"research/data/{pair}_{suffix}_frozen_20260412.parquet")
   ```
-- [ ] 상장 <2021-01-01 페어의 경우 실제 첫 캔들부터 수집 + metadata에 실제 범위 기록
+- [ ] 상장 <2021-01-01 페어의 경우 실제 첫 캔들부터 수집 + metadata에 실제 범위 기록 (cycle 2 v5 박제 상장일: ETH 자동 통과 / XRP 2017-09-25 / SOL **2021-10-15 (advertised 시작 이후)** / TRX 2018-04-05 / DOGE 2021-02-24)
 - [ ] period=0.2 (rate limit 안전 마진)
 - [ ] 재시도 wrapper (None 반환 대응)
 
@@ -195,48 +197,40 @@ cycle 2 v4 (`docs/pair-selection-criteria-week2-cycle2.md` v4) 박제 발효 후
 **작업자**: Solo
 **예상 소요**: 0.3일
 
-- [ ] 각 페어별 갭 < 0.1% 검증 (W1-01 `check_gaps` 재사용)
-- [ ] 중복 인덱스 0 확인
-- [ ] `df.index.is_monotonic_increasing` == True
-- [ ] `df.index.tz == UTC` 확인
-- [ ] bars 수 기대치 근사 확인 (일봉 ~1927, 4h ~11561)
-- [ ] 상장 <2021-01-01 페어는 실제 범위 기록 (예: ADA가 2021-03-01 상장이면 bars=1867)
-- [ ] **Common-window 사전 결정 (W-2 대응)**:
-  - 각 페어 actual 범위 수집 후, 상장 가장 늦은 페어의 start date를 common window 시작점으로 채택
-  - 예: SOL 상장일(2021년 추정, W2-01.2 실측 확정)이 가장 늦으면 common window = SOL 상장일 ~ 2026-04-12 UTC (W1 freeze 종료일)
-  - W2-03 grid에서 **primary metric은 페어별 max-span Sharpe**, **secondary metric은 common-window Sharpe** 둘 다 계산
-  - Common-window 시작점을 `docs/pair-selection-criteria-week2.md`에 기록 (사전 freeze)
-- [ ] 샘플 시각화: 각 페어 normalized price plot + common-window 시작선 표시 (outputs에 저장)
+- [x] 각 페어별 갭 < 0.1% 검증 (cycle 2 W2-01.4 노트북 자동 검증, max 0.0102%)
+- [x] 중복 인덱스 0 확인 (cycle 2 노트북 강제 assert)
+- [x] `df.index.is_monotonic_increasing` == True (cycle 2 노트북 강제 assert)
+- [x] `df.index.tz == UTC` 확인 (cycle 2 노트북 강제 assert, W-4 안전 비교)
+- [x] bars 수 기대치 근사 확인: ETH/XRP/TRX day=1927, 4h=11561 / SOL day=1640, 4h=9838 / DOGE day=1873, 4h=11236 (advertised 축소 명시)
+- [x] **Common-window 사전 결정 (cycle 2 v5 단계 2-2 + W2-01.4 실측 박제)**:
+  - Tier 1-2 최종 페어 중 상장 가장 늦은 페어 = SOL → **Common-window 시작일 = 2021-10-15 UTC**
+  - cycle 2 W2-01.4 노트북 자동 assert PASS
+  - W2-03 grid에서 primary = 페어별 max-span Sharpe / secondary = common-window Sharpe
+  - 박제: `docs/pair-selection-criteria-week2-cycle2.md` v5 섹션 5
+- [ ] (선택) 샘플 시각화: 각 페어 normalized price plot + common-window 시작선 표시 (outputs에 저장) — cycle 2 W2-01.4 노트북 미수행, W2-03 시점 진행 가능
 
 ### SubTask W2-01.6: SHA256 + data_hashes.txt 갱신
 
 **작업자**: Solo
 **예상 소요**: 0.2일
 
-- [ ] 각 Parquet SHA256 계산
-- [ ] `research/data/data_hashes.txt`에 신규 hash 추가 (BTC 기존 행 유지)
-  ```
-  # Week 1 (BTC only, 2026-04-14)
-  KRW-BTC_1d_frozen_20260412.parquet: <hash>
-  KRW-BTC_4h_frozen_20260412.parquet: <hash>
-  # Week 2 expansion (2026-MM-DD)
-  KRW-ETH_1d_frozen_20260412.parquet: <hash>
-  KRW-ETH_4h_frozen_20260412.parquet: <hash>
-  ...
-  ```
-- [ ] Advertised + actual 범위 헤더 기록
-- [ ] 상장 <2021-01-01 페어는 actual 범위 별도 표기
+- [x] 각 Parquet SHA256 계산 (cycle 2 W2-01.4 노트북 자동, 10개)
+- [x] `research/data/data_hashes.txt`에 신규 hash 추가 (BTC 기존 행 유지, **cycle 2 시점 박제 추가**)
+- [x] Advertised + actual 범위 헤더 기록 (cycle 2 v5 박제 인용 포함)
+- [x] 상장 <2021-01-01 페어는 actual 범위 별도 표기 (SOL 2021-10-15, DOGE 2021-02-24)
+- **`.gitignore` 누적 문제** (handover v6 #20 신규 버그 유형): `research/data/` 룰로 parquet + data_hashes.txt 모두 git tracked X. W1-01 시점부터 누락. **별도 정정 작업으로 미룸** (옵션 B 결정)
 
 ### SubTask W2-01.7: Evidence + 리뷰
 
 **작업자**: Solo + backtest-reviewer
 **예상 소요**: 0.2일
 
-- [ ] `.evidence/w2-01-data-expansion.txt` 작성 (6단 구조)
-- [ ] backtest-reviewer 호출
-- [ ] APPROVED 받음
-- [ ] sub-plan + execution-plan 상태 업데이트
-- [ ] 커밋: `feat(plan): BT-003 W2-01 데이터 확장 + 페어 선정 사전 지정`
+- [x] cycle 2 W2-01.4 evidence 작성: `.evidence/w2-01-cycle2-step4-data-collection-2026-04-19.md` (6단 구조)
+- [x] backtest-reviewer 호출 (`.evidence/agent-reviews/w2-01-cycle2-step4-review-2026-04-19.md`)
+- [x] APPROVED with follow-up (BLOCKING 0, WARNING 2 - W-1 정정 W-2 별도 task, NIT 3 보류)
+- [x] sub-plan W2-01.4/.5/.6/.7 cycle 2 시점 박제 갱신 (이 변경)
+- [ ] handover v7 → v8 갱신 (W2-01.4 완료 박제) — 진행 중
+- [ ] 커밋: `feat(plan): W2-01 cycle 2 W2-01.4 데이터 수집 + backtest-reviewer APPROVED with follow-up`
 
 ## 인수 완료 조건 (Acceptance Criteria)
 
