@@ -62,7 +62,7 @@ Week 1에서 Strategy A/B가 사전 지정 Go 기준 미달(B Sharpe 0.14 FAIL) 
 |------|--------|------------------|
 | 시가총액 (CoinGecko) | 상위 30위 | `GET /coins/markets?vs_currency=krw&order=market_cap_desc&per_page=30&page=1`. **스냅샷: 2026-04-17 00:00 UTC (W1-06 결정일 자정 기준)**. 응답 JSON 원본 `research/data/coingecko_top30_snapshot_20260417.json`로 저장 + SHA256 `data_hashes.txt` 기록 |
 | 업비트 KRW 페어 상장일 | **≤ 2023-04-17** | W1-06 결정일(2026-04-17) 기준 정확히 3년 전. 5년 advertised 범위 중 60%+ 확보. 상장일 출처: 업비트 공식 공지 또는 `pyupbit.get_ohlcv_from()` 최초 캔들 날짜 |
-| 업비트 거래대금 | 측정 창 내 30 UTC-day 단순 평균 **≥ 100억 원** | 측정 창: **2026-03-13 ~ 2026-04-11 (UTC, inclusive 양끝, 정확히 30 UTC days, W1 freeze 2026-04-12 직전)**. 기본 산식: `daily_value_i = close_i × volume_i` (일봉 OHLCV 종가 근사, KRW). **업비트 API 응답에 실측 거래대금 필드(`value`/`candle_acc_trade_price`) 존재 시 해당 필드 직접 사용** (근사 오차 제거, `pair-selection-criteria-week2.md` L53 지시). 평균 산식: `Σ(daily_value_i) / 30`. **pandas `.rolling(30).mean()` 벡터 연산 아닌 단일 창 평균**. **24h 스팟 거래대금 사용 금지** |
+| 업비트 거래대금 | 측정 창 내 30 UTC-day 단순 평균 **≥ 100억 원** | 측정 창: **2026-03-13 ~ 2026-04-11 (UTC, inclusive 양끝, 정확히 30 UTC days, W1 freeze 2026-04-12 직전)**. 기본 산식: `daily_value_i = close_i × volume_i` (일봉 OHLCV 종가 근사, KRW). **업비트 API 응답에 실측 거래대금 필드(`value`/`candle_acc_trade_price`) 존재 시 해당 필드 직접 사용** (근사 오차 제거). **2026-04-19 W2-01.2 cycle 2 단계 2-2 실측 확인: pyupbit 응답에 `value` 필드 존재 → 4개 후보 (XRP/SOL/TRX/DOGE) 모두 `value` 필드 채택**. 평균 산식: `Σ(daily_value_i) / 30`. **pandas `.rolling(30).mean()` 벡터 연산 아닌 단일 창 평균**. **24h 스팟 거래대금 사용 금지** |
 | 업비트 KRW 페어 존재 | 필수 | 프로젝트는 KRW 페어만 |
 | 선물/파생 여부 | 금지 | 현물만 |
 | 100억 임계값 근거 | 추정 | W2-01.2에서 실측 slippage 검증 전 잠정. 업비트 시총 상위 20위 알트의 2025 평균 거래대금 분포 기준 중앙값 수준 (W2-01.2 검증 결과 불일치 시 사용자 보고 후 결정, 임계값 변경은 새 사전 등록 사이클 필요) |
