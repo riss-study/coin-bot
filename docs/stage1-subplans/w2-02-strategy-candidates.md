@@ -1,6 +1,6 @@
 # Task W2-02 — 새 전략 후보 사전 등록 (Candidate C, D Pending → Active 전이)
 
-**상태**: **v5** (사용자 최종 승인 발효, 2026-04-19 "ㄱㄱ"). **변경 금지 서약 발효 중**. Candidate C/D 파라미터 + 진입/청산 + 출처 박제 변경 금지. 변경 시 새 사전 등록 사이클 + 새 외부 감사 + 새 승인 강제.
+**상태**: **v6** (NIT 7번 cross-document 정정, W-1 결과 박제 추가, 2026-04-19). **변경 금지 서약 발효 유지** (의미 변경 X, cross-reference 강화만). Candidate C/D 파라미터 + 진입/청산 + 출처 박제 변경 금지. 변경 시 새 사전 등록 사이클 + 새 외부 감사 + 새 승인 강제.
 
 ## 변경 이력
 
@@ -11,6 +11,7 @@
 | v3 | 2026-04-19 | 2차 외부 감사 NEW BLOCKING 2건 정정 (NEW-B-1 "신설" 10개 위치 잔존 / NEW-B-2 vectorbt 코드 블록 ta KeltnerChannel 미사용) | 2차 외부 감사 |
 | **v4** | 2026-04-19 | 3차 외부 감사 APPROVED with follow-up + **옵션 C 정정 5건** (W-1 ATR trailing 미니 테스트 박제 / W-4 Secondary 정확 인용 / W3-1 ta 버전 재검증 / N3-1 Pending → Active 통일 / N3-2 변수명 박제) | 3차 외부 감사 + 사용자 결정 |
 | **v5** | **2026-04-19** | **사용자 최종 승인 발효** ("ㄱㄱ"). 변경 금지 서약 발효 + Strategy C/D candidate-pool.md Pending → Active 전이 동시 적용 (W2-02.0~.4 모두 완료) | **사용자 명시 승인** |
+| **v6** | **2026-04-19** | **NIT 7번 cross-document 정정** (handover #15 + #20 패턴 차단). L163 W-1 추가 박제에 W-1 미니 테스트 결과 (방법 B 채택) 박제 추가. cross-reference 강화 (candidate-pool.md v4 L37 + W2-03 sub-plan v5 W2-03.1). 의미 변경 X = 변경 금지 서약 위반 X | W2-03.1 결과 cross-document 정정 |
 
 ## 메인 Task 메타데이터
 
@@ -172,7 +173,9 @@ pf = vbt.Portfolio.from_signals(
 
 **약점 인정 (외부 감사 권고)**: ATR 기반 trailing stop은 vectorbt 0.28.5 Boolean exit mask로 자연스럽게 표현 어려움. W2-03 구현 시 방법 A/B 비교 + backtest-reviewer 검증 후 채택 결정. 현 단계는 사전 등록 의도(ATR×3 trailing) 박제로 충분.
 
-**W-1 추가 박제 (W2-03 책무)**: vectorbt sl_stop Series 입력 + `sl_trail=True` 결합 동작은 미니 테스트로 동작 정확성 검증 필수 (synthetic trend data → entry → trailing high 추적 → exit 시점 비교). backtest-reviewer 호출 시점에 강제. 만약 동작 부정확 발견 시 방법 B (manual trailing high - ATR_MULT × ATR(14) exit_mask) 채택.
+**W-1 추가 박제 (W2-03 책무, 2026-04-19 완료)**: vectorbt sl_stop Series 입력 + `sl_trail=True` 결합 동작은 미니 테스트로 동작 정확성 검증 필수 (synthetic trend data → entry → trailing high 추적 → exit 시점 비교). backtest-reviewer 호출 시점에 강제. 만약 동작 부정확 발견 시 방법 B (manual trailing high - ATR_MULT × ATR(14) exit_mask) 채택.
+
+**W-1 결과 박제 (2026-04-19 W2-03.1 완료, NIT 7번 cross-document 정정)**: 미니 테스트 결과 방법 A return 23.51% vs 방법 B 26.52% (차이 3.01%p > 임계값 0.5%p). vectorbt `sl_trail=True` 동작 분석 결과 **entry bar 시점 비율 freeze**로 박제 의도 ("매 bar 동적 ATR trailing") 위반 확정 → **방법 B 사용자 명시 채택 박제** (2026-04-19 "ㄱㄱ"). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` + `research/_tools/w2_03_w1_test.py` + `research/outputs/w2_03_w1_test.json`. cross-reference: `docs/candidate-pool.md` v4 L37 + `docs/stage1-subplans/w2-03-insample-grid.md` v5 W2-03.1.
 
 #### Soft contamination 인정 박제
 

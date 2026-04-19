@@ -1,6 +1,6 @@
 # Task W2-03 — In-sample 백테스트 grid + Week 2 리포트 + Go/No-Go
 
-**상태**: **v4** (3차 외부 감사 APPROVED + NIT-3rd-1/2 정정 + 사용자 최종 승인 발효, 2026-04-19 "ㄱㄱㄱㄱ"). **변경 금지 서약 발효 중**. W2-03.0~.7 진입 가능. 변경 시 새 사전 등록 사이클 + 외부 감사 + 새 승인 강제.
+**상태**: **v5** (W2-03.1 W-1 미니 테스트 완료 + 방법 B 사용자 채택 박제, 2026-04-19 "ㄱㄱ"). **변경 금지 서약 발효 중** (W2-03.0~.7 박제 + 방법 B 채택). 변경 시 새 사전 등록 사이클 + 외부 감사 + 새 승인 강제.
 
 ## 변경 이력
 
@@ -10,6 +10,7 @@
 | **v2** | **2026-04-19** | **1차 외부 감사 BLOCKING 4 + WARNING 6 + NIT 5 정정**: B-1/B-2 (DSR 공식 Bailey & López de Prado 2014 원문 정확 박제 + Φ⁻¹/γ Euler-Mascheroni + V[SR_n] sample variance + DSR_z form "DSR > 0" 의미 명확화) / B-3 (5 페어 → 6 페어) / B-4 (Strategy A vs C/D 재평가 의무 대칭 박제) / W-1 (sqrt(365) annualization + W1 sqrt(252) 일관성 깨짐 발견 → handover #21 신규 패턴 별도 task) / W-2 (V[SR_n] 협소성 alarm + Stage 2 재산정 의무) / W-3 (vectorbt multi-asset 방식 A/B 박제) / W-4 (Common-window vs max-span 비대칭 cherry-pick 차단) / W-5 (ta KeltnerChannel API 호출 본 sub-plan 직접 박제) / W-6 (BTC W1-01 + W2-01.4 데이터 출처 + freeze 종료일 박제) / NIT-1~5 (외부 감사 단계 W2-03.7 신설 + Stage 1 킬 카운터 정의 + 6단 evidence + 파일명 확정) | 1차 외부 감사 |
 | **v3** | **2026-04-19** | **2차 외부 감사 APPROVED with follow-up + 옵션 A 정정 (NIT-N1/N2/N3 + NIT-1~4 + W-N1)**: NIT-N1 (L94 "5 페어" → "신규 5 + BTC 재사용 = 6 페어 총") / NIT-N2 (candidate-pool.md L41/L55 Strategy C/D Recall 의무 cross-document 박제) / NIT-N3 (decisions-final.md L515 Tier 2 ADA → TRX cycle 2 정정) / NIT-1 (W2-03.7 외부 감사 SubTask 신설) / NIT-2 (Stage 1 킬 카운터 정의 + 현재 값 박제) / NIT-3 (6단 evidence 항목 명시) / NIT-4 (evidence 파일명 placeholder 실행 시점 결정) / W-N1 (DSR_z + DSR_prob 동시 보고 책무) | 2차 외부 감사 + 사용자 결정 (옵션 A) |
 | **v4** | **2026-04-19** | **3차 외부 감사 APPROVED (BLOCKING 0 + WARNING 0) + NIT-3rd-1 정정 (stage1-execution-plan.md L207/L227 + w2-01-data-expansion.md L281 ADA → TRX cycle 2 v5 cross-document 정정) + NIT-3rd-2 정정 (candidate-pool.md v3 변경 이력 행 추가) + 사용자 최종 승인 발효** ("ㄱㄱㄱㄱ"). 변경 금지 서약 발효 + W2-03.0 진입 가능 | 3차 외부 감사 + 사용자 명시 승인 |
+| **v5** | **2026-04-19** | **W2-03.1 W-1 미니 테스트 완료 + 방법 B 사용자 채택 박제** ("ㄱㄱ"). 결과: 방법 A return 23.51% vs 방법 B 26.52% (차이 3.01%p > 임계값 0.5%p) + 외부 감사 W-2 발견 (vectorbt sl_trail=True는 entry bar 시점 비율 freeze, 박제 의도 "매 bar 동적 ATR trailing"과 본질적으로 다름) → **방법 B (manual trailing_high - ATR_MULT × ATR(t) exit_mask) 채택**. Strategy C 구현 박제 정확화 + candidate-pool.md L37 cross-document 정정. **synthetic data 한계 인정 W2-03.6 리포트 박제 추가 (자가 검증 라운드 10 신규 발견)** | W2-03.1 + 외부 감사 + 사용자 채택 |
 
 ## 메인 Task 메타데이터
 
@@ -64,7 +65,7 @@
 | SubTask | 상태 | 메모 |
 |---------|------|------|
 | W2-03.0 | Pending | `make_notebook_08.py` 작성 (vectorbt 0.28.5 grid 생성기) |
-| W2-03.1 | Pending | **W-1 미니 테스트** (Candidate C ATR trailing stop 동작 검증, W2-02 v5 박제 책무) |
+| **W2-03.1** | **완료 (2026-04-19)** | **W-1 미니 테스트 결과: 방법 B 채택 박제** (return 차이 3.01%p > 임계값 + W-2 vectorbt sl_trail freeze 발견 → 박제 의도 위반). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` + `research/outputs/w2_03_w1_test.json` |
 | W2-03.2 | Pending | Primary grid 실행 (Tier 1 × {A,C,D} = 6셀) |
 | W2-03.3 | Pending | Exploratory grid 실행 (Tier 2 × {A,C,D} = 12셀, Go 기여 X) |
 | W2-03.4 | Pending | DSR 계산 (N_trials 박제 결정) + Multiple testing 평가 |
@@ -235,6 +236,7 @@
   - Soft contamination 인정 + Week 3 walk-forward 책무
   - **Stage 1 킬 카운터 박제 (NIT-2 정정)**: decisions-final.md L482 정의 인용 + 현재 값 박제. W1 No-Go 후 카운터 +1 여부는 본 W2-03.5/.6 사용자 결정 시점 박제 (Go 시 카운터 0 유지 + W3 진입 / No-Go 시 +1 + Week 3 재탐색 vs Stage 1 종료)
   - Stage 1 진행 상황 + 다음 단계 옵션
+- [ ] **synthetic data 한계 인정 박제 (자가 검증 라운드 10 신규)**: W2-03.1 W-1 미니 테스트는 synthetic data로 방법 A vs B 차이 발견 (방향성 검증 적합). 실제 BTC/ETH 일봉 데이터에서 차이 magnitude는 다를 수 있음. **본 W2-03 grid 결과에서 방법 B 채택 결과의 실제 데이터 동작 검증 추가 보고 책무**
 - [ ] **6단 evidence 작성 (NIT-3 정정)**: `.evidence/w2-03-insample-grid.txt` (또는 `.md`):
   - 1. **데이터**: 6 페어 SHA256 + freeze 종료일 + actual 범위
   - 2. **파라미터**: A/C/D 박제 상수 + ta API 호출 + sqrt(365) annualization

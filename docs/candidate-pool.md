@@ -34,12 +34,12 @@
 | **상태** | **Active/Registered (W2-02 v4 사용자 승인 발효, 2026-04-19)** |
 | **최초 등록** | Week 2 (2026-04-17 결정, W2-02 v4 사전 등록 사용자 승인 2026-04-19 "ㄱㄱ") |
 | **파라미터 (확정)** | FAST_MA=50, SLOW_MA=200, ATR_PERIOD=14, ATR_MULT=3 (trailing stop) |
-| **진입/청산 (W2-02 v4 박제)** | Long entry: strict golden cross `(MA50>MA200) AND (MA50.shift(1)<=MA200.shift(1))`. Hard exit: strict death cross OR ATR(14)×3 trailing stop. Long-only. 청산 후 동일 추세 내 재진입 X |
+| **진입/청산 (W2-02 v4 박제 + W2-03.1 W-1 검증 후 방법 B 채택)** | Long entry: strict golden cross `(MA50>MA200) AND (MA50.shift(1)<=MA200.shift(1))`. Hard exit: strict death cross OR **manual trailing_high - ATR_MULT × ATR(14)(t) exit_mask** (방법 B, **매 bar 동적 ATR 적용**, 2026-04-19 W-1 미니 테스트 검증 결과 채택). Long-only. 청산 후 동일 추세 내 재진입 X |
 | **출처** | Faber 2007 "A Quantitative Approach to Tactical Asset Allocation" (MA crossover 타이밍) + Wilder 1978 (ATR) |
 | **독립성 한계** | W1에서 BTC 5년 데이터를 이미 본 이후 선택. 문헌 **기본값** 사용이나 완전 OOS 독립 주장 불가 (soft contamination). `decisions-final.md` "Week 2 한계 및 독립성 서약" 참조 |
 | **평가 조건** | W2-03 grid에서 Tier 1 평가. Primary `Sharpe>0.8 AND DSR>0`. Secondary 마킹: 동일 전략이 Tier 1+2 3+ 페어에서 `Sharpe>0.5` → ensemble 후보 |
 | **Recall 시 의무 (NIT-N2 정정, B-4 cross-document)** | Go 통과 시 **DSR-adjusted 평가 + Week 3 walk-forward 재검증 의무 강제** (Strategy A Recall mechanism과 대칭, W2-03 v2 박제 인용) |
-| **W2-03 책무 (W-1)** | vectorbt sl_stop Series + sl_trail=True 미니 테스트 동작 검증 강제 (backtest-reviewer) |
+| **W2-03 책무 (W-1, 2026-04-19 완료)** | W-1 미니 테스트 결과: 방법 A (vectorbt sl_stop+sl_trail) vs 방법 B (manual exit_mask) → **방법 B 채택 박제** (방법 A는 entry bar 시점 비율 freeze, 박제 의도 "매 bar 동적 ATR" 위반). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` + `research/_tools/w2_03_w1_test.py` |
 
 ### Strategy D — Volatility Breakout (Keltner + Bollinger)
 
@@ -95,6 +95,7 @@
 | 2026-04-17 | 파일 신설. Strategy A Retained, Strategy B Deprecated, Strategy C/D Pending 등록 | W1-06 No-Go + W2-01 외부 감사 WARNING-5 |
 | 2026-04-19 | **v2: Strategy C/D Pending → Active 전이** (W2-02 v4 사용자 승인 발효). 진입/청산 strict crossover 박제 + ta KeltnerChannel API 호출 명시 (`original_version=False, window_atr=14, multiplier=1.5`) + L48 Keltner 출처 정정 (ChartSchool 표준 변형, Keltner 1960 원 설계 ≠ 우리 박제값). 외부 감사 1차+2차+3차 APPROVED with follow-up | W2-02 v4 사용자 승인 |
 | 2026-04-19 | **v3: Strategy C/D Recall 의무 cross-document 박제** (NIT-N2 정정). L41 (Strategy C) + L55 (Strategy D)에 "Go 통과 시 DSR-adjusted + Week 3 walk-forward 의무 강제 (Strategy A Recall과 대칭, W2-03 v2 박제 인용)" 추가. cycle 1 학습 #15 (cross-document) 패턴 해소 | W2-03 sub-plan 2차 외부 감사 NIT-N2 |
+| 2026-04-19 | **v4: Strategy C 진입/청산 박제 정확화** (W2-03.1 W-1 미니 테스트 + 사용자 채택 결정). L37 trailing stop 표현 → **manual 매 bar 동적 ATR(14)×3 exit_mask (방법 B)** 명시. 방법 A (vectorbt sl_trail=True) 검증 결과 entry bar 시점 비율 freeze로 박제 의도 위반 발견 → 사용자 명시 채택 결정 ("ㄱㄱ"). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` | W2-03.1 W-1 미니 테스트 결과 |
 
 ---
 
