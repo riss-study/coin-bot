@@ -81,7 +81,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W2-01 | Done (cycle 2, 2026-04-19) | 2 | [데이터 확장 + 페어 선정](./stage1-subplans/w2-01-data-expansion.md) cycle 2 v5 — Tier 2 = [XRP,SOL,TRX,DOGE] |
 | W2-02 | Done (v5 사용자 승인 발효, 2026-04-19) | 2 | [새 전략 후보 사전 등록](./stage1-subplans/w2-02-strategy-candidates.md) — Candidate C/D Active/Registered |
 | W2-03 | **Done (Go 결정, 2026-04-20)** | 2 | [In-sample 백테스트 grid](./stage1-subplans/w2-03-insample-grid.md) **v8** — 사용자 Option C 명시 채택 ("ㄱㄱ"). V_empirical 채택 후 재평가: **is_go=True (5/6 Go cells)**. BTC_A/C/D, ETH_A/D Go 통과 / ETH_C FAIL. Strategy A Recall 발동 (Retained → Active). 외부 감사 2회 APPROVED with follow-up. Week 3 진입 |
-| W3-01 | **Ready (진입 가능, 2026-04-20)** | 3 | Walk-forward analysis (Strategy A/C/D). V_empirical 일관 적용 + floor 재도입 금지 + 임계값 변경 금지 의무 (v8 2차 감사 WARNING-3). 실패 시 Stage 1 킬 카운터 +2 소급 (v8 2차 감사 WARNING-4). **선행 필수: PT-01 W1 sqrt 일관성 정정** (본 문서 "잔존 정정 Task" 참조) |
+| W3-01 | **Ready (진입 가능, 2026-04-20)** | 3 | Walk-forward analysis (Strategy A/C/D). V_empirical 일관 적용 + floor 재도입 금지 + 임계값 변경 금지 의무 (v8 2차 감사 WARNING-3). 실패 시 Stage 1 킬 카운터 +2 소급 (v8 2차 감사 WARNING-4). PT-01 해소됨 (2026-04-20 실측 반증, 선행 차단 해제) |
 | W3-02 | Pending | 3 | TBD — DSR + Bootstrap (원래 W2-02에서 이전) |
 | W3-03 | Pending | 3 | TBD — 전략 채택 결정 |
 | W4-01 | Pending | 4 | TBD |
@@ -253,9 +253,11 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 
 | ID | 설명 | 트리거 | 영향 | 처리 시점 |
 |----|------|--------|------|----------|
-| **PT-01** | **W1 sqrt(252) vs W1-06 sqrt(365) 일관성 정정** | W2-03 v8 2차 외부 감사 WARNING (handover #21). W1-04 robustness / W1-02·03 strategy JSON은 vectorbt default `year_freq='252 days'` 적용. W1-06 리포트와 W2-03은 sqrt(365) 채택 | W3-01 walk-forward에서 W1 산출물 재인용 시 cross-comparison 불일치. Stage 1 게이트 평가 숫자 오독 위험 | **W3-01 진입 전** 필수 정정. strategy_a_daily.json + strategy_b_daily.json + robustness_sensitivity.json Sharpe 재계산 + sqrt(365) 재저장 + week1_report.md 갱신 + evidence 정정 |
+| ~~**PT-01**~~ | ~~W1 sqrt(252) vs W1-06 sqrt(365) 일관성 정정~~ — **해소 (2026-04-20 실측 반증)** | ~~W2-03 v8 2차 외부 감사 WARNING (handover #21)~~ → **오인 박제**. vectorbt 0.28.5 실측 확인: `vbt.settings.returns['year_freq']` = `'365 days'` (공식 default). 따라서 W1-02/03/04/06 `pf.sharpe_ratio()` default 호출 = 이미 sqrt(365) 기반. W2-03 `year_freq='365 days'` 명시 호출과 **bit-level 일치** (BTC_A Sharpe 1.0353 양쪽 동일) | 불일치 없음 (실측 확인). 재계산 **불필요** | **해소됨 (2026-04-20)**. 절충안: 향후 벡터bt 업그레이드 또는 Freqtrade 이식 시점 (W4+) 에 `year_freq='365 days'` **명시 호출**로 노트북 일괄 갱신 권고 (버전 의존 제거 목적). 현재는 수치 정확하므로 재계산 없음 |
 | PT-02 | `.gitignore` vs sub-plan 박제 충돌 | handover #20. W1-01 `data_hashes.txt` + cycle 1 snapshot JSON이 `.gitignore`로 제외되어 있으나 sub-plan은 "git tracked"로 박제 | 감사 시 "박제와 실제 git 상태 불일치" 발견 가능 | W3-01 sub-plan 작성 시 data_hashes 경로 처리 결정 후 일괄 반영 |
 | PT-03 | 이전 PC 글로벌 memory 디렉토리 마이그레이션 | 새 PC(riss) 이동 후 `/Users/riss/.claude/projects/-Users-riss-project-coin-bot/memory/`가 빈 디렉토리였음 (handover v12 L25). v13에서 신규 작성 완료 | 이전 PC 글로벌 memory가 남아있다면 병합 필요. 없으면 v13 신규 작성만으로 충분 | 필요 시 별도 마이그레이션 task 작성 (이전 PC 접근 가능 시점). handover v13 작성 시 memory 신규 작성으로 부분 해소 (2026-04-20) |
+| PT-04 | **`year_freq='365 days'` 명시 호출 일괄 갱신** | PT-01 해소 후속 (2026-04-20 외부 감사 WARNING-3). 현재 W1-02/03/04/06 노트북은 `pf.sharpe_ratio()` default 호출에 의존 = vectorbt 0.28.5 default `'365 days'`에 의존. 미래 벡터bt 업그레이드 시 default 변경 리스크 존재 | 벡터bt 업그레이드 또는 Freqtrade 이식 시점 (W4+)에 숫자 재현 실패 가능 | **W4-01 Freqtrade 이식 진입 시점** 일괄 갱신. W1-02/03/04/06 + W2-03 + 미래 Week 3 walk-forward 노트북 모두 `pf.sharpe_ratio(year_freq='365 days')` 명시 호출로 전환. 버전 의존 제거 |
+| PT-05 | **외부 lib API 추측 박제 방지 기계적 가드 (hook) 검토** | PT-01 해소 감사관 개인 의견 (2026-04-20). cycle 1 학습 #16 "외부 API 추측 금지" **누적 3회째 재발** (vectorbt `td_stop` / `from_signals`의 `year_freq` / default `year_freq`). memory 박제만으로는 부족 | 4회째 재발 가능 | Week 3 walk-forward 진입 이후 여유 시점. claude-code hook 또는 pre-commit hook으로 "외부 lib default/파라미터 박제 시 실측 증거 (`.evidence/`에 `inspect.signature` 또는 `settings` 출력) 필수" 체크. 실제 작성은 별도 사이클 |
 
 ## QA / Evidence Rules
 
