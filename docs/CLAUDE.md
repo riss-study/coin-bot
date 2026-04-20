@@ -64,8 +64,9 @@
 - `architecture.md` — 시스템 설계도 (Phase별 진화)
 - `glossary.md` — 자바 개발자를 위한 용어집
 - `week1-plan.md` — Week 1 작업 일별 계획 (검증 완료, sub-plan으로 분할됨)
-- **`stage1-execution-plan.md`** — Stage 1 EPIC 뷰 (14개 Task, 의존성, 상태 표)
-- **`stage1-subplans/`** — Task 상세 sub-plan (Week 1 6개 작성 완료, Week 2+ 작성 대기)
+- **`stage1-execution-plan.md`** — Stage 1 EPIC 뷰 (14개 Task 상태 표 + 의존성 + 잔존 정정 Task aggregator)
+- **`stage1-weekly/`** — Week 단위 Task 상세 (`week1.md`, `week2.md`, `week3-8-pending.md`. Week 3~8 진입 시 분할)
+- **`stage1-subplans/`** — Task 상세 sub-plan (Week 1 6개 + Week 2 3개 작성 완료, Week 3+ 작성 대기)
 - **`execution-loop-pattern.md`** — food-supply 방법론 추출 (3종 문서 + 4단계 루프)
 - **`methodology-adoption-plan.md`** — 방법론 적용 제안서
 

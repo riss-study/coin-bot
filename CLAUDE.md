@@ -81,6 +81,7 @@ Week 1 Day 1 완료 후 활성화될 명령 (지금은 실행 불가):
 - **[문서 / 결정 편집](./docs/CLAUDE.md)** — 결정사항, 아키텍처, 용어집, 플랜, sub-plan 등 docs/* 내 모든 문서 작업 시.
 - **[리서치 / 노트북 / 백테스트](./research/CLAUDE.md)** — Jupyter 노트북, 데이터 수집, vectorbt 백테스트 작업 시 (Week 1+).
 - **[실행 계획 (Stage 1 EPIC)](./docs/stage1-execution-plan.md)** — 전체 14개 Task 상태, 의존성, Acceptance Criteria. Task 시작 전 항상 먼저 확인.
+- **[주차별 상세 (Week 1/2/3~8)](./docs/stage1-weekly/)** — Week 단위 Task 목록 + 의사결정 흐름. EPIC 뷰의 주차 섹션 상세.
 - **[Sub-plan (Task 상세)](./docs/stage1-subplans/)** — Task 단위 상세 작업 계획. 각 Task 시작 시 해당 sub-plan 읽기 필수.
 - **[Evidence 파일 (검증 서명)](./.evidence/)** — Task 완료 시 작성. 6단 구조 (데이터/파라미터/결과/자동검증/룰준수/리뷰).
 - **[Backtest Reviewer 에이전트](./.claude/agents/backtest-reviewer.md)** — 백테스트 spec 정합성 검증. Task 종료 직전 호출.
