@@ -84,7 +84,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W3-01 | **Ready (진입 가능, 2026-04-20)** | 3 | Walk-forward analysis (Strategy A/C/D). V_empirical 일관 적용 + floor 재도입 금지 + 임계값 변경 금지 의무 (v8 2차 감사 WARNING-3). 실패 시 Stage 1 킬 카운터 +2 소급 (v8 2차 감사 WARNING-4). PT-01 해소됨 (2026-04-20 실측 반증, 선행 차단 해제) |
 | W3-02 | Pending | 3 | TBD — DSR + Bootstrap (원래 W2-02에서 이전) |
 | W3-03 | Pending | 3 | TBD — 전략 채택 결정 |
-| W4-01 | Pending | 4 | TBD |
+| W4-01 | Pending | 4 | TBD. **선행/병행 필수: PT-04** (`year_freq='365 days'` 명시 호출 일괄 갱신, 본 문서 "잔존 정정 Task" 섹션 박제) |
 | W4-02 | Pending | 4 | TBD |
 | W6-01 | Pending | 6 | TBD |
 | W8-01 | Pending | 8 | **Stage 1 게이트** |
