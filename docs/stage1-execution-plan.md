@@ -255,7 +255,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 |----|------|--------|------|----------|
 | **PT-01** | **W1 sqrt(252) vs W1-06 sqrt(365) 일관성 정정** | W2-03 v8 2차 외부 감사 WARNING (handover #21). W1-04 robustness / W1-02·03 strategy JSON은 vectorbt default `year_freq='252 days'` 적용. W1-06 리포트와 W2-03은 sqrt(365) 채택 | W3-01 walk-forward에서 W1 산출물 재인용 시 cross-comparison 불일치. Stage 1 게이트 평가 숫자 오독 위험 | **W3-01 진입 전** 필수 정정. strategy_a_daily.json + strategy_b_daily.json + robustness_sensitivity.json Sharpe 재계산 + sqrt(365) 재저장 + week1_report.md 갱신 + evidence 정정 |
 | PT-02 | `.gitignore` vs sub-plan 박제 충돌 | handover #20. W1-01 `data_hashes.txt` + cycle 1 snapshot JSON이 `.gitignore`로 제외되어 있으나 sub-plan은 "git tracked"로 박제 | 감사 시 "박제와 실제 git 상태 불일치" 발견 가능 | W3-01 sub-plan 작성 시 data_hashes 경로 처리 결정 후 일괄 반영 |
-| PT-03 | 이전 PC 글로벌 memory 디렉토리 마이그레이션 | 새 PC(riss) 이동 후 `/Users/riss/.claude/projects/-Users-riss-project-coin-bot/memory/`가 빈 디렉토리였음 (handover v12 L25). v13에서 신규 작성 완료 | 이전 PC 글로벌 memory가 남아있다면 병합 필요. 없으면 v13 신규 작성만으로 충분 | 필요 시 별도. handover v13 작성 시 memory 신규 작성으로 부분 해소 (2026-04-20) |
+| PT-03 | 이전 PC 글로벌 memory 디렉토리 마이그레이션 | 새 PC(riss) 이동 후 `/Users/riss/.claude/projects/-Users-riss-project-coin-bot/memory/`가 빈 디렉토리였음 (handover v12 L25). v13에서 신규 작성 완료 | 이전 PC 글로벌 memory가 남아있다면 병합 필요. 없으면 v13 신규 작성만으로 충분 | 필요 시 별도 마이그레이션 task 작성 (이전 PC 접근 가능 시점). handover v13 작성 시 memory 신규 작성으로 부분 해소 (2026-04-20) |
 
 ## QA / Evidence Rules
 

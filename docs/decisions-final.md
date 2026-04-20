@@ -519,7 +519,7 @@ Cloudflare Access (이메일 OTP 또는 GitHub SSO 로그인)
     - Secondary 마킹 (Go 기여 X): 동일 전략이 Tier 1+2 3+ 페어에서 Sharpe > 0.5 → ensemble 후보
     - 미달 → Stage 1 킬 카운터 +1, Week 3 재탐색
   - **다중 검정 한계 고지**: 6 primary 셀도 family-wise 오류 여지. DSR로 부분 완화, 최종 검증은 Week 3 walk-forward
-  - **"DSR > 0" V 선택 최종 박제 (검증 라운드 정정, 2026-04-20)**: 본 조항의 "DSR > 0"은 Bailey & López de Prado 2014 원문 DSR_z form. V[SR_n] 선택의 최종 박제 = **V_empirical = 0.1023 (sample variance, Bailey 원문 default)**. v6 C-1에서 일시 도입된 `V_reported = max(V_empirical, 1.0) = 1.0` floor는 프로젝트 self-imposed defensive floor였으며 원문 절차가 아님 (W2-03.7 외부 감사 1차 WARNING-1). sub-plan v8 박제로 V_empirical default 복귀. 상세: 아래 "W2-03 In-sample grid Go 결정" 섹션 (2026-04-20) 참조
+  - **"DSR > 0" V 선택 최종 박제 (검증 라운드 정정, 2026-04-20)**: 본 조항의 "DSR > 0"은 Bailey & López de Prado 2014 원문 DSR_z form. V[SR_n] 선택의 최종 박제 = **V_empirical = 0.1023 (sample variance, Bailey 2014 원문 기본 정의)**. Bailey 원문은 V=sample variance를 default로 제시하되 **N 작을 때 대응은 사용자 재량**으로 남김 → N=6 신뢰 한계 인정 + Week 3 walk-forward fold별 DSR 재산정으로 보완 (W2-03.7 외부 감사 2차 WARNING-2). v6 C-1에서 일시 도입된 `V_reported = max(V_empirical, 1.0) = 1.0` floor는 프로젝트 self-imposed defensive floor였으며 원문 절차가 아님 (W2-03.7 외부 감사 1차 WARNING-1). sub-plan v8 박제로 V_empirical 복귀 (서술 오류 인정 + default 복귀 프레이밍, "원문 복귀" overclaim 회피). 상세: 아래 "W2-03 In-sample grid Go 결정" 섹션 (2026-04-20) 참조
 
 **Week 3로 이전**:
 - Walk-forward analysis (원래 W2-01 → W3-01)
