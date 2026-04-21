@@ -158,6 +158,7 @@ Week 2부터 `pytest` 단위 테스트 도입.
 
 - `../CLAUDE.md` — 프로젝트 전체 규칙
 - `../docs/decisions-final.md` — 모든 결정사항
-- `../docs/week1-plan.md` — Week 1 일별 작업
+- `../docs/stage1-execution-plan.md` — Stage 1 EPIC 뷰 (Task 상태 + 의존성 + 잔존 정정 Task)
+- `../docs/stage1-weekly/` — Week 단위 Task 상세 (`week1.md`, `week2.md`, `week3-8-pending.md`)
 - `../docs/glossary.md` — 용어 풀이
 - `../docs/architecture.md` — 시스템 설계

@@ -587,6 +587,10 @@ shutdown script가 ./secrets/ 안전 삭제 (shred)
 
 ---
 
-## 다음 단계
+## Day 0 작성 당시 다음 단계 (완료, 역사 기록)
 
-`week1-plan.md` 작성 후 Week 1 Day 1 시작.
+> 본 섹션은 2026-04-13 Day 0 작성 시점의 메모. 이후 진행 경과는 `stage1-execution-plan.md` 상태 표 + `git log main` 참조.
+
+~~`week1-plan.md` 작성 후 Week 1 Day 1 시작.~~ — 완료. `week1-plan.md`는 sub-plan으로 분할됐고 EPIC Week 섹션은 `stage1-weekly/week1.md`로 이동됨 (2026-04-21).
+
+**현재 위치**: W2-03 Go 결정 완료. W3-01 walk-forward 진입 대기.
