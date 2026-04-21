@@ -67,7 +67,6 @@
 - **`stage1-weekly/`** — Week 단위 Task 상세 (`week1.md`, `week2.md`, `week3-8-pending.md`. Week 3~8 진입 시 분할). Week 1 EPIC 상세는 본 디렉토리의 `week1.md`가 유일한 active 문서 (`week1-plan.md`는 Historical로 이동됨)
 - **`stage1-subplans/`** — Task 상세 sub-plan (Week 1 6개 + Week 2 3개 작성 완료, Week 3+ 작성 대기)
 - **`execution-loop-pattern.md`** — food-supply 방법론 추출 (3종 문서 + 4단계 루프)
-- **`methodology-adoption-plan.md`** — 방법론 적용 제안서
 
 ## Historical Documents (참조만, 편집 금지)
 
@@ -85,6 +84,7 @@
 - `day0-proposed-diffs.md` — Day 0 적용 완료 이력
 - `critical-corrections-v2.md` — CLAUDE.md 시스템 재감사
 - `week1-plan.md` — Week 1 일별 계획 (Day 1~Day 7 timeline). W1-01~W1-06 sub-plan으로 분할 완료 + EPIC Week 섹션을 `stage1-weekly/week1.md`로 이동 (2026-04-21). 역사적 참조용으로만 유지
+- `methodology-adoption-plan.md` — food-supply 방법론 적용 제안서 (2026-04 초안). **미채택**: coin-bot은 `.sisyphus/` 구조 대신 자체 진화한 `stage1-execution-plan.md` + `stage1-weekly/` + `stage1-subplans/` 구조 사용. 본문 내 week1-plan/.sisyphus/ 참조는 당시 제안 원문으로 역사 보존 (Historical로 이동 2026-04-21). food-supply 방법론 학습 자료로만 참고
 
 ## Local Golden Rules
 
