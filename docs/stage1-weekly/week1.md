@@ -106,4 +106,4 @@
 - Week 2 재범위: "walk-forward/DSR" → "전략 후보 재탐색 + 메이저 알트 확장"
 - Walk-forward + DSR은 Week 3로 이전
 
-자세한 의사결정 근거: `docs/decisions-final.md` "Week 1 No-Go 결정" 섹션 참조.
+자세한 의사결정 근거: [`../decisions-final.md`](../decisions-final.md) "Week 1 No-Go 결정" 섹션 참조.

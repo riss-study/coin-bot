@@ -61,7 +61,7 @@ Week 1 Day 1 완료 후 활성화될 명령 (지금은 실행 불가):
 - 모든 시간 기록은 UTC + KST 동시 보관.
 - 모르는 트레이딩 용어는 `docs/glossary.md` 참조. 없으면 즉시 추가.
 - 작업 시작 시 TaskUpdate로 in_progress, 완료 시 completed 표시.
-- 결정 변경 시 decisions-final.md + 연쇄 문서(architecture, week1-plan, CLAUDE.md) 동시 갱신.
+- 결정 변경 시 decisions-final.md + 연쇄 문서(architecture, stage1-execution-plan, stage1-weekly/, CLAUDE.md) 동시 갱신.
 
 ### Don'ts
 

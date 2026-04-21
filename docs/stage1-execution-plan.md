@@ -35,7 +35,7 @@
 - 노트북 6개 (`research/notebooks/0{1..6}_*.ipynb`)
 - 백테스트 결과 JSON (`research/outputs/strategy_*.json`)
 - Freqtrade 봇 (Week 4+, 별도 리포)
-- Evidence 파일 14개 (각 Task 완료 서명)
+- Evidence 파일 16개 (각 Task 완료 서명: W1×6 + W2×3 + W3×3 + W4×2 + W6×1 + W8×1)
 - Stage 1 게이트 결정 보고서 (Week 8)
 
 ### 완료 기준 (Stage 1 게이트)
@@ -134,7 +134,7 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 
 ## 최종 검증 (Stage 1 종료 시)
 
-- [x] F1. ~~모든 14개~~ Task Evidence 파일 서명됨 — 9개 Done (W1-01~W1-06, W2-01~W2-03), 7개 Pending (W3-01~W8-01)
+- [x] F1. 모든 16개 Task Evidence 파일 서명됨 — 9개 Done (W1-01~W1-06, W2-01~W2-03), 7개 Pending (W3-01~W8-01)
 - [x] F2. Week 1 Go 통과 → Week 2 진행 — ~~Go~~ No-Go (2026-04-17) → Week 2 재범위로 전환
 - [ ] F3. Week 3 전략 채택 결정 명시
 - [ ] F4. Week 8 페이퍼 2주 결과 평가 → Stage 2 진행 또는 학습 모드

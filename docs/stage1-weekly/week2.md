@@ -74,4 +74,4 @@
 - Fold별 DSR 재산정 의무
 - 실패 시 Stage 1 킬 카운터 +2 소급 (W2-03 Go 결정을 사후에 "실패"로 재분류)
 
-자세한 의사결정 근거 + 외부 감사 2회 trace + cycle 1 #5 재발 판단: `docs/decisions-final.md` "W2-03 In-sample grid Go 결정" 섹션 + `.evidence/agent-reviews/w2-03-*-review-2026-04-20.md` 참조.
+자세한 의사결정 근거 + 외부 감사 2회 trace + cycle 1 #5 재발 판단: [`../decisions-final.md`](../decisions-final.md) "W2-03 In-sample grid Go 결정" 섹션 + `../../.evidence/agent-reviews/w2-03-*-review-2026-04-20.md` 참조.
