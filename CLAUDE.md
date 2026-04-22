@@ -106,7 +106,7 @@ Week 1 Day 1 완료 후 활성화될 명령 (지금은 실행 불가):
 ### Git 전략
 
 - 비공개 GitHub 리포 × 3 예정 (메인/엔진/대시보드)
-- 커밋 메시지 접두사: `Day 0:`, `Week N Day M:`, `Phase N:` 등 단계 명시
+- 커밋 메시지: `prefix(plan): Feature-ID Task-ID 기능명 — 작업 내용` 형식. **기능명 + Task ID 필수** (주차 라벨만으로는 불충분, 2026-04-21 사용자 명시 요청). 상세 규칙은 `docs/stage1-execution-plan.md` "커밋 전략" 섹션
 - 한국어 또는 영어 자유
 - `.gitignore`에 `.venv/`, `data/`, `*.parquet`, `.env`, `secrets/`, `__pycache__/`, `.ipynb_checkpoints/` 필수 포함
 - API 키, 시크릿이 포함된 파일 절대 git add 금지

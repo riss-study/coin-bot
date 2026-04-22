@@ -79,13 +79,13 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W2-01 | Done (cycle 2 v5, 2026-04-19) | 2 | [Week 2 계획](./stage1-weekly/week2.md) · [sub-plan](./stage1-subplans/w2-01-data-expansion.md) |
 | W2-02 | Done (v5, 2026-04-19) | 2 | [Week 2 계획](./stage1-weekly/week2.md) · [sub-plan](./stage1-subplans/w2-02-strategy-candidates.md) |
 | W2-03 | **Done (Go 결정, 2026-04-20)** | 2 | [Week 2 계획](./stage1-weekly/week2.md) · [sub-plan v9](./stage1-subplans/w2-03-insample-grid.md) |
-| W3-01 | **Ready (진입 가능, 2026-04-20)** | 3 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
-| W3-02 | Pending | 3 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
-| W3-03 | Pending | 3 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
-| W4-01 | Pending (선행: PT-04) | 4 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
-| W4-02 | Pending | 4 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
-| W6-01 | Pending | 6 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
-| W8-01 | Pending (**Stage 1 게이트**) | 8 | [Week 3~8 pending](./stage1-weekly/week3-8-pending.md) · sub-plan TBD |
+| W3-01 | **In Progress (sub-plan v1, 2026-04-21)** | 3 | [Week 3 계획](./stage1-weekly/week3.md) · [sub-plan v1](./stage1-subplans/w3-01-walk-forward.md) |
+| W3-02 | Pending | 3 | [Week 3 계획](./stage1-weekly/week3.md) · sub-plan TBD |
+| W3-03 | Pending | 3 | [Week 3 계획](./stage1-weekly/week3.md) · sub-plan TBD |
+| W4-01 | Pending (선행: PT-04) | 4 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
+| W4-02 | Pending | 4 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
+| W6-01 | Pending | 6 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
+| W8-01 | Pending (**Stage 1 게이트**) | 8 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
 
 ## 의존성 매트릭스
 
@@ -112,7 +112,8 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 
 - **Week 1**: [`stage1-weekly/week1.md`](./stage1-weekly/week1.md) — 일봉 복제 스프린트 (Done, No-Go)
 - **Week 2**: [`stage1-weekly/week2.md`](./stage1-weekly/week2.md) — 재범위 + 알트 확장 + 전략 재탐색 (Done, Go)
-- **Week 3~8**: [`stage1-weekly/week3-8-pending.md`](./stage1-weekly/week3-8-pending.md) — Pending (진입 시점에 주차별 분할)
+- **Week 3**: [`stage1-weekly/week3.md`](./stage1-weekly/week3.md) — walk-forward + DSR + 전략 채택 (In Progress, W3-01 sub-plan v1 2026-04-21)
+- **Week 4~8**: [`stage1-weekly/week4-8-pending.md`](./stage1-weekly/week4-8-pending.md) — Pending (진입 시점에 주차별 분할)
 
 ## 잔존 정정 Task (cross-Task, 우선순위 순)
 
@@ -142,13 +143,15 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 ## 커밋 전략
 
 - 각 Task는 vertical commit (노트북 + 결과 + Evidence + status 업데이트)
-- 커밋 메시지 형식: `prefix: 한글 설명`
+- 커밋 메시지 형식: `prefix(plan): Feature-ID Task-ID 기능명 — 작업 내용` (2026-04-21 사용자 명시 요청)
   - `feat(plan)`: 새 Task 완료
   - `docs(plan)`: 문서 변경
   - `chore(plan)`: 환경/세팅
   - `fix(plan)`: 버그 수정
   - `refactor(plan)`: 구조 개선
-- Feature ID 명시: `feat(plan): STR-A-001 ...`
+- **필수 포함 (제목)**: (1) `Feature-ID` (예: BT-004, STR-A-001) + (2) `Task-ID` (예: W3-01, PT-01) + (3) **기능명** (예: Walk-forward analysis, Strategy A Recall) + (4) 작업 내용 간략
+- 예시 (좋음): `feat(plan): BT-004 W3-01 Walk-forward sub-plan v2 — Anchored 5-fold + 옵션 A 5/5 Go 기준 + WARNING 8/NIT 7 반영`
+- 예시 (나쁨, 기능명 누락): `fix(plan): W3-01 재검증 정정`
 - Evidence 파일은 같은 commit에 포함
 
 ## 성공 기준
