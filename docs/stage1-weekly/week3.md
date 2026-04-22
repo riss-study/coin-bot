@@ -1,7 +1,18 @@
-# Stage 1 Week 3 — Walk-forward + DSR + 전략 채택 결정
+# Stage 1 Week 3 — Walk-forward No-Go + 학습 모드 전환 (완료, 2026-04-22)
 
 > 상위 계획: [`../stage1-execution-plan.md`](../stage1-execution-plan.md) (EPIC 뷰)
 > Task 상세 sub-plan: [`../stage1-subplans/`](../stage1-subplans/)
+
+## 최종 결과 (2026-04-22)
+
+**No-Go + Stage 1 학습 모드 전환** (사용자 옵션 C 명시 채택 "3").
+
+- **W3-01 자동 결과**: is_go=False, go_cells=[] (0/5 Go cell)
+- **사용자 결정**: 옵션 C (감사관 추천) = 프레임 A+B 둘 다 공식 인정 + Stage 1 학습 모드
+- **Stage 1 킬 카운터**: +2 소급 가산 → 총 +3 (킬 조건 충족)
+- **W3-02 / W3-03 / W4~W8 전부 Cancelled** (Stage 1 종결)
+
+상세: [`../decisions-final.md`](../decisions-final.md) "W3-01 Walk-forward No-Go 결정 + 프레임 C 학습 모드 전환" 섹션 참조.
 
 ## 배경
 
@@ -9,29 +20,26 @@ W2-03 Go 결정 (2026-04-20, Option C = V_empirical 채택) → W3 진입. 2차 
 
 ## 요약
 
-- **기간**: 2026-04-21 ~ 약 Week 3 종료 (Day 1-7)
+- **기간**: 2026-04-21 ~ 2026-04-22 (Day 1-2)
 - **대상**: W2-03 Go cells 5개 (BTC_A/C/D + ETH_A/D) — 집합 고정, 사후 확장 금지
 - **의무 (v8 WARNING-3 강제)**: V_empirical 일관 + floor 재도입 금지 + 임계값 변경 금지 + fold별 DSR 재산정
 
 ## Task 목록
 
-- [ ] **W3-01. Walk-forward analysis** (Feature: BT-004) — v1 sub-plan 작성 중 (2026-04-21)
-  - **What**: Anchored walk-forward 5 folds × 6개월 test. 5 cell × 5 fold = 25 조합. Fold별 Sharpe + DSR_z 산출. Go 이중 조건 (4+/5 fold pass AND 평균 pass).
-  - **Must NOT**: V_reported floor 재도입 / 임계값 완화 / Go cells 집합 확장 / Fold 분할점 사후 조정 / Strategy 파라미터 재튜닝
-  - Sub-plan: [`../stage1-subplans/w3-01-walk-forward.md`](../stage1-subplans/w3-01-walk-forward.md) v1
-  - Depends: W2-03 Go 결정 (2026-04-20 완료)
+- [x] **W3-01. Walk-forward analysis** (Feature: BT-004) — **Done No-Go (2026-04-22, 사용자 옵션 C 채택)**
+  - **What**: Anchored walk-forward 5 folds × 6개월 test. 5 cell × 5 fold = 25 조합. Fold별 Sharpe + DSR_z 산출. 옵션 A (5/5 stability + 평균 pass) 사용자 직접 선택 "2"
+  - **자동 결과**: is_go=False (0/5). 14/25 fold N/A (56%, min_trade_count=2 필터)
+  - **외부 감사 1차** (CHANGES REQUIRED, WARNING 8 + NIT 7): v2 반영 완료
+  - **외부 감사 2차** (APPROVED with follow-up, WARNING 3 + NIT 2): v3 반영 완료. 프레임 A 60% / B 40% 정직 판정 + 감사관 신규 C 프레임 추천
+  - **사용자 최종 결정**: 옵션 C "3" (프레임 A+B 둘 다 공식 인정 + Stage 1 학습 모드)
+  - Sub-plan: [`../stage1-subplans/w3-01-walk-forward.md`](../stage1-subplans/w3-01-walk-forward.md) v3
 
-- [ ] **W3-02. Deflated Sharpe + Monte Carlo + Bootstrap** (Feature: BT-006)
-  - **What**: W3-01 Go 통과 cell들에 대한 DSR 재산정 (pooled V, fold-aware) + Bootstrap 신뢰구간 + Monte Carlo 검증
-  - **사전 지정 임계값**: DSR_prob > 0.95 (표준). Bootstrap Sharpe 95% CI 하한 > 0.5
-  - Sub-plan: W3-01 종료 후 작성
-  - Depends: W3-01 Go
+- [ ] ~~**W3-02. Deflated Sharpe + Monte Carlo + Bootstrap**~~ **Cancelled (Stage 1 학습 모드)**
+  - W3-01 No-Go 종료. DSR 재산정 / Bootstrap / Monte Carlo 미진행
+  - 학습 자료 보존: W3-01 JSON + 리포트 + evidence git 유지
 
-- [ ] **W3-03. 전략 채택 결정 + Stage 1 체크포인트 #1** (Feature: STR-FINAL-001)
-  - **What**: W3-01 + W3-02 결과 통합 + 최종 전략 채택 + ensemble 여부 결정. Stage 1 체크포인트 #1 (Week 4 Freqtrade 이식 전 마지막 리서치 판단)
-  - **Must NOT**: 결과 보고 파라미터 재조정 / Secondary 마킹 사후 포함
-  - Sub-plan: W3-02 종료 후 작성
-  - Depends: W3-02
+- [ ] ~~**W3-03. 전략 채택 결정 + Stage 1 체크포인트 #1**~~ **Cancelled (Stage 1 학습 모드)**
+  - 전략 채택 결정 미진행. Strategy A/C/D 전부 Retained (학습 가치 보존)
 
 ## Week 3 진입 의무 (v8 박제 강제)
 

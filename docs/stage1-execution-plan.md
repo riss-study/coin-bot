@@ -4,6 +4,19 @@
 > **Week별 상세**: [`stage1-weekly/`](./stage1-weekly/) 디렉토리 참조
 > **Task 상세 sub-plan**: [`stage1-subplans/`](./stage1-subplans/) 디렉토리 참조
 
+## Stage 1 종결 (2026-04-22, 사용자 옵션 C 채택)
+
+**상태**: **학습 모드 전환 (실질적 조기 종료)**
+
+- W3-01 Walk-forward No-Go 확정 → 사용자 옵션 C (프레임 A+B 둘 다 공식 인정) 명시 채택
+- Stage 1 킬 카운터 총 **+3** (W1 +1 + W2-03 Go→W3-01 No-Go 이중 실패 +2) → Stage 1 킬 조건 충족
+- **라이브 50만원 옵션 상실** (Stage 2 게이트 미진입)
+- W3-02 / W3-03 / W4-01 / W4-02 / W6-01 / W8-01 **전부 Cancelled**
+- 학습 자료 보존 (백테스트 결과 / 노트북 / sub-plan / evidence 전부 git 유지)
+- v3 박제 재탐색은 **Stage 1 재시작 시점 전제** (지금은 미진행)
+
+상세: [`decisions-final.md`](./decisions-final.md) "W3-01 Walk-forward No-Go 결정 + 프레임 C 학습 모드 전환" 섹션 참조.
+
 ## 요약
 
 > 산출물: Jupyter 노트북 백테스트 + Freqtrade 페이퍼 트레이딩 (4주)
@@ -79,13 +92,13 @@ ZERO HUMAN INTERVENTION (자동 검증 가능):
 | W2-01 | Done (cycle 2 v5, 2026-04-19) | 2 | [Week 2 계획](./stage1-weekly/week2.md) · [sub-plan](./stage1-subplans/w2-01-data-expansion.md) |
 | W2-02 | Done (v5, 2026-04-19) | 2 | [Week 2 계획](./stage1-weekly/week2.md) · [sub-plan](./stage1-subplans/w2-02-strategy-candidates.md) |
 | W2-03 | **Done (Go 결정, 2026-04-20)** | 2 | [Week 2 계획](./stage1-weekly/week2.md) · [sub-plan v9](./stage1-subplans/w2-03-insample-grid.md) |
-| W3-01 | **In Progress (sub-plan v1, 2026-04-21)** | 3 | [Week 3 계획](./stage1-weekly/week3.md) · [sub-plan v1](./stage1-subplans/w3-01-walk-forward.md) |
-| W3-02 | Pending | 3 | [Week 3 계획](./stage1-weekly/week3.md) · sub-plan TBD |
-| W3-03 | Pending | 3 | [Week 3 계획](./stage1-weekly/week3.md) · sub-plan TBD |
-| W4-01 | Pending (선행: PT-04) | 4 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
-| W4-02 | Pending | 4 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
-| W6-01 | Pending | 6 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
-| W8-01 | Pending (**Stage 1 게이트**) | 8 | [Week 4~8 pending](./stage1-weekly/week4-8-pending.md) · sub-plan TBD |
+| W3-01 | **Done (No-Go, 프레임 C 학습 모드, 2026-04-22)** | 3 | [Week 3 계획](./stage1-weekly/week3.md) · [sub-plan v3](./stage1-subplans/w3-01-walk-forward.md) |
+| W3-02 | **Cancelled (Stage 1 학습 모드 전환)** | 3 | N/A — W3-01 No-Go 종료, DSR/Bootstrap 미진행 |
+| W3-03 | **Cancelled (Stage 1 학습 모드 전환)** | 3 | N/A — 전략 채택 결정 미진행 |
+| W4-01 | **Cancelled (Stage 1 학습 모드 전환)** | 4 | N/A — Freqtrade 이식 미진행 |
+| W4-02 | **Cancelled (Stage 1 학습 모드 전환)** | 4 | N/A |
+| W6-01 | **Cancelled (Stage 1 학습 모드 전환)** | 6 | N/A — 페이퍼 트레이딩 미진입 |
+| W8-01 | **Cancelled (Stage 1 학습 모드 전환)** | 8 | N/A — Stage 1 게이트 미진입. 라이브 50만원 옵션 상실 |
 
 ## 의존성 매트릭스
 

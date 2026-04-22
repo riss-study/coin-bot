@@ -18,7 +18,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| **상태** | **Active (Recall 발동, 2026-04-20 W2-03 v8 Go 결정)** |
+| **상태** | **Retained (v6 역방향 복귀, 2026-04-22 W3-01 No-Go + 사용자 옵션 C 채택)** |
 | **최초 등록** | Week 1 W1-02 (2026-04-15) |
 | **파라미터** | MA_PERIOD=200, DONCHIAN_HIGH=20, DONCHIAN_LOW=10, VOL_AVG_PERIOD=20, VOL_MULT=1.5, SL_PCT=0.08 |
 | **출처** | Padysak/Vojtko 영감 (Padysak 2020 스타일 복제 아닌 변형) |
@@ -28,12 +28,13 @@
 | **재진입 조건 (원본)** | W2-03 grid에서 Tier 1 (BTC+ETH) 중 하나 이상 `Sharpe > 0.8 AND DSR > 0` → **2026-04-20 충족 (BTC_A + ETH_A 둘 다)** |
 | **Recall 시 의무** | DSR > 0 필수 평가 (본 W2-03 완료). **Week 3 walk-forward 재검증 필수** (V_empirical 일관 + floor 재도입 금지 + 임계값 변경 금지) |
 | **Week 3 실패 시 소급** | Stage 1 킬 카운터 +2 가산 + 외부 감사 재수행 + 사용자 명시 결정 (decisions-final.md "W2-03 Go 결정" 참조) |
+| **W3-01 결과 (2026-04-22)** | No-Go 확정. BTC_A 2/5 fold pass / ETH_A 1/5 (N/A 4). 옵션 A 5/5 미충족. 사용자 옵션 C 채택 → Retained 복귀 + Stage 1 학습 모드 전환. Recall mechanism 자동 해제 |
 
 ### Strategy C — Slow Momentum (MA50/200 crossover + ATR trail)
 
 | 항목 | 값 |
 |------|-----|
-| **상태** | **Active/Registered (W2-02 v4 사용자 승인 발효, 2026-04-19)** |
+| **상태** | **Retained (학습 가치 보존, 2026-04-22 W3-01 No-Go + 사용자 옵션 C 채택)** |
 | **최초 등록** | Week 2 (2026-04-17 결정, W2-02 v4 사전 등록 사용자 승인 2026-04-19 "ㄱㄱ") |
 | **파라미터 (확정)** | FAST_MA=50, SLOW_MA=200, ATR_PERIOD=14, ATR_MULT=3 (trailing stop) |
 | **진입/청산 (W2-02 v4 박제 + W2-03.1 W-1 검증 후 방법 B 채택)** | Long entry: strict golden cross `(MA50>MA200) AND (MA50.shift(1)<=MA200.shift(1))`. Hard exit: strict death cross OR **manual trailing_high - ATR_MULT × ATR(14)(t) exit_mask** (방법 B, **매 bar 동적 ATR 적용**, 2026-04-19 W-1 미니 테스트 검증 결과 채택). Long-only. 청산 후 동일 추세 내 재진입 X |
@@ -47,7 +48,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| **상태** | **Active/Registered (W2-02 v4 사용자 승인 발효, 2026-04-19)** |
+| **상태** | **Retained (학습 가치 보존, 2026-04-22 W3-01 No-Go + 사용자 옵션 C 채택)** |
 | **최초 등록** | Week 2 (2026-04-17 결정, W2-02 v4 사전 등록 사용자 승인 2026-04-19 "ㄱㄱ") |
 | **파라미터 (확정)** | KC_PERIOD=20, KC_ATR_MULT=1.5, ATR_PERIOD=14, BB_PERIOD=20, BB_SIGMA=2, SL_HARD=0.08 |
 | **ta 라이브러리 호출 (W2-02 v4 박제)** | `KeltnerChannel(window=20, window_atr=14, original_version=False, multiplier=1.5)` 모두 명시 필수 (ta default와 다름). `BollingerBands(window=20, window_dev=2.0)` |
@@ -99,6 +100,7 @@
 | 2026-04-19 | **v3: Strategy C/D Recall 의무 cross-document 박제** (NIT-N2 정정). L41 (Strategy C) + L55 (Strategy D)에 "Go 통과 시 DSR-adjusted + Week 3 walk-forward 의무 강제 (Strategy A Recall과 대칭, W2-03 v2 박제 인용)" 추가. cycle 1 학습 #15 (cross-document) 패턴 해소 | W2-03 sub-plan 2차 외부 감사 NIT-N2 |
 | 2026-04-19 | **v4: Strategy C 진입/청산 박제 정확화** (W2-03.1 W-1 미니 테스트 + 사용자 채택 결정). L37 trailing stop 표현 → **manual 매 bar 동적 ATR(14)×3 exit_mask (방법 B)** 명시. 방법 A (vectorbt sl_trail=True) 검증 결과 entry bar 시점 비율 freeze로 박제 의도 위반 발견 → 사용자 명시 채택 결정 ("ㄱㄱ"). evidence: `.evidence/agent-reviews/w2-03-w1-test-review-2026-04-19.md` | W2-03.1 W-1 미니 테스트 결과 |
 | 2026-04-20 | **v5: Strategy A Recall 발동 (Retained → Active)**. W2-03 v8 Go 결정 (Option C, V_empirical 채택) 반영: BTC_A Sharpe 1.0353 DSR_z +23.22 / ETH_A Sharpe 1.1445 DSR_z +29.37 → Tier 1 양 페어 `Sharpe>0.8 AND DSR>0` 충족 → L27 재진입 조건 충족. 상태 Retained → **Active** 전이. W2-03 v8 성적 행 추가. Recall 시 의무 (DSR 평가 완료 + Week 3 walk-forward 재검증 의무) 박제 강화. Week 3 실패 시 소급 절차 행 추가 (decisions-final.md "W2-03 Go 결정" cross-reference) | W2-03 v8 Go 결정 사용자 명시 승인 |
+| 2026-04-22 | **v6: Strategy A Active → Retained 역방향 복귀 + Strategy C/D Active/Registered → Retained (학습 가치 보존)**. W3-01 No-Go 확정 + 사용자 옵션 C 명시 채택 "3" (프레임 C = A+B 둘 다 공식 인정 + Stage 1 학습 모드 전환). Strategy A Recall mechanism 자동 해제 (W2-03 Go → W3-01 No-Go로 정당성 상실). Strategy C 전멸 (BTC_C 5/5 fold N/A, 실전 운용 부적합). Strategy D 경계선 (BTC_D 3/5, ETH_D 2/5) 최고 근접이나 5/5 미달. **Deprecated 이동 X** (학습 모드이므로 전부 Retained). Deprecated 승격은 v3 Stage 1 재시작 시점 판단. Stage 1 킬 카운터 +2 소급 = 총 +3 → Stage 1 킬 조건 충족. decisions-final.md "W3-01 No-Go 결정 + 프레임 C 학습 모드 전환" 섹션 + stage1-execution-plan.md + handover 전파 | W3-01 No-Go + 사용자 옵션 C 명시 채택 |
 
 ---
 

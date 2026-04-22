@@ -1,12 +1,13 @@
 # Task W3-01 — Walk-forward Analysis
 
-**상태**: **v2** (2026-04-21, 외부 감사 1차 CHANGES REQUIRED 반영 + 사용자 옵션 A 직접 선택 "2"). 외부 감사 2차 대기.
+**상태**: **v3** (2026-04-22, W3-01.7 **사용자 옵션 C 명시 채택 "3" = 프레임 C 학습 모드 전환**. Stage 1 킬 카운터 +2 소급 가산. Stage 1 실질적 조기 종료 (학습 모드 전환)).
 
 ## 변경 이력
 
 | 버전 | 날짜 | 변경 | 트리거 |
 |------|------|------|--------|
 | v1 | 2026-04-21 | 첫 작성. Anchored walk-forward + 5 folds × 6개월 + V_empirical per fold + Go 이중 조건 (4+/5 fold pass AND 평균 pass). W2-03 Go cells (5 cell) 고정. W2-03 v8 WARNING-3/-4 강제 박제 | 사용자 설계 추천 채택 |
+| **v3** | **2026-04-22** | **W3-01 실행 결과 No-Go 확정 + 사용자 옵션 C 명시 채택 "3" = 프레임 C 학습 모드 전환 + 외부 감사 2차 APPROVED with follow-up (WARNING 3 + NIT 2 반영) + Stage 1 킬 카운터 +2 소급**. **자동 결과**: is_go=False, go_cells=[] (0/5). 14/25 fold N/A (56%). Cell별: BTC_A 2/5, BTC_C 0/5 (전멸), BTC_D 3/5 (최고 근접), ETH_A 1/5, ETH_D 2/5. **외부 감사 2차 bit-level 재계산 일치 확인**. **감사관 신규 발견 (사용자 재고려 자료)**: (a) N=5 per fold V 변동성 실측 **3-10배** (v2 박제 "2배" 과소평가), (b) non-NA 1개 fold (fold 2/5)에서 V 산출 불가 = 구조적 한계, (c) V_empirical per fold 역설 = 엣지 강한 fold일수록 SR_0 임계 높아져 pass 어려움, (d) DSR_z 극단 fold 의존성 (γ_4=9-26). **5번째 cherry-pick 통로 신규 발견**: "BTC_D 3/5 = Pardo 60% → 단독 Go" 유혹 — 옵션 C 채택으로 자동 차단. **프레임 판단 (감사관 정직 판정)**: A 60% / B 40% 둘 다 부분 성립. **사용자 옵션 C 선택 = 둘 다 공식 인정** + Stage 1 학습 모드 전환 + **v3 박제 재탐색은 Stage 1 재시작 시점 전제** (지금은 미진행). **Strategy 처리**: A Active → Retained 복귀 (candidate-pool.md v6), C/D 학습 가치 보존 상태로 재분류. **Stage 1 킬 카운터 +2 소급** (W2-03 v8 WARNING-4 박제 발동 = 현재 총 +3 이상으로 Stage 1 킬 조건 충족). **v2 L277 정정**: "V 2배 변동" → **"실측 3-10배 변동"** (외부 감사 WARNING-A). **NIT-2 JSON native bool 재저장은 재실행 시점**으로 이월. **backtest-reviewer 1차 APPROVED with follow-up** (BLOCKING 0 / WARNING 1 fold train bar count 정정 완료 / NIT 2) — trace `.evidence/agent-reviews/w3-01-walk-forward-reviewer-2026-04-22.md`. **외부 감사 2차 APPROVED with follow-up** — trace `.evidence/agent-reviews/w3-01-walk-forward-result-review-2026-04-22.md`. **감사관 bias 선언 박제**: "sub-plan v2 '2배 변동' 과소평가 정보가 사용자 옵션 A 선택 시점(2026-04-21)에 없었음, 2026-04-22 재고려 권리 있음" → 사용자가 이 정보 반영하여 옵션 C (감사관 추천) 채택 | W3-01 결과 + 외부 감사 2차 + 사용자 옵션 C 직접 선택 |
 | **v2** | **2026-04-21** | **외부 감사 1차 CHANGES REQUIRED (BLOCKING 0 / WARNING 8 / NIT 7) 반영 + 사용자 Go 기준 옵션 A 직접 선택 "2"**. **WARNING 8건**: W-1 fold 분할점 freeze 시점 명시 (v2 사용자 승인 시점 = freeze), W-2 Anchored/5-fold/6개월 설계 trade-off 논증 박제, W-3 Go cells 양방향 freeze (확장 X + 축소 X) 박제, W-4 W3-02 pooled V deferred가 Go 판정 번복 근거 X 명시 (cycle 1 #7 우회 차단), W-5 Go 기준 학술 근거 (Pardo 2008) + 대안 비교 표 + **옵션 A (5/5 모두 통과 + 평균) 사용자 직접 선택** 박제, W-6 25 trial family-wise 오류 완화 부족 인정 (DSR이 5 cell 변동만 반영, fold 변동 미포함) + W3-02 Bonferroni 재검증 책무, W-7 Strategy C low-N 완화 (`min_trade_count >= 2` 룰 박제, fold당 0 trade 시 FAIL 처리), W-8 Week 3 No-Go 시 W2-03 retrospective 해석 프레임 (A "cycle 1 #5 재발 확정" / B "극단 조건 + V_empirical 불안정 원인") 사전 박제. **NIT 7건**: NIT-1 Strategy C 방법 B 구현 명시 (manual exit_mask), NIT-2 Strategy C 단독 페어 N=5 통계 의미 (Strategy × Pair 변동성 혼재 인정), NIT-3 mean 사용 명시 (median 대체 금지), NIT-4 Active → Retained 역방향 복귀 (No-Go 시 candidate-pool.md v6 전이), NIT-5 PT-04 선행 적용 범위 "신규 노트북만" 명확화, NIT-6 Evidence 6단 "Go cells 고정 X" 오타 정정 → "양방향 freeze", NIT-7 "+2" 근거 설명 (W2-03 Go + W3-01 No-Go 이중 실패 = +1 + +1). **옵션 A 채택 근거**: N=5 per fold sample variance 불안정 (감사 독립 재계산: outlier 1개로 V 2배 변동) → 옵션 B (4+/5) 대비 옵션 A (5/5) 가 cherry-pick 통로 최대 차단. 학술적으로 Pardo 2008 70-80% stability 권고 초과하지만 retrospective 재판정 맥락 (W2-03 v8 "cycle 1 #5 본질 구분 어려움" 인정) 감안 시 정당화 | 외부 감사 1차 + 사용자 옵션 A 직접 선택 |
 
 ## 메인 Task 메타데이터
@@ -274,7 +275,7 @@
 | W3-02 pooled V로 W3-01 Go 판정 번복 유혹 | **CRITICAL** | v2 핵심 원칙 #8 박제: W3-02는 참고 metric만. Go 판정 번복 근거 X. 위반 = cycle 3 강제 |
 | Strategy C fold당 0 trade 가능성 | Medium | `min_trade_count ≥ 2` 룰 박제. N/A fold = FAIL 처리 (fold_pass_count 미포함) |
 | Fold 분할점 사후 조정 유혹 | **CRITICAL** | v2 핵심 원칙 #9 박제: 2026-04-21 사용자 승인 시점 = freeze 시점. 결과 본 후 조정 = cherry-pick |
-| N=5 per fold sample variance 불안정 (outlier 1개로 V 2배 변동) | HIGH | 외부 감사 1차 독립 재계산 확인. V_empirical 일관 적용 강제 + floor 재도입 금지. W3-02 pooled V 재검증은 참고만 |
+| N=5 per fold sample variance 불안정 (실측 V **3-10배 변동**, v3 정정) | **CRITICAL** | 외부 감사 2차 독립 재계산 확인. V_empirical 일관 적용 강제 + floor 재도입 금지. W3-02 pooled V 재검증은 참고만. **v2 "2배" 과소평가였음 v3 정정 박제** |
 
 ## 산출물 (Artifacts)
 
