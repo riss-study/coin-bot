@@ -7,6 +7,29 @@
 
 ---
 
+## 한눈에 보기 — 전체 사용자 작업 요약
+
+| # | 작업 | 소요 (추정) | Claude 블로킹 | 비고 |
+|---|------|:-----------:|:-------------:|------|
+| 1 | 업비트 계정 + 본인인증 + 2FA | 수 시간~1일 | V2-05 필요 | 2FA 필수 (공식 확인) |
+| 2 | K뱅크 계좌 + 업비트 연동 | 30분~1일 | V2-07 필요 | K뱅크 독점 (공식 확인) |
+| 3 | Open API 키 발급 (페이퍼 권한 2개) | 10분 | V2-05 필요 | PC 웹 전용 |
+| 4 | Keychain 저장 (Access/Secret) | 5분 | V2-05 필요 | `security` 명령 |
+| 5 | 고정 IP 확보 | 즉시 확인 or 수일 | V2-06 필요 | 동적 IP면 대응 필요 |
+| 6 | Discord 서버 + webhook URL | 10분 | V2-04 권장 | 알림용 |
+| 7 | Claude에게 완료 보고 | 1분 | - | Keychain 저장 확인 + IP 공유 |
+
+**Claude 작업 일정**:
+- V2-02 (3~5일): market_data + state + logger — **병행 가능**
+- V2-03 (3~5일): strategy + order — **병행 가능**
+- V2-04 (2~3일): scheduler + main + notifier — Discord webhook 권장 (mock 가능)
+- **V2-05 (3~5일): integration test — API 키 필수 (블로킹)**
+- V2-06 (2~4주): 페이퍼 트레이딩 — 전부 완료 필수
+
+**권장 순서**: 오늘~수일 내 1+2+3+4 완료 → Claude V2-04 즈음 6 완료 → V2-05 전 5 확인 → 7 보고.
+
+---
+
 ## 체크리스트 (순서대로 진행)
 
 - [ ] **1단계**: 업비트 계정 생성 + 본인인증 + 2FA 설정
@@ -188,37 +211,73 @@ security delete-generic-password -s "upbit-api-secret" -a "coin-bot"
 
 ---
 
-## 6단계 — Discord webhook 발급
+## 6단계 — Discord 서버 + webhook URL 발급
 
-### 6.1 Discord 서버 생성
+### 6.1 Discord 계정 + 앱 준비
 
-1. Discord 앱/웹 로그인
-2. 좌측 사이드바 `+` → "직접 만들기" → "나와 친구를 위한 서버"
-3. 서버 이름: "coin-bot" 등
+- https://discord.com 가입 (무료)
+- 데스크톱 앱 또는 웹 모두 가능
 
-### 6.2 webhook URL 발급
+### 6.2 Discord 서버 생성 (개인용)
 
-1. 서버 내 알림용 채널 생성 (예: `#bot-alerts`)
-2. 채널 설정 (톱니바퀴) → **연동 (Integrations)** → **Webhooks**
-3. "새 웹후크" 생성 → 이름 "coin-bot" → **웹후크 URL 복사**
-4. URL 형식: `https://discord.com/api/webhooks/<id>/<token>`
+1. 좌측 사이드바 맨 아래 `+` 버튼 클릭
+2. **"직접 만들기"** 선택
+3. **"나와 친구를 위한 서버"** 선택
+4. 서버 이름: `coin-bot` (원하는 이름)
+5. 서버 아이콘 업로드 (선택)
+6. "만들기" 클릭
 
-### 6.3 Keychain 저장
+### 6.3 알림 채널 생성
+
+1. 좌측 채널 목록 상단 `+` → **텍스트 채널**
+2. 채널 이름: `bot-alerts` (또는 `알림`)
+3. "채널 만들기" 클릭
+
+### 6.4 webhook URL 발급
+
+1. 방금 만든 `#bot-alerts` 채널 옆 **톱니바퀴 (채널 편집)** 클릭
+2. 좌측 메뉴 → **연동 (Integrations)**
+3. **"웹후크 만들기"** 또는 **"Webhooks → 새 웹후크"** 클릭
+4. webhook 이름: `coin-bot` (기본값 유지 가능)
+5. 프로필 사진: 원하는 이미지 설정 (선택)
+6. **"웹후크 URL 복사"** 클릭 — 클립보드에 복사됨
+7. URL 형식: `https://discord.com/api/webhooks/<숫자-id>/<랜덤-토큰>` (약 120자)
+
+**⚠️ webhook URL = 비밀**: 유출 시 누구나 해당 채널에 메시지 게시 가능. 관리 주의.
+
+### 6.5 Keychain 저장
 
 ```bash
 security add-generic-password -s "discord-webhook" -a "coin-bot" -w "<WEBHOOK_URL>"
 ```
 
-### 6.4 테스트
+`<WEBHOOK_URL>` 자리에 복사한 전체 URL 붙여넣기.
+
+### 6.6 테스트 메시지 전송
+
+Terminal에서:
 
 ```bash
 WEBHOOK_URL=$(security find-generic-password -s "discord-webhook" -a "coin-bot" -w)
 curl -H "Content-Type: application/json" \
-  -d '{"content":"테스트 메시지"}' \
+  -d '{"content":"🤖 coin-bot 테스트 메시지"}' \
   "$WEBHOOK_URL"
 ```
 
-Discord 채널에 "테스트 메시지" 출력되면 성공.
+Discord `#bot-alerts` 채널에 "🤖 coin-bot 테스트 메시지" 출력되면 성공. 출력 안 되면 webhook URL 재확인.
+
+### 6.7 모바일 알림 설정 (권장)
+
+- Discord 모바일 앱 설치 (iOS/Android)
+- 로그인 → `coin-bot` 서버 진입
+- `#bot-alerts` 채널 설정 → **"알림 설정"** → **"모든 메시지"** 선택
+- 밤중에도 체결/에러 알림 즉시 확인 가능
+
+### 6.8 webhook 용량 제한 (참고)
+
+- Discord webhook: 초당 ~5회, 30분 ~30회 (공식 rate limit, 2026 기준)
+- 본 봇 알림은 하루 수회 (일봉 시그널 + 주문 체결) = 충분히 여유
+- 과도한 알림 방지: 에러는 10분 간격 디바운스 (V2-04 notifier 설계에 반영 예정)
 
 ---
 
