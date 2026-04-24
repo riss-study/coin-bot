@@ -1,0 +1,13 @@
+# Stage 1 v2 Custom bot dependencies
+# 실측 기반 (2026-04-24 pyupbit 0.2.34 PyPI 최신 확인)
+
+pyupbit==0.2.34          # Upbit API wrapper (주문/시세/WebSocket)
+requests>=2.31,<3        # HTTP (Discord webhook)
+python-dateutil>=2.8     # 시간 처리 (UTC ↔ KST)
+pyyaml>=6.0              # config.yaml 로드
+pydantic>=2.5,<3         # config 검증 + state 직렬화
+
+# Dev only
+pytest>=7.4
+pytest-cov>=4.1
+pytest-mock>=3.12

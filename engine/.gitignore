@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 런타임 산출물 (git 밖) — 디렉토리는 main.py 시작 시 자동 생성
+logs/
+data/
+secrets/
+
+# env 파일 (Keychain 추출 후 임시)
+.env
+.env.local

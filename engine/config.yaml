@@ -1,0 +1,67 @@
+# Stage 1 v2 Custom bot 설정 (사전 지정 파라미터 박제)
+# 박제 출처: docs/candidate-pool.md v7, docs/stage1-v2-relaunch.md v2
+# 변경 전 반드시 감사 기록 남길 것
+
+run_mode: paper              # paper | live (초기 paper 고정)
+
+pairs:
+  - ticker: KRW-BTC
+    strategy: A              # Trend Following (MA200 + Donchian + Volume)
+  - ticker: KRW-ETH
+    strategy: A
+  - ticker: KRW-BTC
+    strategy: D              # Volatility Breakout (Keltner + Bollinger)
+
+# Strategy 파라미터 (W2-02 v5 박제, 재튜닝 금지)
+strategies:
+  A:
+    ma_period: 200
+    donchian_high: 20
+    donchian_low: 10
+    vol_avg_period: 20
+    vol_mult: 1.5
+    sl_pct: 0.08
+  D:
+    keltner_window: 20
+    keltner_atr_mult: 1.5
+    atr_window: 14
+    bollinger_window: 20
+    bollinger_sigma: 2.0
+    sl_hard: 0.08
+
+# 포트폴리오 공통 (W2-03 v9 박제 + v2 실용화)
+portfolio:
+  init_cash: 1000000        # 페이퍼 100만원 가상 잔고
+  stake_amount: 100000      # 거래당 10만원 (3 cells 운영 감안)
+  fees: 0.0005              # 업비트 0.05%
+  slippage: 0.0005          # 백테스트 슬리피지 (페이퍼 실측으로 교정)
+  year_freq: "365 days"     # sqrt(365) annualization (W1-06 패턴, PT-04 명시)
+  max_open_positions: 3     # 3 cells 최대 동시 포지션
+
+# 스케줄
+schedule:
+  signal_check_hour_kst: 9  # 일봉 close = KST 09:00 (UTC 00:00)
+  signal_check_minute: 5    # 09:05 KST 시그널 평가 (close 확정 후)
+
+# Go 기준 (v2 실용 박제)
+go_criteria:
+  min_sharpe: 0.8
+  max_mdd: 0.50
+  min_trades: 10
+  paper_live_tolerance: 0.30  # 페이퍼 vs 백테스트 ±30%
+
+# Secrets (Keychain 서비스명)
+keychain:
+  access_key_service: "upbit-api-access"
+  secret_key_service: "upbit-api-secret"
+  discord_webhook_service: "discord-webhook"
+  account: "coin-bot"
+
+# Logging + State
+logging:
+  level: INFO
+  json_format: true
+  rotation_days: 30
+
+state:
+  db_path: "data/state.sqlite"
