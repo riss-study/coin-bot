@@ -1,8 +1,8 @@
 # Stage 1 v2 재시작 — 라이브 경로 (최소 박제)
 
-> **Feature ID**: STAGE1-V2-001
+> **Feature ID**: STAGE1-V2-001 / STAGE1-V2-002 (Tech Stack 전환)
 > **작성일**: 2026-04-24
-> **상태**: v1 (사용자 "그렇게 하자" 2026-04-24 채택)
+> **상태**: **v2** (Freqtrade → **Custom bot with pyupbit** 전환, 2026-04-24 실측 기반 사용자 재승인 "ㄱㄱ 그렇게 하자")
 > **본질 목표**: 50만원 한정 라이브 투입. 학술 박제 루프 최소화.
 
 ---
@@ -71,36 +71,92 @@
 
 ---
 
-## 2. v2 실행 계획
+## 2. v2 실행 계획 (v2 Tech Stack 전환: Freqtrade → Custom bot)
 
-### 2.1 Task 목록
+### 2.0 Tech Stack 전환 근거 (2026-04-24 실측)
+
+- **Freqtrade 공식 Upbit 미지원** (supported list: Binance/Kraken/Kucoin 등 글로벌 대형 중심, Upbit 없음)
+- **ccxt Upbit 버그** (issue #7235): `order['amount'] = None` → Freqtrade `update_trade_state` `TypeError`. 라이브 에러 발생 위험
+- **빗썸도 대안 아님**: python-bithumb 커뮤니티 성숙도 낮음 + Bithumb V2 API ccxt 미완전 지원
+- **pyupbit 0.2.34 실측 확인 (2026-04-24)**:
+  - PyPI 최신 버전
+  - 주문 API 완전 기능: `buy/sell_market_order`, `buy/sell_limit_order`, `cancel_order`, `get_order`, `get_balance(s)`, WebSocket
+  - Upbit API Rate Limit: 주문 8/s 200/min, 기타 30/s 900/min, 시세 10/s 600/min (3 cells 일봉 운영에 여유)
+  - `Remaining-Req` 헤더 자가 모니터링 (`contain_req=True`)
+- **Custom bot 전환 = cycle 1 #5 사후 완화 아님**: v1 "Freqtrade + ccxt + pyupbit" 박제는 Upbit 호환성 이슈 몰랐을 때. v2 실측 기반 교정
+
+### 2.1 Task 목록 (v2 재조정)
 
 | Task | 기간 | 설명 | Blocks |
 |------|:----:|------|--------|
-| V2-01 | 1~2일 | Freqtrade 설치 + 기본 설정 + 업비트 연결 확인 | V2-02 |
-| V2-02 | 2~3일 | Strategy A / D 이식 (vectorbt → Freqtrade Strategy class) | V2-03 |
-| V2-03 | 1일 | Docker + 기본 secrets (Keychain → Docker secrets file mount) | V2-04 |
-| V2-04 | 1일 | 페이퍼 트레이딩 설정 + 첫 실행 검증 (수수료/슬리피지 파라미터) | V2-05 |
-| V2-05 | 2~4주 | 페이퍼 트레이딩 관측 (BTC_A, ETH_A, BTC_D) + 백테스트 대비 오차 기록 | V2-06 |
-| V2-06 | - | 페이퍼 결과 Go/No-Go + 10만원 라이브 투입 결정 | V2-07 |
-| V2-07 | 1~2주 | 10만원 라이브 운영 + 실체결 검증 | V2-08 |
-| V2-08 | - | 10만원 결과 Go/No-Go + 50만원 추가 투입 결정 | - |
+| V2-01 | 1~2일 | `engine/` 디렉토리 신설 + venv 분리 + pyupbit 설치 + config.py 골격 | V2-02 |
+| V2-02 | 3~5일 | Module 골격: `config` + `market_data` + `state` (SQLite) + `logger` | V2-03 |
+| V2-03 | 3~5일 | Strategy 이식 (research/ 재사용) + `order` 모듈 (주문/취소/조회 + 재시도 + 멱등성) | V2-04 |
+| V2-04 | 2~3일 | `scheduler` (일봉 close KST 09:00 트리거) + `main` orchestration + Discord `notifier` | V2-05 |
+| V2-05 | 3~5일 | Unit test + integration test (주문 mock + 상태 복원 시나리오) | V2-06 |
+| V2-06 | 2~4주 | 페이퍼 트레이딩 관측 (BTC_A, ETH_A, BTC_D) + 백테스트 대비 오차 기록 | V2-07 |
+| V2-07 | - | 페이퍼 Go/No-Go + 10만원 라이브 결정 | V2-08 |
+| V2-08 | 1~2주 | 10만원 라이브 운영 + 실체결 검증 | V2-09 |
+| V2-09 | - | 10만원 Go/No-Go + 50만원 추가 투입 결정 | - |
 
-### 2.2 환경 구축 스택 (v1 기존 decisions 활용)
+**총 최소 5~7주** (실측 기반 현실적 추정).
 
-- **Freqtrade**: Python 프레임워크. `pip install freqtrade`
-- **업비트 연동**: ccxt 또는 pyupbit (v1에서 검증된 API)
-- **DB**: 페이퍼 단계는 SQLite (Freqtrade 기본) → 라이브 단계 PostgreSQL + TimescaleDB
-- **Secrets**: macOS Keychain → 환경 변수 → Docker secrets (v1 decisions-final.md 박제)
-- **알림**: Discord (default, v1 박제)
-- **Host**: macOS 24/7 (v1 박제)
+### 2.2 환경 구축 스택 (v2 확정)
+
+- **Custom bot**: 자체 Python 프로세스 (launchd macOS 24/7)
+- **업비트 연동**: **pyupbit 0.2.34** (네이티브, 실측 검증)
+- **DB**: **SQLite** (초기) → 라이브 운영 시 PostgreSQL 검토 (V2-08 이후)
+- **Secrets**: **macOS Keychain → 환경 변수** (Docker는 미필요, 단일 프로세스)
+- **알림**: Discord webhook (default, v1 박제 유지), KakaoTalk urgent (추후)
+- **Host**: macOS 24/7 (v1 박제 유지)
+- **Docker**: 초기 미도입 (단일 프로세스), 라이브 운영 후 재검토
 
 ### 2.3 v1 자산 재활용
 
-- **Strategy 코드**: `research/notebooks/02_*.ipynb` (Strategy A) + `08_insample_grid.ipynb` (Strategy D) → Freqtrade Strategy class로 이식
+- **Strategy 코드**: `research/notebooks/02_*.ipynb` (Strategy A) + `08_insample_grid.ipynb` (Strategy D) → **`engine/strategies/` Python 모듈로 이식** (Freqtrade Strategy class 아님, 자체 구조)
 - **데이터**: `research/data/KRW-BTC_1d_frozen_20260412.parquet` + `KRW-ETH_*` (v1 freeze 그대로 활용)
 - **파라미터**: `docs/candidate-pool.md` Strategy A/D 박제값 그대로
 - **Evidence 경로**: `.evidence/v2-XX-*.md` 신설
+
+### 2.4 Custom bot 모듈 구조 (예상 ~1,560 LOC)
+
+```
+engine/
+├── .venv/                        # pyupbit 0.2.34 + 의존성 분리
+├── engine/
+│   ├── config.py                 # env/Keychain secrets 로드 (~50 LOC)
+│   ├── market_data.py            # pyupbit get_ohlcv_from + 캐싱 (~100)
+│   ├── strategies/
+│   │   ├── strategy_a.py         # Trend Following (MA200 + Donchian + Volume) (~120)
+│   │   └── strategy_d.py         # Volatility Breakout (Keltner + Bollinger) (~130)
+│   ├── order.py                  # 주문 생성/취소/조회 + 재시도 + 멱등성 (~200)
+│   ├── state.py                  # SQLite 상태 DB + 재시작 복원 (~150)
+│   ├── scheduler.py              # 일봉 close KST 09:00 트리거 (~80)
+│   ├── position.py               # 포지션 관리 + PnL + 세금 데이터 (~150)
+│   ├── notifier.py               # Discord webhook (~80)
+│   ├── logger.py                 # 구조화 로깅 + 거래 JSON 영구 저장 (~100)
+│   └── main.py                   # 전체 orchestration (~150)
+├── tests/
+│   ├── test_strategy_a.py
+│   ├── test_strategy_d.py
+│   ├── test_order.py
+│   ├── test_state.py
+│   └── test_integration.py       # 통합 (~300 LOC)
+├── config.yaml                   # 전략/페어/파라미터 사전 지정 (git tracked)
+├── secrets/                      # gitignored (Keychain 추출 후 env 주입)
+├── logs/                         # gitignored
+└── data/                         # SQLite DB (gitignored)
+```
+
+### 2.5 숨은 복잡도 (솔직 고지)
+
+1. **재시작 복원 로직**: 프로세스 crash 시 미체결 주문 / 포지션 상태 복원 (state.py 담당)
+2. **동시성**: 3 cells (BTC_A, ETH_A, BTC_D) 병렬 실행 레이스 컨디션 주의. 초기 단순화: 순차 실행 → 검증 후 병렬 전환
+3. **슬리피지 모니터링**: 백테스트 예상가 vs 실체결가 차이 지속 기록 → V2-06 페이퍼 단계 핵심
+4. **멱등성**: 주문 재시도 시 이중 주문 방지 (client_oid 같은 고유 ID 필요)
+5. **세금 데이터**: 모든 거래 JSON 영구 저장 (CLAUDE.md 박제), 연말 국세청 신고용
+6. **자바 개발자 Python asyncio 학습 곡선**: ~1주 추가
+7. **Discord webhook 설정**: 서버 생성 + webhook URL 발급 (10분 단순)
 
 ---
 
@@ -125,10 +181,15 @@
 | 리스크 | 영향 | 완화 |
 |--------|------|------|
 | 학술 기준 제거 후 오버핏 전략 선택 | High | W2-03 Go cells 5개 중 3개만 채택 (stability W3-01에서 약함 확인된 것 제외) |
-| Freqtrade 이식 오차 (Strategy A/D 구현 불일치) | High | 페이퍼 2~4주 + 백테스트 ±30% 이내 확인 |
-| 페이퍼와 라이브 체결 오차 (슬리피지/지연) | Medium | 10만원 → 50만원 2단계 투입으로 실체결 검증 |
-| 업비트 API 변경 / 제한 | Medium | pyupbit + ccxt 둘 다 fallback. v1 검증된 API 버전 유지 |
-| cycle 1 #5 재발 "사후 완화" 의심 | Low | v1 공식 종결 + v2 새 cycle + 본질 목표 재인식 근거 박제 (§0.3) |
+| Custom bot 이식 오차 (Strategy A/D 구현 불일치) | High | 페이퍼 2~4주 + 백테스트 ±30% 이내 확인 + unit test 커버리지 |
+| 페이퍼와 라이브 체결 오차 (슬리피지/지연) | Medium | 10만원 → 50만원 2단계 투입 + 슬리피지 모니터링 모듈 (position.py) |
+| 업비트 API 변경 / 제한 | Medium | pyupbit 0.2.34 검증된 API 버전 고정. Remaining-Req 헤더 자가 모니터링 |
+| 재시작 복원 실패 (미체결 주문 상태 손실) | High | state.py SQLite + 시작 시 open orders 재조회 + 통합 테스트 |
+| 동시성 레이스 컨디션 (3 cells 병렬) | Medium | 초기 순차 실행 → 페이퍼 검증 후 병렬 전환 |
+| 멱등성 위반 (주문 재시도 시 이중 주문) | High | client_oid 고유 ID + 주문 전 state 확인 |
+| 자바 개발자 Python asyncio 학습 곡선 | Medium | V2-01~V2-02 기간에 학습 시간 ~1주 할당 |
+| cycle 1 #5 재발 "사후 완화" 의심 | Low | v1 공식 종결 + v2 새 cycle + 본질 목표 재인식 + Freqtrade 불가 실측 증거 (§2.0) |
+| cycle 1 #16 "외부 lib 추측" 재발 | Low | 2026-04-24 pyupbit 실측 완료 (주문 API / rate limit / PyPI 최신). 재발 차단 |
 
 ---
 

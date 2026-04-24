@@ -17,15 +17,21 @@
 **사용자 지시 ("그렇게 하자", 2026-04-24)**:
 - 본질 목표 = **50만원 한정 라이브 투입**
 - 학술 박제 루프 (DSR/stability 5/5/Pardo) 과잉이었음 재인식
-- W2-03 Go cells 5개 중 3개 (BTC_A, ETH_A, BTC_D) 채택 → Freqtrade 이식 → 페이퍼 2~4주 → 10만원→50만원 단계적 라이브
+- W2-03 Go cells 5개 중 3개 (BTC_A, ETH_A, BTC_D) 채택
+
+**v2 Tech Stack 전환 (2026-04-24 실측 기반, 사용자 재승인 "ㄱㄱ 그렇게 하자")**:
+- ~~Freqtrade + ccxt + pyupbit~~ → **Custom bot with pyupbit 0.2.34** (단일 Python 프로세스, ~1,560 LOC 예상)
+- 이유: Freqtrade 공식 Upbit 미지원 + ccxt Upbit 주문 `amount=None` 버그 (#7235) = 라이브 에러 위험. pyupbit 주문 API 실측 완료 (완전 기능)
+- 상세: `docs/decisions-final.md` "Stage 1 v2 Tech Stack 전환" 섹션
 
 **Go 기준 완화 (v2 박제)**:
 - 학술 기준 제거: ~~DSR~~ / ~~stability 5/5~~ / ~~Bonferroni~~
 - 실용 기준: **Sharpe>0.8 + MDD<50% + trades≥10 + 페이퍼 ±30%** (W2-03 3 cells 전부 충족)
 
 **cycle 1 #5 재발 X**: v1 공식 종결 + v2 새 cycle + 본질 목표 재인식. 사후 완화 아님.
+**cycle 1 #16 재발 X**: 2026-04-24 pyupbit/Upbit API/Freqtrade/ccxt 모두 실측 기반 검증
 
-상세: [`stage1-v2-relaunch.md`](./stage1-v2-relaunch.md) — v2 Task V2-01 ~ V2-08 + 리스크 + 관련 문서.
+상세: [`stage1-v2-relaunch.md`](./stage1-v2-relaunch.md) v2 — Task V2-01 ~ V2-09 (총 5~7주) + Custom bot 모듈 구조 + 숨은 복잡도.
 
 ## 요약
 

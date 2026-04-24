@@ -13,7 +13,7 @@
 
 - Python 3.11+
 - Backtest 리서치 (Week 1-3): Jupyter + pandas + vectorbt 0.28.5
-- Trading framework (Week 4+): Freqtrade + ccxt + pyupbit 0.2.34
+- Trading framework (Week 4+ / Stage 1 v2): **Custom bot with pyupbit 0.2.34** (단일 Python 프로세스). ~~Freqtrade~~ 는 2026-04-24 Upbit 미지원 실측 확인으로 전환 (상세: `docs/decisions-final.md` "Stage 1 v2 Tech Stack 전환")
 - DB: PostgreSQL + TimescaleDB
 - Backend: FastAPI
 - Frontend: Next.js
@@ -47,7 +47,7 @@ Week 1 Day 1 완료 후 활성화될 명령 (지금은 실행 불가):
 - API 키, 시크릿, 비밀번호를 git 커밋에 포함 금지. macOS Keychain만.
 - LLM은 매매 결정 생성자 아님. 거부권/사후분석/로깅 전용 (Phase 10+에서만 도입).
 - 외부 인터넷 노출은 Cloudflare Tunnel 경유 필수. 로컬 포트 직접 노출 금지.
-- dashboard-backend는 거래소 API 키에 접근 권한 없음. 매매는 Freqtrade 내부 REST 경유.
+- dashboard-backend는 거래소 API 키에 접근 권한 없음. 매매는 engine (Custom bot) 내부 REST 경유 (v2 전환 후, Stage 1 v1 계획에서는 Freqtrade 내부 REST였음).
 - Stage 1 킬(Week 8) 도달 시 무조건 사용자 결정 대기. 자동 라이브 진행 금지.
 - 모든 결정은 단일 진실 문서 `docs/decisions-final.md` 외 위치로 분기 금지.
 - **중요 문서 수정 후 외부 감사관 관점 자가 재검증 필수.** ChatGPT가 작성했다고 가정하고 비판적 재검토. 감사 결과를 별도 corrections 파일로 정리 후 사용자 보고. (사용자 명시 반복 요구.)
@@ -89,7 +89,7 @@ Week 1 Day 1 완료 후 활성화될 명령 (지금은 실행 불가):
 
 추후 별도 GitHub 리포로 분리 예정:
 
-- engine/ — Freqtrade 봇 (Week 4+ 활성화)
+- engine/ — Custom bot (pyupbit 기반, Stage 1 v2 활성화, 2026-04-24 전환)
 - dashboard/ — FastAPI + Next.js + Cloudflare Tunnel (Week 10+ 활성화)
 
 ## Standards & References
