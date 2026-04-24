@@ -21,6 +21,13 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import pyupbit
 
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+except ImportError:
+    from backports.zoneinfo import ZoneInfo  # type: ignore
+
+KST = ZoneInfo("Asia/Seoul")
+
 if TYPE_CHECKING:
     pass
 
@@ -60,7 +67,7 @@ def fetch_ohlcv(
                 raise RuntimeError(f"get_ohlcv returned {'None' if df is None else 'empty'}")
             # pyupbit은 naive KST 반환 (research/CLAUDE.md 박제)
             if df.index.tz is None:
-                df.index = df.index.tz_localize("Asia/Seoul").tz_convert("UTC")
+                df.index = df.index.tz_localize(KST).tz_convert("UTC")
             elif str(df.index.tz) != "UTC":
                 df.index = df.index.tz_convert("UTC")
             return df
@@ -82,14 +89,22 @@ def fetch_ohlcv_range(
 ) -> pd.DataFrame:
     """지정 범위 OHLCV 조회 (pyupbit.get_ohlcv_from wrapper).
 
+    pyupbit 소스 실측 (2026-04-24):
+    - fromDatetime은 str 또는 naive datetime 수용 (내부 `candle_date_time_kst` 사용)
+    - 따라서 **명시적 KST 변환** 후 strftime 전달 (로컬 timezone 의존 제거, C-1 정정)
+
     Args:
-        from_datetime: UTC or KST datetime. pyupbit은 내부적으로 KST로 처리
+        from_datetime: UTC-aware or KST-aware datetime (naive 금지)
         to_datetime: None이면 현재까지
     """
-    # pyupbit get_ohlcv_from의 fromDatetime은 str 또는 datetime 수용
-    # 내부에서 KST 기준으로 처리하므로, 입력이 UTC aware라면 KST로 변환하여 넘김
-    from_dt_kst = from_datetime.astimezone(timezone.utc).astimezone()  # 로컬 KST
-    to_dt_kst = to_datetime.astimezone(timezone.utc).astimezone() if to_datetime else None
+    # 명시적 Asia/Seoul 변환 (로컬 timezone 의존 제거)
+    if from_datetime.tzinfo is None:
+        raise ValueError("from_datetime은 tzinfo-aware 필수 (naive datetime 금지)")
+    if to_datetime is not None and to_datetime.tzinfo is None:
+        raise ValueError("to_datetime은 tzinfo-aware 필수 (naive datetime 금지)")
+
+    from_dt_kst = from_datetime.astimezone(KST)
+    to_dt_kst = to_datetime.astimezone(KST) if to_datetime else None
 
     last_exc: Exception | None = None
     for attempt in range(retry_max):
@@ -104,7 +119,7 @@ def fetch_ohlcv_range(
             if df is None or df.empty:
                 raise RuntimeError(f"get_ohlcv_from returned {'None' if df is None else 'empty'}")
             if df.index.tz is None:
-                df.index = df.index.tz_localize("Asia/Seoul").tz_convert("UTC")
+                df.index = df.index.tz_localize(KST).tz_convert("UTC")
             elif str(df.index.tz) != "UTC":
                 df.index = df.index.tz_convert("UTC")
             return df
@@ -119,20 +134,49 @@ def fetch_ohlcv_range(
     ) from last_exc
 
 
-def get_current_price(ticker: str | list[str], retry_max: int = DEFAULT_RETRY_MAX) -> float | dict[str, float]:
-    """현재가 조회 + 재시도."""
+def get_current_price(ticker: str, retry_max: int = DEFAULT_RETRY_MAX) -> float:
+    """단일 페어 현재가 조회 + 재시도.
+
+    W-4 정정 (2026-04-24): 이전 버전의 float | dict 반환 타입 분리.
+    list 입력이 필요하면 get_current_prices() 사용.
+    """
+    if not isinstance(ticker, str):
+        raise TypeError(f"ticker must be str, got {type(ticker).__name__}. Use get_current_prices for list.")
+
     last_exc: Exception | None = None
     for attempt in range(retry_max):
         try:
             price = pyupbit.get_current_price(ticker=ticker)
             if price is None:
-                raise RuntimeError(f"get_current_price returned None")
-            return price
+                raise RuntimeError("get_current_price returned None")
+            return float(price)
         except Exception as e:
             last_exc = e
             if attempt < retry_max - 1:
                 time.sleep(DEFAULT_RETRY_BASE_S * (2 ** attempt))
-    raise RuntimeError(f"get_current_price failed after {retry_max} retries") from last_exc
+    raise RuntimeError(f"get_current_price failed after {retry_max} retries for {ticker}") from last_exc
+
+
+def get_current_prices(tickers: list[str], retry_max: int = DEFAULT_RETRY_MAX) -> dict[str, float]:
+    """다중 페어 현재가 조회 + 재시도 (W-4 신설, 2026-04-24)."""
+    if not isinstance(tickers, list) or not all(isinstance(t, str) for t in tickers):
+        raise TypeError("tickers must be list[str]")
+
+    last_exc: Exception | None = None
+    for attempt in range(retry_max):
+        try:
+            prices = pyupbit.get_current_price(ticker=tickers)
+            if prices is None:
+                raise RuntimeError("get_current_price returned None")
+            if isinstance(prices, (int, float)):
+                # pyupbit이 단일 반환하는 경우 (예: len(tickers)==1)
+                return {tickers[0]: float(prices)}
+            return {k: float(v) for k, v in prices.items()}
+        except Exception as e:
+            last_exc = e
+            if attempt < retry_max - 1:
+                time.sleep(DEFAULT_RETRY_BASE_S * (2 ** attempt))
+    raise RuntimeError(f"get_current_prices failed after {retry_max} retries for {tickers}") from last_exc
 
 
 def get_orderbook(ticker: str, retry_max: int = DEFAULT_RETRY_MAX) -> dict:
@@ -155,7 +199,8 @@ def get_orderbook(ticker: str, retry_max: int = DEFAULT_RETRY_MAX) -> dict:
 
 
 if __name__ == "__main__":
-    # V2-02 sanity check
+    # V2-02 sanity check (C-2 정정 2026-04-24: fetch_ohlcv_range + get_current_prices 포함)
+    from datetime import timedelta
     from engine.config import ENGINE_ROOT, ensure_runtime_dirs, load_config
     from engine.logger import setup_logger
 
@@ -163,18 +208,33 @@ if __name__ == "__main__":
     cfg = load_config()
     logger = setup_logger(ENGINE_ROOT / "logs", "INFO")
 
-    # Pair 1: BTC 최근 5일 OHLCV
+    # 1: BTC 최근 5일 OHLCV (get_ohlcv)
     logger.info("fetch_ohlcv_start", extra={"pair": "KRW-BTC", "count": 5})
     btc = fetch_ohlcv("KRW-BTC", interval="day", count=5)
     print(f"KRW-BTC 최근 5일 OHLCV:")
     print(btc[["open", "high", "low", "close", "volume"]].to_string())
     print(f"  index tz: {btc.index.tz}")
+    assert str(btc.index.tz) == "UTC", f"index tz should be UTC, got {btc.index.tz}"
 
-    # Pair 2: ETH 현재가
+    # 2: BTC 지난 30일 OHLCV (fetch_ohlcv_range) — C-2 신규 sanity
+    now_utc = datetime.now(timezone.utc)
+    from_utc = now_utc - timedelta(days=30)
+    btc_range = fetch_ohlcv_range("KRW-BTC", from_datetime=from_utc, to_datetime=now_utc, interval="day")
+    print(f"\nKRW-BTC 지난 30일 OHLCV: {len(btc_range)} bars, index tz={btc_range.index.tz}")
+    assert str(btc_range.index.tz) == "UTC", "range index tz must be UTC"
+    assert len(btc_range) >= 25, f"expected ~30 bars, got {len(btc_range)}"
+
+    # 3: ETH 단일 현재가 (W-4 정정)
     eth_price = get_current_price("KRW-ETH")
-    print(f"\nKRW-ETH 현재가: {eth_price:,.0f} KRW")
+    print(f"\nKRW-ETH 현재가: {eth_price:,.0f} KRW  (type={type(eth_price).__name__})")
+    assert isinstance(eth_price, float)
 
-    # Pair 3: BTC 호가 (slice only)
+    # 4: BTC + ETH 현재가 (W-4 신규 get_current_prices)
+    prices = get_current_prices(["KRW-BTC", "KRW-ETH"])
+    print(f"다중 현재가: {prices}")
+    assert isinstance(prices, dict) and set(prices.keys()) == {"KRW-BTC", "KRW-ETH"}
+
+    # 5: BTC 호가
     ob = get_orderbook("KRW-BTC")
     units = ob.get("orderbook_units", [])
     if units:
@@ -183,4 +243,18 @@ if __name__ == "__main__":
         spread = (top_ask - top_bid) if (top_bid and top_ask) else None
         print(f"\nKRW-BTC 최우선 호가: bid={top_bid:,.0f} / ask={top_ask:,.0f} / spread={spread}")
 
-    logger.info("market_data_sanity_ok", extra={"btc_rows": len(btc), "eth_price": eth_price})
+    # 6: 잘못된 입력 타입 검증
+    try:
+        get_current_price(["KRW-BTC"])  # list로 잘못 호출
+    except TypeError as e:
+        print(f"\nget_current_price list 거부 OK: {e}")
+
+    try:
+        fetch_ohlcv_range("KRW-BTC", from_datetime=datetime(2026, 1, 1))  # naive
+    except ValueError as e:
+        print(f"fetch_ohlcv_range naive 거부 OK: {e}")
+
+    logger.info("market_data_sanity_ok", extra={
+        "btc_rows": len(btc), "btc_range_rows": len(btc_range),
+        "eth_price": eth_price, "prices_keys": list(prices.keys()),
+    })

@@ -48,14 +48,16 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False, default=str)
 
 
-def setup_logger(logs_dir: Path, level: str = "INFO") -> logging.Logger:
+def setup_logger(logs_dir: Path, level: str = "INFO", force: bool = False) -> logging.Logger:
     """엔진 공용 로거 설정.
 
     - stdout: 사람이 읽기 용이한 포맷
     - 파일 (logs/engine-YYYYMMDD.log): JSONL (프로그램적 분석 용이)
+
+    W-2 정정 (2026-04-24): `force=True`로 재설정 허용 (테스트/logs_dir 변경 시).
     """
     global _logger
-    if _logger is not None:
+    if _logger is not None and not force:
         return _logger
 
     logs_dir.mkdir(parents=True, exist_ok=True)

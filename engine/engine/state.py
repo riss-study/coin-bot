@@ -129,12 +129,17 @@ class StateStore:
             conn.close()
 
     @contextmanager
-    def _conn(self) -> Iterator[sqlite3.Connection]:
+    def _conn(self, *, write: bool = True) -> Iterator[sqlite3.Connection]:
+        """컨텍스트 매니저. write=True → BEGIN IMMEDIATE (writer lock 즉시 획득).
+
+        W-1 정정 (2026-04-24): read-only 쿼리는 write=False → DEFERRED (read lock만).
+        WAL 모드에서 concurrent read 허용 = 3 cell 병렬 처리 시 lock contention 감소.
+        """
         with self._lock:
             conn = sqlite3.connect(self.db_path, isolation_level=None, timeout=30)
             conn.row_factory = sqlite3.Row
             try:
-                conn.execute("BEGIN IMMEDIATE")
+                conn.execute("BEGIN IMMEDIATE" if write else "BEGIN DEFERRED")
                 yield conn
                 conn.execute("COMMIT")
             except Exception:
@@ -155,7 +160,7 @@ class StateStore:
             )
 
     def get_meta(self, key: str, default: str | None = None) -> str | None:
-        with self._conn() as c:
+        with self._conn(write=False) as c:
             row = c.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
         return row["value"] if row else default
 
@@ -180,11 +185,20 @@ class StateStore:
             )
 
     def close_position(self, cell_key: str) -> None:
+        """포지션 DELETE (positions 테이블만).
+
+        W-5 고지 (2026-04-24): 연관 exit 주문의 status='filled' 업데이트는
+        **호출자 책임**. 일반적 순서:
+            1. order.py에서 exit 체결 확인
+            2. store.record_order(...) status='filled' 업데이트 (멱등)
+            3. store.close_position(cell_key)
+        이 순서를 어기면 position 사라졌는데 order 상태 stale할 수 있음.
+        """
         with self._conn() as c:
             c.execute("DELETE FROM positions WHERE cell_key=?", (cell_key,))
 
     def get_position(self, cell_key: str) -> Position | None:
-        with self._conn() as c:
+        with self._conn(write=False) as c:
             row = c.execute("SELECT * FROM positions WHERE cell_key=?", (cell_key,)).fetchone()
         if row is None:
             return None
@@ -197,7 +211,7 @@ class StateStore:
         )
 
     def list_open_positions(self) -> list[Position]:
-        with self._conn() as c:
+        with self._conn(write=False) as c:
             rows = c.execute("SELECT * FROM positions").fetchall()
         return [
             Position(
@@ -237,7 +251,7 @@ class StateStore:
             )
 
     def get_order(self, order_uuid: str) -> OrderRecord | None:
-        with self._conn() as c:
+        with self._conn(write=False) as c:
             row = c.execute("SELECT * FROM orders WHERE order_uuid=?", (order_uuid,)).fetchone()
         if row is None:
             return None
@@ -254,7 +268,7 @@ class StateStore:
 
     def list_open_orders(self) -> list[OrderRecord]:
         """status='open' 주문 — 재시작 시 Upbit API와 대조해 상태 동기화."""
-        with self._conn() as c:
+        with self._conn(write=False) as c:
             rows = c.execute("SELECT * FROM orders WHERE status='open'").fetchall()
         return [
             OrderRecord(
@@ -274,7 +288,7 @@ class StateStore:
 
     def get_order_uuid_by_client_oid(self, client_oid: str) -> str | None:
         """client_oid → order_uuid 매핑 조회 (재시도 시 이중 주문 방지)."""
-        with self._conn() as c:
+        with self._conn(write=False) as c:
             row = c.execute(
                 "SELECT order_uuid FROM idempotency WHERE client_oid=?", (client_oid,)
             ).fetchone()
