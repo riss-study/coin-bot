@@ -4,18 +4,28 @@
 > **Week별 상세**: [`stage1-weekly/`](./stage1-weekly/) 디렉토리 참조
 > **Task 상세 sub-plan**: [`stage1-subplans/`](./stage1-subplans/) 디렉토리 참조
 
-## Stage 1 종결 (2026-04-22, 사용자 옵션 C 채택)
+## Stage 1 v1 종결 + v2 재시작 (2026-04-22 / 2026-04-24)
 
-**상태**: **학습 모드 전환 (실질적 조기 종료)**
+### v1 종결 (2026-04-22)
 
-- W3-01 Walk-forward No-Go 확정 → 사용자 옵션 C (프레임 A+B 둘 다 공식 인정) 명시 채택
-- Stage 1 킬 카운터 총 **+3** (W1 +1 + W2-03 Go→W3-01 No-Go 이중 실패 +2) → Stage 1 킬 조건 충족
-- **라이브 50만원 옵션 상실** (Stage 2 게이트 미진입)
-- W3-02 / W3-03 / W4-01 / W4-02 / W6-01 / W8-01 **전부 Cancelled**
-- 학습 자료 보존 (백테스트 결과 / 노트북 / sub-plan / evidence 전부 git 유지)
-- v3 박제 재탐색은 **Stage 1 재시작 시점 전제** (지금은 미진행)
+- W3-01 Walk-forward No-Go → 사용자 옵션 C (프레임 A+B 둘 다 공식 인정, 학습 모드 전환) 채택
+- Stage 1 v1 킬 카운터 총 +3. W3-02/W3-03/W4~W8 전부 Cancelled
+- 학습 자료 git 보존
 
-상세: [`decisions-final.md`](./decisions-final.md) "W3-01 Walk-forward No-Go 결정 + 프레임 C 학습 모드 전환" 섹션 참조.
+### **v2 재시작 (2026-04-24, 라이브 경로)**
+
+**사용자 지시 ("그렇게 하자", 2026-04-24)**:
+- 본질 목표 = **50만원 한정 라이브 투입**
+- 학술 박제 루프 (DSR/stability 5/5/Pardo) 과잉이었음 재인식
+- W2-03 Go cells 5개 중 3개 (BTC_A, ETH_A, BTC_D) 채택 → Freqtrade 이식 → 페이퍼 2~4주 → 10만원→50만원 단계적 라이브
+
+**Go 기준 완화 (v2 박제)**:
+- 학술 기준 제거: ~~DSR~~ / ~~stability 5/5~~ / ~~Bonferroni~~
+- 실용 기준: **Sharpe>0.8 + MDD<50% + trades≥10 + 페이퍼 ±30%** (W2-03 3 cells 전부 충족)
+
+**cycle 1 #5 재발 X**: v1 공식 종결 + v2 새 cycle + 본질 목표 재인식. 사후 완화 아님.
+
+상세: [`stage1-v2-relaunch.md`](./stage1-v2-relaunch.md) — v2 Task V2-01 ~ V2-08 + 리스크 + 관련 문서.
 
 ## 요약
 
