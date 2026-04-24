@@ -2,6 +2,9 @@
 # 실측 기반 (2026-04-24 pyupbit 0.2.34 PyPI 최신 확인)
 
 pyupbit==0.2.34          # Upbit API wrapper (주문/시세/WebSocket)
+ta>=0.11.0,<0.12         # Wilder smoothing ATR/RSI/Keltner/Bollinger (research/CLAUDE.md 검증)
+pandas>=2.0              # DataFrame (pyupbit 이미 의존하지만 명시)
+numpy>=1.24              # 지표 계산
 requests>=2.31,<3        # HTTP (Discord webhook)
 python-dateutil>=2.8     # 시간 처리 (UTC ↔ KST)
 pyyaml>=6.0              # config.yaml 로드
