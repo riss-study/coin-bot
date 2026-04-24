@@ -67,6 +67,7 @@
 - **`stage1-weekly/`** — Week 단위 Task 상세 (`week1.md`, `week2.md`, `week3-8-pending.md`. Week 3~8 진입 시 분할). Week 1 EPIC 상세는 본 디렉토리의 `week1.md`가 유일한 active 문서 (`week1-plan.md`는 Historical로 이동됨)
 - **`stage1-subplans/`** — Task 상세 sub-plan (Week 1 6개 + Week 2 3개 작성 완료, Week 3+ 작성 대기)
 - **`execution-loop-pattern.md`** — food-supply 방법론 추출 (3종 문서 + 4단계 루프)
+- **`stage1-retrospective-2026-04-24.md`** — Stage 1 학습 회고 (실수/패턴/교훈/박제 진화, 종결 직후 작성)
 
 ## Historical Documents (참조만, 편집 금지)
 
