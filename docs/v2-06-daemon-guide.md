@@ -14,6 +14,7 @@ Status: 가이드 (사용자 직접 실행 절차)
 - [x] V2-05 63 tests PASS + 실 Upbit 인증 sanity OK (2026-04-26)
 - [x] Keychain 3종 발급: `upbit-api-access` / `upbit-api-secret` / `discord-webhook`
 - [x] `engine/config.yaml` `run_mode: paper` 박제
+- [x] `engine/logs/` 디렉토리 존재 (V2-04/05 sanity 시 자동 생성됨; 신규 환경에서는 §2 `--once` 1회 실행이 자동 생성)
 - [ ] **본 가이드 절차 1~5 완료** (사용자 직접 실행)
 
 ---
@@ -39,14 +40,15 @@ pmset -g | grep -E "sleep|displaysleep"
 
 ### 1.3 대안 (sleep을 끌 수 없는 경우)
 
-`caffeinate -i` 백그라운드 실행으로 system idle sleep 방지:
+`caffeinate` 백그라운드 실행으로 sleep 방지:
 
 ```bash
-nohup caffeinate -i -t 86400 > /dev/null 2>&1 &
+# -i: idle sleep 방지 / -s: system sleep 방지 (AC 전원 시) / -d: display sleep 방지
+nohup caffeinate -dis -t 86400 > /dev/null 2>&1 &
 # -t 86400 = 24시간. cron 또는 launchctl로 일일 갱신 권장.
 ```
 
-> **주의**: caffeinate는 system idle sleep만 방지. 디스플레이 닫음 시에는 lid sleep 발동 가능 → 1.1 권장.
+> **주의**: caffeinate는 idle/system sleep만 방지. **lid 닫음(clamshell) sleep은 막지 못함** — 노트북 사용 시 §1.1 시스템 환경설정 필수 + 외부 모니터/키보드/AC 연결 권장. 데스크톱은 영향 없음.
 
 ---
 
@@ -79,11 +81,17 @@ python -m engine.main --once 2>&1 | tee /tmp/coinbot-once.log
 
 ## 3. launchd 등록
 
-### 3.1 plist 복사 + load
+### 3.1 plist 복사 + 등록
 
 ```bash
 cp /Users/riss/project/coin-bot/engine/launchd/com.coinbot.engine.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.coinbot.engine.plist
+
+# Modern (macOS 10.10+, 권장):
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.coinbot.engine.plist
+
+# Legacy (작동은 하나 향후 deprecated 가능):
+# launchctl load ~/Library/LaunchAgents/com.coinbot.engine.plist
+
 launchctl list | grep coinbot
 # 기대: PID    Status    com.coinbot.engine
 #       12345   0         com.coinbot.engine
@@ -103,12 +111,15 @@ tail -f /Users/riss/project/coin-bot/engine/logs/launchd.out.log
 ### 3.3 종료/재시작
 
 ```bash
-# 종료
-launchctl unload ~/Library/LaunchAgents/com.coinbot.engine.plist
+# Modern 종료:
+launchctl bootout gui/$(id -u)/com.coinbot.engine
 
-# 재등록 (코드 변경 후)
-launchctl unload ~/Library/LaunchAgents/com.coinbot.engine.plist
-launchctl load ~/Library/LaunchAgents/com.coinbot.engine.plist
+# Legacy 종료:
+# launchctl unload ~/Library/LaunchAgents/com.coinbot.engine.plist
+
+# 재등록 (코드 변경 후):
+launchctl bootout gui/$(id -u)/com.coinbot.engine
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.coinbot.engine.plist
 ```
 
 ---
@@ -131,8 +142,12 @@ launchctl list | grep coinbot
 ls -la engine/logs/trades-*.jsonl
 wc -l engine/logs/trades-*.jsonl
 
-# 비교 도구 (5장)
-python -m engine.scripts.compare_backtest_paper --days 7
+# 비교 도구 (§5)
+# CRITICAL 정정 (2026-04-26): compare 도구는 vectorbt 의존 → research/.venv 환경에서 호출.
+# engine/.venv에는 vectorbt 미설치 (production 의존성 분리 유지).
+cd /Users/riss/project/coin-bot
+source research/.venv/bin/activate
+PYTHONPATH=engine python -m engine.scripts.compare_backtest_paper --days 7
 ```
 
 ---

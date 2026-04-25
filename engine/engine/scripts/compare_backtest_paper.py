@@ -7,13 +7,17 @@
 설계:
 - 입력 1 (필수): engine/logs/trades-YYYY.jsonl (페이퍼 거래 기록)
 - 입력 2 (선택): vectorbt portfolio.pkl (동일 기간 백테스트). 없으면 페이퍼 통계만.
-- 출력: trade count / 누적 PnL / ±tolerance 검증
+- 출력: trade count / 누적 PnL ratio / ±tolerance 검증
 
-사용:
-    python -m engine.scripts.compare_backtest_paper --days 7
-    python -m engine.scripts.compare_backtest_paper \\
-        --paper-trades engine/logs/trades-2026.jsonl \\
-        --backtest-portfolio /path/to/bt.pkl --tolerance 0.30
+단위 (CRITICAL/NIT 정정 2026-04-26):
+- 모든 return 값은 **ratio** (예: 0.0027 = 0.27%). format_report에서 *100 후 % 표기.
+- vectorbt stats "Total Return [%]" 는 percent value (예: 0.3159 = 0.3159%) → /100 해서 ratio로 보관.
+
+호출 환경:
+- vectorbt는 engine/.venv 미설치 (production 의존성 분리). research/.venv 에서 호출:
+    cd /Users/riss/project/coin-bot
+    source research/.venv/bin/activate
+    PYTHONPATH=engine python -m engine.scripts.compare_backtest_paper --days 7
 """
 from __future__ import annotations
 
@@ -32,7 +36,7 @@ class PaperStats:
     trade_count: int          # exit 거래 수 (entry+exit 2행 / 2)
     total_realized_krw: float
     total_invested_krw: float
-    cumulative_return_pct: float
+    cumulative_return_ratio: float    # 비율 (0.0027 = 0.27%)
     win_count: int
     loss_count: int
 
@@ -71,7 +75,7 @@ def compute_paper_stats(trades: list[dict]) -> PaperStats:
         trade_count=len(sells),
         total_realized_krw=total_realized,
         total_invested_krw=total_invested,
-        cumulative_return_pct=cum_return,
+        cumulative_return_ratio=cum_return,
         win_count=win,
         loss_count=loss,
     )
@@ -97,13 +101,14 @@ def load_backtest_portfolio_stats(pkl_path: Path) -> dict | None:
         print(f"[warn] portfolio.load 실패: {e}", file=sys.stderr)
         return None
 
-    # vectorbt 0.28.5 기준 stats 항목 (research/CLAUDE.md 박제)
+    # vectorbt 0.28.5 기준 stats 항목 (research/.venv 실측 2026-04-26)
+    # 키 명칭 실측: 'Total Return [%]', 'Total Closed Trades', 'Win Rate [%]', 'Max Drawdown [%]', 'Sharpe Ratio'
     stats = portfolio.stats() if hasattr(portfolio, "stats") else {}
     return {
-        "total_return_pct": float(stats.get("Total Return [%]", 0)) / 100,
+        "total_return_ratio": float(stats.get("Total Return [%]", 0)) / 100,
         "trade_count": int(stats.get("Total Closed Trades", 0)),
-        "win_rate_pct": float(stats.get("Win Rate [%]", 0)),
-        "max_drawdown_pct": float(stats.get("Max Drawdown [%]", 0)) / 100,
+        "win_rate_pct": float(stats.get("Win Rate [%]", 0)),  # 0~100 percent
+        "max_drawdown_ratio": float(stats.get("Max Drawdown [%]", 0)) / 100,
         "sharpe": float(stats.get("Sharpe Ratio", 0)),
     }
 
@@ -115,7 +120,7 @@ def compare(paper: PaperStats, backtest: dict | None, tolerance: float) -> dict:
             "trade_count": paper.trade_count,
             "total_realized_krw": paper.total_realized_krw,
             "total_invested_krw": paper.total_invested_krw,
-            "cumulative_return_pct": paper.cumulative_return_pct,
+            "cumulative_return_ratio": paper.cumulative_return_ratio,
             "win_count": paper.win_count,
             "loss_count": paper.loss_count,
         },
@@ -126,8 +131,8 @@ def compare(paper: PaperStats, backtest: dict | None, tolerance: float) -> dict:
         return out
 
     out["backtest"] = backtest
-    bt_ret = backtest["total_return_pct"]
-    pp_ret = paper.cumulative_return_pct
+    bt_ret = backtest["total_return_ratio"]
+    pp_ret = paper.cumulative_return_ratio
 
     # ±tolerance 일치 검증 (절대 차이가 |bt_ret| × tolerance 이내)
     if abs(bt_ret) < 1e-6:
@@ -138,7 +143,7 @@ def compare(paper: PaperStats, backtest: dict | None, tolerance: float) -> dict:
         ok = rel_diff <= tolerance
         out["relative_diff"] = rel_diff
 
-    out["abs_diff_pct"] = pp_ret - bt_ret
+    out["abs_diff_ratio"] = pp_ret - bt_ret
     out["tolerance"] = tolerance
     out["verdict"] = "PASS" if ok else "FAIL"
     return out
@@ -155,7 +160,7 @@ def format_report(result: dict) -> str:
         f"  trades:        {p['trade_count']}",
         f"  realized PnL:  {p['total_realized_krw']:+,.0f} KRW",
         f"  invested:      {p['total_invested_krw']:,.0f} KRW",
-        f"  return:        {p['cumulative_return_pct']*100:+.2f}%",
+        f"  return:        {p['cumulative_return_ratio']*100:+.2f}%",
         f"  win/loss:      {p['win_count']} / {p['loss_count']}",
     ]
     if result["backtest"] is None:
@@ -171,13 +176,13 @@ def format_report(result: dict) -> str:
         "",
         "[백테스트]",
         f"  trades:        {bt['trade_count']}",
-        f"  return:        {bt['total_return_pct']*100:+.2f}%",
+        f"  return:        {bt['total_return_ratio']*100:+.2f}%",
         f"  Sharpe:        {bt['sharpe']:.3f}",
-        f"  MDD:           {bt['max_drawdown_pct']*100:.2f}%",
+        f"  MDD:           {bt['max_drawdown_ratio']*100:.2f}%",
         f"  win rate:      {bt['win_rate_pct']:.1f}%",
         "",
         f"[비교] tolerance ±{result['tolerance']*100:.0f}%",
-        f"  abs diff:      {result['abs_diff_pct']*100:+.2f}% (페이퍼 - 백테스트)",
+        f"  abs diff:      {result['abs_diff_ratio']*100:+.2f}% (페이퍼 - 백테스트)",
     ]
     if "relative_diff" in result:
         lines.append(f"  rel diff:      {result['relative_diff']*100:.1f}%")
