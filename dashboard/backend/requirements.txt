@@ -1,0 +1,4 @@
+# V2-Dashboard backend (read-only, no engine secrets access)
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+pydantic>=2.10,<3.0

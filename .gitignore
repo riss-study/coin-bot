@@ -58,3 +58,11 @@ logs/
 
 # Docker
 .docker/
+
+# Dashboard (V2-Dashboard)
+dashboard/frontend/node_modules/
+dashboard/frontend/.next/
+dashboard/frontend/out/
+dashboard/frontend/.env*.local
+dashboard/cloudflared/*.json
+dashboard/cloudflared/*.pem
