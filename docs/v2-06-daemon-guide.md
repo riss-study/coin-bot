@@ -23,32 +23,46 @@ Status: 가이드 (사용자 직접 실행 절차)
 
 페이퍼 daemon은 KST 09:05에 in-process scheduler로 트리거. macOS sleep 상태에서는 trigger missed → 거래 시뮬레이션 누락.
 
-### 1.1 시스템 환경설정 변경
+> **호스트 가정**: 본 가이드는 **Mac mini (배터리 없음, lid 없음, 항상 AC 연결)** 기준. 노트북 사용 시 lid sleep 별도 대응 필요 (§1.3 주의).
 
-1. `시스템 설정` → `배터리` → `옵션…` (또는 `에너지 절약기`)
-2. **"디스플레이가 꺼졌을 때 자동으로 잠자기"** → 끔
-3. **"디스플레이 끄기 시간"** → '안 함' 권장 (또는 가능한 가장 긴 시간)
-4. 노트북: 전원 어댑터 연결 시 sleep 끄기 (배터리 사용 시 sleep 허용)
-5. 데스크톱: 항상 sleep 끄기
+### 1.1 pmset 직접 명령 (권장, Mac mini)
+
+```bash
+# 전체 sleep / 디스크 sleep / powernap 비활성화
+sudo pmset -a sleep 0
+sudo pmset -a disksleep 0
+sudo pmset -a powernap 0
+# 디스플레이 sleep은 허용 (모니터 보호 — daemon 동작과 무관)
+sudo pmset -a displaysleep 10
+```
+
+`-a` = all power sources (Mac mini는 항상 AC, `-c`/`-b` 분기 무관).
 
 ### 1.2 검증
 
 ```bash
-pmset -g | grep -E "sleep|displaysleep"
-# 기대: sleep 0, displaysleep 0 (또는 매우 큰 값)
+pmset -g | grep -E "^ sleep |^ displaysleep|^ disksleep|^ powernap"
+# 기대: sleep 0, disksleep 0, powernap 0, displaysleep 10
 ```
 
-### 1.3 대안 (sleep을 끌 수 없는 경우)
+### 1.3 대안 (pmset 권한 없는 경우 또는 임시)
 
 `caffeinate` 백그라운드 실행으로 sleep 방지:
 
 ```bash
-# -i: idle sleep 방지 / -s: system sleep 방지 (AC 전원 시) / -d: display sleep 방지
-nohup caffeinate -dis -t 86400 > /dev/null 2>&1 &
+# -i: idle sleep 방지 / -s: system sleep 방지 / -d: display sleep 방지
+nohup caffeinate -is -t 86400 > /dev/null 2>&1 &
 # -t 86400 = 24시간. cron 또는 launchctl로 일일 갱신 권장.
 ```
 
-> **주의**: caffeinate는 idle/system sleep만 방지. **lid 닫음(clamshell) sleep은 막지 못함** — 노트북 사용 시 §1.1 시스템 환경설정 필수 + 외부 모니터/키보드/AC 연결 권장. 데스크톱은 영향 없음.
+> **노트북 사용 시 주의**: caffeinate는 idle/system sleep만 방지. **lid 닫음(clamshell) sleep은 막지 못함** — 외부 모니터/키보드/AC 연결 + 시스템 환경설정에서 lid 닫음 시 sleep 끄기 필수. **Mac mini는 lid 없음 → 영향 없음.**
+
+### 1.4 GUI 대안 (시스템 설정)
+
+pmset 권한이 없거나 GUI 선호 시 (macOS 26.x):
+- `시스템 설정` → `에너지` (또는 `Lock Screen` / `Display`)
+- "컴퓨터를 다음 시간 후에 잠자기 모드로 전환" → 안 함
+- "디스크 잠자기" → 끔
 
 ---
 
