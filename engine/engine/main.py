@@ -118,7 +118,7 @@ class Engine:
         )
 
     def restore_state(self) -> None:
-        """재시작 시 open positions/orders 로깅."""
+        """재시작 시 open positions/orders 로깅 + 동기화."""
         positions = self.state.list_open_positions()
         open_orders = self.state.list_open_orders()
         self.logger.info("state_restored", extra={
@@ -126,13 +126,65 @@ class Engine:
             "open_orders": len(open_orders),
             "position_cells": [p.cell_key for p in positions],
         })
-        # live mode + open_orders가 있으면 poll_status로 동기화
-        if self.cfg.run_mode == "live" and open_orders:
-            for o in open_orders:
-                try:
-                    self.order_executor.poll_status(o.order_uuid)
-                except Exception:
-                    self.logger.exception("poll_status_failed", extra={"order_uuid": o.order_uuid})
+        # 시작 시 open orders 동기화 (C-1/C-2 정정)
+        if open_orders:
+            self.sync_open_orders()
+
+    def sync_open_orders(self) -> dict[str, int]:
+        """open orders 폴링 + filled 전이 시 position open/close 자동 호출 (C-1/C-2 정정 2026-04-25).
+
+        문제 시나리오:
+            - 라이브 buy → 응답 status='open' → filled 후 다음 cycle에서도 position 미생성
+            - sell → status='open' 잔존 → 다음 cycle exit 신호 시 이중 매도 위험
+
+        해결:
+            cycle 시작 시 모든 open orders 폴링 → filled로 전이된 buy → open_position
+            filled로 전이된 sell → close_position. canceled/rejected는 idempotency 그대로 두고 정리만.
+
+        Returns: {"polled": int, "promoted_buy": int, "promoted_sell": int}
+        """
+        counts = {"polled": 0, "promoted_buy": 0, "promoted_sell": 0, "canceled": 0}
+        for o in self.state.list_open_orders():
+            counts["polled"] += 1
+            try:
+                # paper는 record가 이미 filled여서 list_open_orders에 없을 것. live만 polling.
+                rec = self.order_executor.poll_status(o.order_uuid)
+            except Exception:
+                self.logger.exception("sync_poll_failed", extra={"order_uuid": o.order_uuid})
+                continue
+            if rec is None:
+                continue
+            if rec.status == "filled":
+                if rec.side == "buy":
+                    if self.state.get_position(rec.cell_key) is None:
+                        try:
+                            open_position_from_order(self.state, rec)
+                            counts["promoted_buy"] += 1
+                        except Exception:
+                            self.logger.exception("sync_open_position_failed",
+                                                   extra={"order_uuid": rec.order_uuid})
+                elif rec.side == "sell":
+                    if self.state.get_position(rec.cell_key) is not None:
+                        try:
+                            close_position_from_order(
+                                self.state, ENGINE_ROOT / "logs", rec, run_mode=self.cfg.run_mode,
+                            )
+                            counts["promoted_sell"] += 1
+                        except Exception:
+                            self.logger.exception("sync_close_position_failed",
+                                                   extra={"order_uuid": rec.order_uuid})
+            elif rec.status in ("canceled", "rejected", "failed"):
+                counts["canceled"] += 1
+        if counts["polled"] > 0:
+            self.logger.info("sync_open_orders_done", extra=counts)
+        return counts
+
+    def has_pending_order(self, cell_key: str, side: str) -> bool:
+        """동일 cell + side의 status='open' 주문 존재 확인 (C-2 정정 — 이중 발행 방지)."""
+        for o in self.state.list_open_orders():
+            if o.cell_key == cell_key and o.side == side:
+                return True
+        return False
 
     def process_cell(self, cell: dict, trigger_utc: datetime) -> dict[str, Any]:
         """단일 cell 처리: 시세 → 신호 → 주문 → 포지션 → 알림. 결과 dict 반환."""
@@ -163,8 +215,12 @@ class Engine:
                 price_krw=today_close, reason=signal.reason,
             )
 
-        # 주문 처리
+        # 주문 처리 (C-2 정정: 동일 cell pending order 있으면 발행 X — 이중 주문 방지)
         if signal.action == SignalAction.ENTRY and not in_position:
+            if self.has_pending_order(cell_key, "buy"):
+                self.logger.info("skip_buy_pending", extra={"cell_key": cell_key})
+                result["actions"].append({"type": "skip_buy_pending"})
+                return result
             client_oid = make_client_oid(cell_key, "buy", trigger_utc)
             order = self.order_executor.place_order(OrderRequest(
                 cell_key=cell_key, pair=cell.ticker, strategy=cell.strategy,
@@ -186,6 +242,10 @@ class Engine:
                     )
 
         elif signal.action in (SignalAction.EXIT, SignalAction.SL_EXIT) and in_position:
+            if self.has_pending_order(cell_key, "sell"):
+                self.logger.info("skip_sell_pending", extra={"cell_key": cell_key})
+                result["actions"].append({"type": "skip_sell_pending"})
+                return result
             client_oid = make_client_oid(cell_key, "sell", trigger_utc)
             order = self.order_executor.place_order(OrderRequest(
                 cell_key=cell_key, pair=cell.ticker, strategy=cell.strategy,
@@ -215,8 +275,12 @@ class Engine:
         return result
 
     def run_cycle(self, trigger_utc: datetime) -> None:
-        """단일 트리거 사이클: 모든 cell 순차 처리 + 일일 요약."""
+        """단일 트리거 사이클: open orders 동기화 → cell 순차 처리 → 일일 요약."""
         self.logger.info("cycle_start", extra={"trigger_utc": trigger_utc.isoformat()})
+
+        # C-1/C-2 정정: cycle 시작 시 open orders 동기화 (filled buy/sell 처리)
+        self.sync_open_orders()
+
         cell_results = []
         for cell in self.cfg.pairs:
             try:
@@ -266,6 +330,18 @@ class Engine:
 
 
 def main() -> int:
+    """Engine 진입점.
+
+    Usage:
+        python -m engine.main          # daemon mode (KST 09:05 매일 무한 루프)
+        python -m engine.main --once   # 즉시 1회 cycle 실행 후 종료 (W-5 정정 2026-04-25)
+    """
+    import argparse
+    parser = argparse.ArgumentParser(description="coin-bot Custom engine (Stage 1 v2)")
+    parser.add_argument("--once", action="store_true",
+                        help="다음 트리거를 기다리지 않고 즉시 1회 cycle 실행")
+    args = parser.parse_args()
+
     ensure_runtime_dirs()
     cfg = load_config()
     setup_logger(ENGINE_ROOT / "logs", cfg.logging.get("level", "INFO"))
@@ -275,11 +351,16 @@ def main() -> int:
         "run_mode": cfg.run_mode,
         "pairs": [(c.ticker, c.strategy) for c in cfg.pairs],
         "trigger_kst": f"{cfg.schedule.signal_check_hour_kst:02d}:{cfg.schedule.signal_check_minute:02d}",
+        "once": args.once,
     })
 
     try:
         engine = Engine(cfg)
-        engine.run_forever()
+        if args.once:
+            engine.restore_state()
+            engine.run_cycle(datetime.now(timezone.utc))
+        else:
+            engine.run_forever()
     except KeyboardInterrupt:
         log.info("engine_interrupted")
         return 0

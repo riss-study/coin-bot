@@ -93,7 +93,47 @@ engine/engine/
 - restart 시 incomplete 주문 (status='open') 재처리 시나리오 통합 테스트
 - 동시성 (3 cells 병렬 시 SQLite WAL contention) 부하 테스트
 
-## 6. 다음 단계 (V2-05)
+## 6. 검증 라운드 정정 (2026-04-25 2차)
+
+외부 감사관 페르소나 재검증 결과 **CRITICAL 2** + WARNING 5 + NIT 3 발견 → CRITICAL 2 + W-3/W-5 정정 완료.
+
+### CRITICAL 정정
+
+| ID | 발견 | 정정 |
+|----|------|------|
+| C-1 | 라이브 buy 주문 status='open' 시 position 미생성 → exit 신호 처리 불가 | `Engine.sync_open_orders()` 신설. cycle 시작 + restore_state에서 호출. filled로 전이된 buy → open_position 자동 호출, sell → close_position 자동 호출 |
+| C-2 | sell 주문 'open' 잔존 시 다음 cycle 이중 매도 위험 (다른 분 → 다른 client_oid) | `Engine.has_pending_order(cell_key, side)` 신설. process_cell에서 buy/sell 발행 전 pending guard. pending이면 skip + sync_open_orders가 처리 |
+
+### WARNING 정정
+
+| ID | 발견 | 정정 |
+|----|------|------|
+| W-3 | compute_unrealized_pnl이 exit fees 미고려 (의도적이나 docstring 부재) | docstring 명시: krw_invested = entry_fees 포함 / exit_fees 미차감. realized 시 추가 0.05% 차감 = 왕복 수수료 0.1% 유의 |
+| W-5 | scheduler 시작 직후 다음 KST 09:05까지 대기 (즉시 실행 옵션 부재) | `python -m engine.main --once` 옵션 추가. argparse + restore_state + run_cycle(now_utc) 1회 실행 후 종료 |
+
+### 미정정 (V2-05/06 책무로 이전)
+
+- W-1 notifier 전송 실패 retry queue 부재
+- W-2 Engine 인스턴스화 실패 시 사용자 알림 X
+- W-4 list_open_orders 전역 (cell 격리 X)
+- N-1/N-2/N-3 (cosmetic)
+
+### 재sanity (2026-04-25)
+
+```
+1. main --once 실행 OK:
+   engine_starting → state_restored → cycle_start → 3 cells signal_evaluated → cycle_done
+   페이퍼 모드, notifier 미발급 fallback, 0 주문 / 0 포지션
+
+2. C-1/C-2 시뮬레이션:
+   - has_pending_order False (init) → True (open buy 주입 후) ✓
+   - list_open_orders [(KRW-BTC_A, buy, open)] 정확
+   - sync_open_orders {polled:1, promoted_buy:0} (paper에서 poll_status는 state 그대로)
+   - manual filled 후 list_open_orders=[] (filled는 자동 빠짐) ✓
+   - 2번째 open buy 주입 → has_pending_order True (이중 발행 차단) ✓
+```
+
+## 7. 다음 단계 (V2-05)
 
 - engine/tests/ 신설:
   - test_strategy_a.py / test_strategy_d.py (signal 로직 unit)

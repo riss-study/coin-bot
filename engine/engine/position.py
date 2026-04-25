@@ -161,7 +161,20 @@ def close_position_from_order(
 
 
 def compute_unrealized_pnl(pos: Position, current_price_krw: float) -> PnL:
-    """현재가 기준 unrealized PnL (매도 수수료는 차감 X — 미실현)."""
+    """현재가 기준 unrealized PnL.
+
+    공식 (W-3 정정 docstring 명시 2026-04-25):
+        market_value = volume × current_price_krw
+        unrealized_pnl_krw = market_value - krw_invested
+        unrealized_pnl_pct = unrealized_pnl_krw / krw_invested
+
+    주의:
+    - krw_invested 는 진입 시 (volume × entry_price) + entry_fees 를 포함 (entry fees 차감 후 PnL).
+    - **exit fees는 미차감** (실현되기 전이므로). 실제 매도 시 realized_pnl 은 추가로
+      exit_fees ≈ market_value × 0.0005 만큼 더 작아짐.
+    - 즉 unrealized 가 0 이라도 매도하면 realized 음수 가능 (왕복 수수료 0.1%).
+    - 사용자 보고 시 이 차이 유의.
+    """
     market_value = pos.volume * current_price_krw
     unrealized = market_value - pos.krw_invested
     pct = unrealized / pos.krw_invested if pos.krw_invested > 0 else 0.0
