@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import CORS_ORIGINS, HOST, PORT
-from app.routers import health
+from app.routers import health, logs, orders, positions, summary, trades
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -40,6 +40,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health.router)
+    app.include_router(positions.router)
+    app.include_router(trades.router)
+    app.include_router(summary.router)
+    app.include_router(orders.router)
+    app.include_router(logs.router)
 
     @app.get("/")
     def root() -> dict:
