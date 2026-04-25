@@ -87,17 +87,17 @@
 
 ### 2.1 Task 목록 (v2 재조정)
 
-| Task | 기간 | 설명 | Blocks |
-|------|:----:|------|--------|
-| V2-01 | 1~2일 | `engine/` 디렉토리 신설 + venv 분리 + pyupbit 설치 + config.py 골격 | V2-02 |
-| V2-02 | 3~5일 | Module 골격: `config` + `market_data` + `state` (SQLite) + `logger` | V2-03 |
-| V2-03 | 3~5일 | Strategy 이식 (research/ 재사용) + `order` 모듈 (주문/취소/조회 + 재시도 + 멱등성) | V2-04 |
-| V2-04 | 2~3일 | `scheduler` (일봉 close KST 09:00 트리거) + `main` orchestration + Discord `notifier` | V2-05 |
-| V2-05 | 3~5일 | Unit test + integration test (주문 mock + 상태 복원 시나리오) | V2-06 |
-| V2-06 | 2~4주 | 페이퍼 트레이딩 관측 (BTC_A, ETH_A, BTC_D) + 백테스트 대비 오차 기록 | V2-07 |
-| V2-07 | - | 페이퍼 Go/No-Go + 10만원 라이브 결정 | V2-08 |
-| V2-08 | 1~2주 | 10만원 라이브 운영 + 실체결 검증 | V2-09 |
-| V2-09 | - | 10만원 Go/No-Go + 50만원 추가 투입 결정 | - |
+| Task | 기간 | 설명 | Blocks | 상태 |
+|------|:----:|------|--------|------|
+| V2-01 | 1~2일 | `engine/` 디렉토리 신설 + venv 분리 + pyupbit 설치 + config.py 골격 | V2-02 | **DONE** 2026-04-25 |
+| V2-02 | 3~5일 | Module 골격: `config` + `market_data` + `state` (SQLite) + `logger` | V2-03 | **DONE** 2026-04-25 |
+| V2-03 | 3~5일 | Strategy 이식 (research/ 재사용) + `order` 모듈 (주문/취소/조회 + 재시도 + 멱등성) | V2-04 | **DONE** 2026-04-25 |
+| V2-04 | 2~3일 | `scheduler` (일봉 close KST 09:00 트리거) + `main` orchestration + Discord `notifier` | V2-05 | **DONE** 2026-04-25 |
+| V2-05 | 3~5일 | Unit test + integration test (주문 mock + 상태 복원 시나리오) | V2-06 | **DONE** 2026-04-26 (63 tests PASS) |
+| V2-06 | 2~4주 | 페이퍼 트레이딩 관측 (BTC_A, ETH_A, BTC_D) + 백테스트 대비 오차 기록 | V2-07 | **IN PROGRESS** 2026-04-26 03:00 UTC daemon bootstrap (PID 87918) |
+| V2-07 | - | 페이퍼 Go/No-Go + 10만원 라이브 결정 | V2-08 | 대기 (V2-06 4주 후) |
+| V2-08 | 1~2주 | 10만원 라이브 운영 + 실체결 검증 | V2-09 | 대기 |
+| V2-09 | - | 10만원 Go/No-Go + 50만원 추가 투입 결정 | - | 대기 |
 
 **총 최소 5~7주** (실측 기반 현실적 추정).
 
