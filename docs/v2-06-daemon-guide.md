@@ -200,6 +200,33 @@ PYTHONPATH=engine python -m engine.scripts.compare_backtest_paper --days 7
 
 미달 시 V2-07 라이브 진입 차단 + 학습 모드 또는 전략 패밀리 교체.
 
+### 5.4 비교용 백테스트 실행 절차 (4주 마감 시점, 사용자 책무)
+
+페이퍼 vs 백테스트 ±30% 검증을 위해 **같은 4주 기간** 백테스트를 별도로 실행해야 함. 페이퍼 기간이 미래라 사전 실행 불가, 4주 마감 시점에 수행.
+
+```bash
+# 1. 같은 4주 기간 백테스트 실행 (vectorbt) — 3 cells 합산 portfolio.pkl 생성
+cd /Users/riss/project/coin-bot
+source research/.venv/bin/activate
+PYTHONPATH=engine python research/scripts/v2_paper_backtest.py \
+    --from 2026-04-26 --to 2026-05-24 \
+    --output research/notebooks/results/v2_paper4w.pkl
+
+# 2. 비교 도구 호출 — 페이퍼 trades vs 백테스트 portfolio
+PYTHONPATH=engine python -m engine.scripts.compare_backtest_paper \
+    --paper-trades engine/logs/trades-2026.jsonl \
+    --backtest-portfolio research/notebooks/results/v2_paper4w.pkl \
+    --tolerance 0.30 \
+    --days 28
+```
+
+**verdict 처리**:
+- `PASS` → V2-07 10만원 라이브 진입 가능
+- `FAIL` → V2-07 차단. 원인 분석 (slippage/fee 모델 / 신호 타이밍 / OHLCV 정합성 / lookahead 누출)
+
+**시범 (1주차 마감, ~2026-05-03)**:
+같은 절차 `--days 7` + `--from 2026-04-26 --to 2026-05-03`. 결과는 trade 수 적어 통계 의미 약하지만 **도구 절차 검증** 차원에서 권장.
+
 ---
 
 ## 6. 트러블슈팅
