@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+coin-bot 페이퍼/라이브 daemon (launchd LaunchAgent — 사용자 영역).
+
+박제 출처:
+- docs/v2-06-daemon-guide.md
+- engine/engine/main.py (KST 09:05 in-process scheduler)
+
+설치 (사용자 직접 실행):
+    cp engine/launchd/com.coinbot.engine.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.coinbot.engine.plist
+    launchctl list | grep coinbot          # 활성 확인
+
+종료:
+    launchctl unload ~/Library/LaunchAgents/com.coinbot.engine.plist
+
+상태:
+    tail -f /Users/riss/project/coin-bot/engine/logs/launchd.out.log
+    tail -f /Users/riss/project/coin-bot/engine/logs/launchd.err.log
+
+주의:
+- macOS sleep 시 daemon 정지 → 09:05 KST trigger missed.
+  시스템 환경설정 → 디스플레이 → 디스플레이 끄기: '안 함' + 절전 비활성화 권장.
+- KeepAlive=true: daemon 비정상 종료 시 자동 재시작 (ThrottleInterval=30 으로 crash loop 방지).
+- Label 기준 단일 인스턴스 보장 (이중 실행 방지).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.coinbot.engine</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/riss/project/coin-bot/engine/.venv/bin/python</string>
+        <string>-m</string>
+        <string>engine.main</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/riss/project/coin-bot/engine</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/riss/project/coin-bot/engine/logs/launchd.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/riss/project/coin-bot/engine/logs/launchd.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/riss/project/coin-bot/engine/.venv/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
