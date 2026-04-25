@@ -97,7 +97,35 @@ engine/engine/
 - 외부 감사: V2-04 완료 후 호출 예정
 - 사용자 승인: "ㅇㅋ 착수 ㄱㄱ" (2026-04-24)
 
-## 9. 다음 단계 (V2-04)
+## 9. 검증 라운드 정정 (2026-04-25)
+
+외부 감사관 페르소나 재검증 결과 WARNING 4 + NIT 3 발견 → 정정 후 재sanity PASS.
+
+### 정정 내역
+
+| ID | 발견 | 정정 |
+|----|------|------|
+| W-1 | `make_client_oid` uuid8 randomness로 자동 client_oid 멱등성 X (이중 주문 위험) | uuid8 제거, 분 단위 deterministic. 동일 cell+side+분 재호출 시 동일 oid 보장 |
+| W-2 | `_place_live` 응답 즉시 파싱 시 executed_volume/avg_price 미확정 (ccxt #7235) | `_immediate_poll` 추가. status='open' 또는 None 필드 시 0.5s × 2회 폴링 |
+| W-3 | SL 인트라데이 (vectorbt) vs 일봉 close (라이브) 차이 docstring 부재 | `check_sl_hit` docstring 보강. 갭 다운 시 8% 초과 손실 가능 명시. 페이퍼 V2-06 실측 책무 |
+| W-4 | paper fee 모델 Upbit 실 동작 정확 일치 실측 X | order.py 모듈 docstring "미확정 사항 (V2-05 integration test에서 paid_fee 비교 보정)" 명시 |
+
+### 재sanity (2026-04-25)
+
+```
+make_client_oid deterministic:
+  oid1=KRW-BTC_A_buy_202604250005
+  oid2=KRW-BTC_A_buy_202604250005  (동일 분 → 동일 oid) ✓
+  oid3=KRW-BTC_A_buy_202604250006  (다른 분 → 다른 oid) ✓
+
+order paper:
+  paper buy filled (price=115,573,000, volume=0.00086482, fees=50)
+  멱등성 동일 client_oid 재호출 → 기존 uuid 반환 ✓
+  paper sell filled
+  live w/o client → ValueError 거부 ✓
+```
+
+## 10. 다음 단계 (V2-04)
 
 - `engine/scheduler.py`: KST 09:05 일봉 close 트리거 (cron-like)
 - `engine/position.py`: 포지션 관리 + PnL + 세금 데이터

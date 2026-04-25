@@ -15,7 +15,21 @@ pyupbit 실측 (2026-04-24):
 - run_mode="paper": 실제 API 호출 없이 현재가 기반 fake order 생성 + state 기록
 - run_mode="live": pyupbit.Upbit 사용
 - 멱등성: client_oid 생성 → state.get_order_uuid_by_client_oid() 체크 → 중복 방지
-- 수수료: Upbit 0.05% (v1 박제). 응답에 명시 없으면 krw_amount × 0.0005 로 추정
+- 수수료: Upbit 0.05% (v1 박제). paper는 추정. live는 응답 paid_fee 사용
+
+미확정 사항 (W-4, 2026-04-25):
+- paper fee 모델 (krw_amount × 0.0005)이 Upbit 실 동작과 정확 일치 여부 미실측
+- V2-05 integration test에서 실 buy_market_order 응답 paid_fee와 비교하여 모델 보정 책무
+- 백테스트 ↔ 페이퍼 ±30% 일치 검증 시 fee 모델 오차도 포함됨
+
+라이브 응답 폴링 (W-2):
+- 시장가 주문 직후 응답은 status='wait'/'done' + executed_volume이 None일 수 있음 (ccxt #7235)
+- _place_live는 응답 status가 'wait'면 즉시 1회 polling 시도. 그래도 미확정이면 호출자가 별도 polling 책임 (poll_status)
+
+SL 인트라데이 차이 (W-3):
+- vectorbt 백테스트는 sl_stop=0.08 인트라데이 가격 터치 시 즉시 stop 가격 체결 가정
+- 본 라이브는 일봉 close 후 today_low 확인 → 다음 close 시점 시장가 매도 → 갭 다운 시 8% 초과 손실 가능
+- 페이퍼 (V2-06)에서 실측 차이 관측. 백테스트 MDD가 라이브 MDD 하한.
 """
 from __future__ import annotations
 
@@ -49,17 +63,26 @@ class OrderRequest:
 
 
 def make_client_oid(cell_key: str, side: str, ts_utc: datetime | None = None) -> str:
-    """client_oid 생성 (멱등성 키).
+    """client_oid 생성 (멱등성 키, deterministic).
 
-    형식: `{cell_key}_{side}_{YYYYMMDDHHMMSS}_{uuid8}`
-    하루 중 동일 cell + side 재시도 시 ts_utc 동일하면 동일 oid.
-    일반적으로 호출자가 스케줄러 tick 기준 ts_utc 고정해야 멱등.
+    형식: `{cell_key}_{side}_{YYYYMMDDHHMM}` (분 단위 — 일봉 close 후 09:05 등)
+    동일 cell + side + 동일 분에 재호출 시 **동일 oid 보장** (W-1 정정 2026-04-25,
+    이전 버전 uuid8 randomness 제거).
+
+    호출자가 동일 시그널 사이클 내에서 재시도할 때:
+    - 스케줄러 tick의 분 단위 ts_utc 고정 → 동일 oid → state.get_order_uuid_by_client_oid 매칭 → 이중 주문 방지
+
+    교차 사이클 (다른 분) 동일 cell+side 재진입은 다른 oid 자연 발생 (의도된 동작).
+
+    Args:
+        cell_key: 예 "KRW-BTC_A"
+        side: "buy" | "sell"
+        ts_utc: None이면 datetime.now(UTC). 멱등성 위해 호출자가 분 단위 고정 권장.
     """
     if ts_utc is None:
         ts_utc = datetime.now(timezone.utc)
-    ts_str = ts_utc.strftime("%Y%m%d%H%M%S")
-    short = uuid.uuid4().hex[:8]
-    return f"{cell_key}_{side}_{ts_str}_{short}"
+    ts_str = ts_utc.strftime("%Y%m%d%H%M")  # 분 단위 (W-1 정정: 초 + uuid8 제거)
+    return f"{cell_key}_{side}_{ts_str}"
 
 
 class OrderExecutor:
@@ -207,12 +230,36 @@ class OrderExecutor:
                 )
                 self.state.record_order(record)
                 self.state.register_idempotency(req.client_oid, order_uuid)
+
+                # W-2 정정 (2026-04-25): status='open' or 핵심 필드 미확정 시 즉시 폴링
+                # 시장가 주문 응답은 종종 executed_volume/avg_price/paid_fee가 None (ccxt #7235)
+                if mapped_status == "open" or filled_volume is None or avg_price is None:
+                    polled = self._immediate_poll(order_uuid, attempts=2, delay_s=0.5)
+                    if polled is not None:
+                        return polled
                 return record
             except Exception as e:
                 last_exc = e
                 if attempt < DEFAULT_RETRY_MAX - 1:
                     time.sleep(DEFAULT_RETRY_BASE_S * (2 ** attempt))
         raise RuntimeError(f"place_live failed after {DEFAULT_RETRY_MAX} retries: {last_exc}") from last_exc
+
+    def _immediate_poll(self, order_uuid: str, attempts: int = 2, delay_s: float = 0.5) -> OrderRecord | None:
+        """주문 직후 즉시 폴링 (W-2 정정 2026-04-25).
+
+        시장가 주문 응답이 미확정 (executed_volume=None / status='wait') 일 때
+        짧은 시간 (총 ~1초) 내 폴링으로 체결 확정 시도. 끝까지 미확정이면 None 반환
+        (호출자는 record_order에 기록된 부분 데이터 사용 + 후속 poll_status 별도 호출).
+        """
+        for _ in range(attempts):
+            time.sleep(delay_s)
+            try:
+                rec = self.poll_status(order_uuid)
+            except Exception:
+                continue
+            if rec and rec.status in ("filled", "canceled") and rec.filled_volume is not None:
+                return rec
+        return None
 
     def cancel(self, order_uuid: str) -> bool:
         """주문 취소 (live only). paper는 이미 filled이므로 취소 불필요."""

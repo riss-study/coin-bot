@@ -73,10 +73,22 @@ def check_sl_hit(
 ) -> bool:
     """하드 스톱 터치 확인.
 
-    기준: 오늘 일봉 저가가 entry × (1 - sl_pct) 이하면 SL 터치.
-    단, 실제 라이브에서는 인트라데이에 터치했을 수 있음. 본 로직은 일봉 close
-    기준이므로 "보수적" (하루 종료 후 확인). 실시간 모니터링은 V2-07 이후
-    sub-minute 폴링으로 확장 가능.
+    기준: 오늘 일봉 저가가 entry × (1 - sl_pct) 이하면 SL 터치 = True.
+
+    W-3 정정 (2026-04-25): 백테스트 ↔ 라이브 SL 차이 명시.
+
+    백테스트 (vectorbt sl_stop=0.08):
+        인트라데이 가격이 stop 터치 → 즉시 stop level 가격 체결 가정.
+        손실 ≈ 8% (미끄러짐 무시).
+
+    라이브 (본 로직):
+        오늘 일봉 close 시점 (KST 09:00 일봉 종가 확정 후) 에 today_low 확인.
+        SL 터치 확인 시 다음 일봉 close 시점에 시장가 매도 (engine main loop).
+        → 갭 다운 시 8% 초과 손실 가능 (예: 15% 갭 다운 후 close).
+        → 백테스트 MDD가 실제 라이브 MDD의 하한일 수 있음.
+
+    페이퍼 (V2-06)에서 실측 차이 관측 책무.
+    Sub-minute 모니터링은 V2-07 이후 확장 가능 (현재 범위 외).
     """
     if entry_price_krw is None or entry_price_krw <= 0:
         return False
