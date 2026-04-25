@@ -206,8 +206,8 @@ class OrderExecutor:
                 filled_volume = _safe_float(resp.get("executed_volume")) or _safe_float(resp.get("volume"))
                 avg_price = _safe_float(resp.get("avg_price")) or _safe_float(resp.get("price"))
                 fees = _safe_float(resp.get("paid_fee"))
-                status = resp.get("state", "open")  # "wait" | "done" | "cancel"
-                status_map = {"wait": "open", "done": "filled", "cancel": "canceled"}
+                status = resp.get("state", "open")  # "wait" | "watch" | "done" | "cancel"
+                status_map = {"wait": "open", "watch": "open", "done": "filled", "cancel": "canceled"}
                 mapped_status = status_map.get(status, status)
 
                 record = OrderRecord(
@@ -283,7 +283,7 @@ class OrderExecutor:
         resp = self.upbit.get_order(order_uuid)
         if resp is None or (isinstance(resp, dict) and resp.get("error")):
             return None
-        status_map = {"wait": "open", "done": "filled", "cancel": "canceled"}
+        status_map = {"wait": "open", "watch": "open", "done": "filled", "cancel": "canceled"}
         mapped_status = status_map.get(resp.get("state", "open"), "open")
         existing = self.state.get_order(order_uuid)
         if existing:

@@ -21,12 +21,8 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import pyupbit
 
-try:
-    from zoneinfo import ZoneInfo  # Python 3.9+
-except ImportError:
-    from backports.zoneinfo import ZoneInfo  # type: ignore
+from engine.config import KST
 
-KST = ZoneInfo("Asia/Seoul")
 
 if TYPE_CHECKING:
     pass

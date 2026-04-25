@@ -39,9 +39,19 @@ class DiscordNotifier:
 
     DEFAULT_DEBOUNCE_S = 600  # 동일 에러 키 10분 디바운스
 
+    _PREFIX = "https://discord.com/api/webhooks/"
+
     def __init__(self, webhook_url: str, debounce_s: int = DEFAULT_DEBOUNCE_S):
-        if not webhook_url or not webhook_url.startswith("https://discord.com/api/webhooks/"):
-            raise ValueError(f"invalid Discord webhook URL: {webhook_url[:40]}...")
+        # NIT #3 정정 (2026-04-26): prefix만이 아니라 path segment 형식 검증
+        if not webhook_url or not webhook_url.startswith(self._PREFIX):
+            raise ValueError(f"invalid Discord webhook URL prefix: {webhook_url[:40]}...")
+        tail = webhook_url[len(self._PREFIX):]
+        parts = tail.split("/")
+        if len(parts) != 2 or not parts[0].isdigit() or len(parts[1]) < 30:
+            raise ValueError(
+                f"invalid Discord webhook URL path (expect /<digits>/<token≥30>): "
+                f"{webhook_url[:40]}..."
+            )
         self.webhook_url = webhook_url
         self.debounce_s = debounce_s
         self._last_sent: dict[str, datetime] = defaultdict(lambda: datetime.min.replace(tzinfo=timezone.utc))
@@ -167,5 +177,5 @@ if __name__ == "__main__":
             DiscordNotifier("invalid-url")
         except ValueError as ve:
             print(f"invalid URL 거부 OK: {ve}")
-        mock = DiscordNotifier("https://discord.com/api/webhooks/123/abc")
+        mock = DiscordNotifier("https://discord.com/api/webhooks/123456789012345678/" + "x" * 60)
         print(f"mock 인스턴스 생성 OK (debounce_s={mock.debounce_s})")

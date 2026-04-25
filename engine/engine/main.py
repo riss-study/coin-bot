@@ -30,14 +30,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo  # type: ignore
-
 from engine.config import (
     Config,
     ENGINE_ROOT,
+    KST,
     ensure_runtime_dirs,
     get_keychain_secret,
     load_config,
@@ -52,9 +48,6 @@ from engine.position import close_position_from_order, compute_unrealized_pnl, o
 from engine.scheduler import run_daily_loop, next_trigger_at
 from engine.state import StateStore
 from engine.strategies import SignalAction, SignalResult, StrategyA, StrategyD
-
-
-KST = ZoneInfo("Asia/Seoul")
 
 
 def build_strategy(name: str, cfg: Config):

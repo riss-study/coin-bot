@@ -18,12 +18,9 @@ import time
 from datetime import datetime, time as dtime, timedelta, timezone
 from typing import Callable
 
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo  # type: ignore
+from engine.config import KST
 
-KST = ZoneInfo("Asia/Seoul")
+
 _log = logging.getLogger("engine.scheduler")
 
 

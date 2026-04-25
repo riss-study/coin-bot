@@ -15,9 +15,15 @@ from typing import Any
 
 import yaml
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo  # type: ignore
+
 
 CONFIG_PATH = Path(__file__).parent.parent / "config.yaml"
 ENGINE_ROOT = Path(__file__).parent.parent
+KST = ZoneInfo("Asia/Seoul")  # 시스템 상수 (NIT #4 단일 출처 정정 2026-04-26)
 
 
 def ensure_runtime_dirs() -> None:
