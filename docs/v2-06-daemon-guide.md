@@ -136,6 +136,8 @@ launchctl bootout gui/$(id -u)/com.coinbot.engine
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.coinbot.engine.plist
 ```
 
+> **노트**: `bootout` 을 두 번 호출하면 두 번째 호출은 `Boot-out failed: 3: No such process` 출력. **정상 동작** (이미 종료된 상태에서 재호출 시 발생). `launchctl list | grep coinbot` 결과가 비어있으면 종료된 상태.
+
 ---
 
 ## 4. 모니터링
@@ -152,9 +154,10 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.coinbot.engine.plist
 # daemon 살아있는지
 launchctl list | grep coinbot
 
-# 최근 7일 trades
-ls -la engine/logs/trades-*.jsonl
-wc -l engine/logs/trades-*.jsonl
+# 최근 trades (절대경로 사용 — zsh nomatch 회피)
+ls -la /Users/riss/project/coin-bot/engine/logs/trades-*.jsonl 2>/dev/null
+wc -l /Users/riss/project/coin-bot/engine/logs/trades-*.jsonl 2>/dev/null
+# (파일 없으면 출력 0, 정상. 거래 발생 전까지 trades-YYYY.jsonl 미생성)
 
 # 비교 도구 (§5)
 # CRITICAL 정정 (2026-04-26): compare 도구는 vectorbt 의존 → research/.venv 환경에서 호출.
