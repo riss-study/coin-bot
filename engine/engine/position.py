@@ -188,7 +188,8 @@ def compute_unrealized_pnl(pos: Position, current_price_krw: float) -> PnL:
 
 
 if __name__ == "__main__":
-    # Sanity
+    # Sanity (격리 정정 2026-04-26: prod logs/ 에 더미 trades 기록되지 않도록 tempfile 사용)
+    import tempfile
     from engine.config import ENGINE_ROOT, ensure_runtime_dirs, load_config
     from engine.logger import setup_logger
     from engine.market_data import get_current_price
@@ -196,12 +197,13 @@ if __name__ == "__main__":
 
     ensure_runtime_dirs()
     cfg = load_config()
+    # logger는 prod logs/에 쓰지만 trades-YYYY.jsonl 은 tempdir로 격리 (아래)
     setup_logger(ENGINE_ROOT / "logs", "INFO")
 
-    tmp_db = ENGINE_ROOT / "data" / "sanity_position.sqlite"
-    if tmp_db.exists():
-        tmp_db.unlink()
+    tmpdir = Path(tempfile.mkdtemp(prefix="coinbot_position_sanity_"))
+    tmp_db = tmpdir / "sanity_position.sqlite"
     state = StateStore(tmp_db)
+    sanity_logs_dir = tmpdir  # close_position_from_order 가 trades-YYYY.jsonl 생성하는 위치
 
     # 1. 매수 체결 → 포지션 오픈
     buy_order = OrderRecord(
@@ -232,7 +234,7 @@ if __name__ == "__main__":
         updated_ts_utc=datetime.now(timezone.utc).isoformat(),
     )
     state.record_order(sell_order)
-    result = close_position_from_order(state, ENGINE_ROOT / "logs", sell_order, run_mode="paper")
+    result = close_position_from_order(state, sanity_logs_dir, sell_order, run_mode="paper")
     print(f"[close] realized_pnl={result['realized_pnl_krw']:+,.0f} KRW ({result['realized_pnl_pct']*100:+.2f}%)")
     print(f"  entry={result['entry_price_krw']:,.0f} exit={result['exit_price_krw']:,.0f} vol={result['volume']:.8f}")
     print(f"  fees: entry={result['entry_fees_krw']:,.0f} exit={result['exit_fees_krw']:,.0f}")
@@ -247,5 +249,7 @@ if __name__ == "__main__":
     except ValueError as e:
         print(f"[validation] sell→open 거부 OK: {e}")
 
-    tmp_db.unlink()
-    print("position.py sanity OK")
+    # 격리 디렉토리 전체 정리 (sqlite + trades-YYYY.jsonl 함께 제거)
+    import shutil
+    shutil.rmtree(tmpdir, ignore_errors=True)
+    print(f"position.py sanity OK (격리 dir 정리됨: {tmpdir})")
