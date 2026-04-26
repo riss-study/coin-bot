@@ -1,0 +1,81 @@
+{
+  "oos_start_utc": "2026-01-01T00:00:00+00:00",
+  "oos_end_utc": "2026-04-25T00:00:00+00:00",
+  "oos_sharpe_threshold": 0.4,
+  "oos_min_trades": 3,
+  "in_sample_go_cells": [
+    "KRW-ETH",
+    "KRW-XRP",
+    "KRW-DOGE",
+    "KRW-ADA",
+    "KRW-SUI"
+  ],
+  "final_go_cells": [],
+  "cells": [
+    {
+      "market": "KRW-ETH",
+      "sharpe": 0.0,
+      "total_return": 0.0,
+      "max_drawdown": 0.0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "entries_signals": 0,
+      "exits_signals": 24,
+      "T": 115,
+      "in_sample_sharpe": 1.4352782216697124,
+      "oos_pass": false
+    },
+    {
+      "market": "KRW-XRP",
+      "sharpe": -2.2111657119322974,
+      "total_return": -0.07619516122640389,
+      "max_drawdown": -0.07619516122640402,
+      "trades_total": 1,
+      "trades_winning": 0,
+      "entries_signals": 1,
+      "exits_signals": 16,
+      "T": 115,
+      "in_sample_sharpe": 1.3751277661846268,
+      "oos_pass": false
+    },
+    {
+      "market": "KRW-DOGE",
+      "sharpe": 0.2309203890082701,
+      "total_return": 0.006731367875186378,
+      "max_drawdown": -0.06475292533936683,
+      "trades_total": 1,
+      "trades_winning": 1,
+      "entries_signals": 1,
+      "exits_signals": 16,
+      "T": 115,
+      "in_sample_sharpe": 1.3548639010782928,
+      "oos_pass": false
+    },
+    {
+      "market": "KRW-ADA",
+      "sharpe": 0.0,
+      "total_return": 0.0,
+      "max_drawdown": 0.0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "entries_signals": 0,
+      "exits_signals": 27,
+      "T": 115,
+      "in_sample_sharpe": 0.9559308564309638,
+      "oos_pass": false
+    },
+    {
+      "market": "KRW-SUI",
+      "sharpe": -1.5707833890848737,
+      "total_return": -0.03887462010472466,
+      "max_drawdown": -0.04334417413294789,
+      "trades_total": 1,
+      "trades_winning": 0,
+      "entries_signals": 1,
+      "exits_signals": 31,
+      "T": 115,
+      "in_sample_sharpe": 1.2752425620054932,
+      "oos_pass": false
+    }
+  ]
+}
