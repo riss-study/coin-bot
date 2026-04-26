@@ -108,3 +108,20 @@ export interface LogsResponse {
   log_file: string;
   level_filter: string | null;
 }
+
+export interface MarketTicker {
+  market: string;
+  korean_name: string;
+  trade_price: number;
+  signed_change_rate: number;
+  acc_trade_price_24h: number;
+  opening_price: number;
+  high_price: number;
+  low_price: number;
+}
+
+export interface MarketsResponse {
+  markets: MarketTicker[];
+  count: number;
+  sort: string;
+}

@@ -5,6 +5,7 @@
 import type {
   HealthResponse,
   LogsResponse,
+  MarketsResponse,
   OrdersResponse,
   PositionsResponse,
   SummaryResponse,
@@ -36,6 +37,8 @@ export const api = {
     if (level) qs.set("level", level);
     return get<LogsResponse>(`/api/logs?${qs.toString()}`);
   },
+  marketsTop: (n: number = 20, sort: "change_rate" | "volume" | "loser" = "change_rate") =>
+    get<MarketsResponse>(`/api/markets/top?n=${n}&sort=${sort}`),
 };
 
 // 포맷 helper

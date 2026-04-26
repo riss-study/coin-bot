@@ -2,6 +2,7 @@
 
 import HealthBadge from "@/components/HealthBadge";
 import LogsPanel from "@/components/LogsPanel";
+import MarketsPanel from "@/components/MarketsPanel";
 import PositionGrid from "@/components/PositionGrid";
 import SummaryCards from "@/components/SummaryCards";
 import TradesTable from "@/components/TradesTable";
@@ -36,6 +37,13 @@ export default function DashboardPage() {
         </h2>
         {/* @ts-expect-error Async Server Component */}
         <PositionGrid />
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-600">
+          KRW markets (참고용)
+        </h2>
+        <MarketsPanel />
       </section>
 
       <section>
