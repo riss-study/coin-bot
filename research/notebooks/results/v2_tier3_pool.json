@@ -1,0 +1,299 @@
+{
+  "generated_at_utc": "2026-04-26T03:38:51.549747+00:00",
+  "window_end_utc": "2026-04-25T00:00:00+00:00",
+  "window_days": 180,
+  "thresholds": {
+    "turnover_krw": 10000000000,
+    "volatility_std": 0.03,
+    "min_bars": 180
+  },
+  "passed_markets": [
+    "KRW-ETH",
+    "KRW-XRP",
+    "KRW-SOL",
+    "KRW-DOGE",
+    "KRW-ADA",
+    "KRW-SUI"
+  ],
+  "passed": [
+    {
+      "market": "KRW-ETH",
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "market_cap_krw": 411732094731543.0,
+      "avg_turnover_krw": 192670637213.38336,
+      "daily_return_std": 0.03362922984224143,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": true,
+      "fail_reasons": []
+    },
+    {
+      "market": "KRW-XRP",
+      "symbol": "XRP",
+      "name": "XRP",
+      "market_cap_krw": 129397734627046.0,
+      "avg_turnover_krw": 320280396704.9607,
+      "daily_return_std": 0.035533442823627616,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": true,
+      "fail_reasons": []
+    },
+    {
+      "market": "KRW-SOL",
+      "symbol": "SOL",
+      "name": "Solana",
+      "market_cap_krw": 73152903820104.0,
+      "avg_turnover_krw": 76466586274.66914,
+      "daily_return_std": 0.034476037574743094,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": true,
+      "fail_reasons": []
+    },
+    {
+      "market": "KRW-DOGE",
+      "symbol": "DOGE",
+      "name": "Dogecoin",
+      "market_cap_krw": 22253931600632.0,
+      "avg_turnover_krw": 46469548864.57813,
+      "daily_return_std": 0.03703249986325479,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": true,
+      "fail_reasons": []
+    },
+    {
+      "market": "KRW-ADA",
+      "symbol": "ADA",
+      "name": "Cardano",
+      "market_cap_krw": 13618901750841.0,
+      "avg_turnover_krw": 17579566209.008167,
+      "daily_return_std": 0.03834430327950217,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": true,
+      "fail_reasons": []
+    },
+    {
+      "market": "KRW-SUI",
+      "symbol": "SUI",
+      "name": "Sui",
+      "market_cap_krw": 5458242702433.0,
+      "avg_turnover_krw": 19358983409.261364,
+      "daily_return_std": 0.0443139857044385,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": true,
+      "fail_reasons": []
+    }
+  ],
+  "failed": [
+    {
+      "market": "KRW-BTC",
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "market_cap_krw": 2287365840196356.0,
+      "avg_turnover_krw": 246392373133.2904,
+      "daily_return_std": 0.024464988600285453,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "std<0.03 (0.0245)"
+      ]
+    },
+    {
+      "market": "KRW-USDT",
+      "symbol": "USDT",
+      "name": "Tether",
+      "market_cap_krw": 280295175421650.0,
+      "avg_turnover_krw": 128527427414.17558,
+      "daily_return_std": 0.0056539349405562355,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "std<0.03 (0.0057)"
+      ]
+    },
+    {
+      "market": "KRW-USDC",
+      "symbol": "USDC",
+      "name": "USDC",
+      "market_cap_krw": 114759037493167.0,
+      "avg_turnover_krw": 1133331881.835487,
+      "daily_return_std": 0.005673123625084935,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (11.3억)",
+        "std<0.03 (0.0057)"
+      ]
+    },
+    {
+      "market": "KRW-TRX",
+      "symbol": "TRX",
+      "name": "TRON",
+      "market_cap_krw": 45312569996280.0,
+      "avg_turnover_krw": 5670806895.787855,
+      "daily_return_std": 0.013959590230101949,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (56.7억)",
+        "std<0.03 (0.0140)"
+      ]
+    },
+    {
+      "market": "KRW-USDS",
+      "symbol": "USDS",
+      "name": "USDS",
+      "market_cap_krw": 16203812710174.0,
+      "avg_turnover_krw": 1391347283.1019824,
+      "daily_return_std": 0.004666059132770534,
+      "bar_count": 26,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "bar_count<180 (26)",
+        "turnover<100억 (13.9억)",
+        "std<0.03 (0.0047)"
+      ]
+    },
+    {
+      "market": "KRW-BCH",
+      "symbol": "BCH",
+      "name": "Bitcoin Cash",
+      "market_cap_krw": 13377326284680.0,
+      "avg_turnover_krw": 8678285740.72741,
+      "daily_return_std": 0.03514293461936836,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (86.8억)"
+      ]
+    },
+    {
+      "market": "KRW-LINK",
+      "symbol": "LINK",
+      "name": "Chainlink",
+      "market_cap_krw": 9998918742249.0,
+      "avg_turnover_krw": 7788507836.646282,
+      "daily_return_std": 0.03492381723283441,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (77.9억)"
+      ]
+    },
+    {
+      "market": "KRW-CC",
+      "symbol": "CC",
+      "name": "Canton",
+      "market_cap_krw": 8520277643565.0,
+      "avg_turnover_krw": 6618706652.572657,
+      "daily_return_std": 0.03145854565178462,
+      "bar_count": 11,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "bar_count<180 (11)",
+        "turnover<100억 (66.2억)"
+      ]
+    },
+    {
+      "market": "KRW-XLM",
+      "symbol": "XLM",
+      "name": "Stellar",
+      "market_cap_krw": 8290339989790.0,
+      "avg_turnover_krw": 9448515351.528696,
+      "daily_return_std": 0.033249998722154395,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (94.5억)"
+      ]
+    },
+    {
+      "market": "KRW-USD1",
+      "symbol": "USD1",
+      "name": "USD1",
+      "market_cap_krw": 6459526627704.0,
+      "avg_turnover_krw": 577948324.4968951,
+      "daily_return_std": 0.0058494498591964905,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (5.8억)",
+        "std<0.03 (0.0058)"
+      ]
+    },
+    {
+      "market": "KRW-AVAX",
+      "symbol": "AVAX",
+      "name": "Avalanche",
+      "market_cap_krw": 5955373557276.0,
+      "avg_turnover_krw": 4362372670.148662,
+      "daily_return_std": 0.0363805942086293,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (43.6억)"
+      ]
+    },
+    {
+      "market": "KRW-HBAR",
+      "symbol": "HBAR",
+      "name": "Hedera",
+      "market_cap_krw": 5819537739202.0,
+      "avg_turnover_krw": 6802069270.518951,
+      "daily_return_std": 0.03614917663068373,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (68.0억)"
+      ]
+    },
+    {
+      "market": "KRW-USDE",
+      "symbol": "USDE",
+      "name": "Ethena USDe",
+      "market_cap_krw": 5636050860572.0,
+      "avg_turnover_krw": 5848306802.906207,
+      "daily_return_std": 0.006182530366856967,
+      "bar_count": 102,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "bar_count<180 (102)",
+        "turnover<100억 (58.5억)",
+        "std<0.03 (0.0062)"
+      ]
+    },
+    {
+      "market": "KRW-SHIB",
+      "symbol": "SHIB",
+      "name": "Shiba Inu",
+      "market_cap_krw": 5366756834000.0,
+      "avg_turnover_krw": 9040321623.130125,
+      "daily_return_std": 0.03511936186927327,
+      "bar_count": 181,
+      "market_warning": "NONE",
+      "passed": false,
+      "fail_reasons": [
+        "turnover<100억 (90.4억)"
+      ]
+    }
+  ],
+  "fallback_required": false
+}
