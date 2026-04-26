@@ -61,6 +61,23 @@
 
 ---
 
+### Strategy E — Momentum 추격 (5% 양봉 + 거래량 spike + 5d 돌파)
+
+| 항목 | 값 |
+|------|-----|
+| **상태** | **Retained (학습 가치, 2026-04-26 V2-Strategy-E 트랙 No-Go)** |
+| **최초 등록** | V2-Strategy-E sub-plan 박제 (2026-04-26, STAGE1-V2-013) |
+| **파라미터** | ENTRY_BAR_PCT=0.05, VOL_AVG=20, VOL_MULT=2.0, SHORT_BREAK=5, SHORT_LOW=5, WEAK_BAR_PCT=0.03, SL_STOP=0.05 |
+| **후보 풀** | Tier 3 자동 필터 (CoinGecko top30 시총 ∩ Upbit KRW 마켓 + 거래대금≥100억 + std≥3% + bars≥180 + warning="NONE") → PASSED 6: ETH/XRP/SOL/DOGE/ADA/SUI |
+| **in-sample 24m (2024-01~2025-12) 결과** | N_trials=6, V_empirical=0.1952, SR_0=0.5744. **GO 5 cells**: ETH (Sharpe 1.44, DSR_z 5.28) / XRP (1.38, 4.71) / DOGE (1.36, 4.31) / ADA (0.96, 2.17) / SUI (1.28, 4.24). SOL FAIL (0.28, -3.78) |
+| **OOS 3.8m (2026-01-01~2026-04-25) 결과** | **0/5 Pass**. ETH/ADA: trades=0 (모멘텀 미발동). XRP/DOGE/SUI: 1 trade 진입 후 손실 (각 -7.6%, +0.7%, -3.9%). 모두 OOS Sharpe<0.4 또는 trades<3 미충족 |
+| **No-Go 사유** | in-sample DSR_z 2~5 매우 강한 alpha → OOS 0/5 fail = 시장 regime change (in-sample 강세/변동성 vs OOS 약세/횡보). 모멘텀 추격은 추세장에서만 작동 (Strategy A와 동일 한계) |
+| **재도입 조건** | 다른 시장 regime (강세 전환) + 새 OOS 측정 창 + 사용자 명시 결정 필요. Strategy E params 변경 시는 새 사전 등록 사이클 (cycle 1 #5 회피) |
+| **학습 가치** | (1) DSR도 만능 아님 (다중 검정 보정 통과해도 OOS regime change 무력) (2) 모멘텀 = 추세 의존, 약세장 미작동 (3) Tier 3 자동 필터 + cherry-pick 회피 패턴 박제 |
+| **Evidence** | `research/notebooks/results/v2_tier3_pool.json` + `v2_strategy_e_grid.json` + `v2_strategy_e_oos.json`, `research/scripts/{v2_tier3_pool, strategy_e, v2_strategy_e_grid, v2_strategy_e_oos}.py` |
+
+---
+
 ## Deprecated (폐기 로그, 재도입 방지)
 
 ### Strategy B — Mean Reversion (MA200 + RSI(4)<25, time stop 5d)
@@ -102,6 +119,7 @@
 | 2026-04-20 | **v5: Strategy A Recall 발동 (Retained → Active)**. W2-03 v8 Go 결정 (Option C, V_empirical 채택) 반영: BTC_A Sharpe 1.0353 DSR_z +23.22 / ETH_A Sharpe 1.1445 DSR_z +29.37 → Tier 1 양 페어 `Sharpe>0.8 AND DSR>0` 충족 → L27 재진입 조건 충족. 상태 Retained → **Active** 전이. W2-03 v8 성적 행 추가. Recall 시 의무 (DSR 평가 완료 + Week 3 walk-forward 재검증 의무) 박제 강화. Week 3 실패 시 소급 절차 행 추가 (decisions-final.md "W2-03 Go 결정" cross-reference) | W2-03 v8 Go 결정 사용자 명시 승인 |
 | 2026-04-24 | **v7: Strategy A (BTC+ETH) + Strategy D (BTC only) 재활성화 → Active**. Stage 1 v2 라이브 경로 채택 (사용자 "그렇게 하자" 2026-04-24). v2 Go 기준 실용화 (Sharpe>0.8 + MDD<50% + trades≥10 + 페이퍼 ±30%). Strategy C는 W3-01 전멸 확인으로 v2에서 제외 유지 (Retained). Strategy D ETH는 W3-01 fold 2/5 음수로 유예 (BTC_D 안정 시 재검토). v2 근거: Stage 1 v1 공식 종결 + 새 cycle 시작 + 본질 목표(50만원 라이브) 재인식. cycle 1 #5 재발 X (사후 완화 아닌 프로젝트 목적 재평가) | Stage 1 v2 라이브 경로 사용자 채택 |
 | 2026-04-22 | **v6: Strategy A Active → Retained 역방향 복귀 + Strategy C/D Active/Registered → Retained (학습 가치 보존)**. W3-01 No-Go 확정 + 사용자 옵션 C 명시 채택 "3" (프레임 C = A+B 둘 다 공식 인정 + Stage 1 학습 모드 전환). Strategy A Recall mechanism 자동 해제 (W2-03 Go → W3-01 No-Go로 정당성 상실). Strategy C 전멸 (BTC_C 5/5 fold N/A, 실전 운용 부적합). Strategy D 경계선 (BTC_D 3/5, ETH_D 2/5) 최고 근접이나 5/5 미달. **Deprecated 이동 X** (학습 모드이므로 전부 Retained). Deprecated 승격은 v3 Stage 1 재시작 시점 판단. Stage 1 킬 카운터 +2 소급 = 총 +3 → Stage 1 킬 조건 충족. decisions-final.md "W3-01 No-Go 결정 + 프레임 C 학습 모드 전환" 섹션 + stage1-execution-plan.md + handover 전파 | W3-01 No-Go + 사용자 옵션 C 명시 채택 |
+| 2026-04-26 | **v8: Strategy E (Momentum 추격) Retained 신규 등록 — V2-Strategy-E No-Go**. 사용자 발화 ("메인만 보는 거 같아, 알트 급등 시도 X")로 V2-Strategy-E sub-plan 트랙 신설. Tier 3 자동 필터 (cycle 1 #5 회피) → PASSED 6 (ETH/XRP/SOL/DOGE/ADA/SUI). in-sample 24m grid: GO 5 cells (Sharpe 0.96~1.44, DSR_z 2.17~5.28 매우 강한 alpha). OOS 3.8m: 0/5 Pass (모두 Sharpe<0.4 또는 trades<3 미달). regime change 입증 (in-sample 강세/변동성 vs OOS 약세/횡보). **V2-07 진입 후보 X**, 학습 가치만 박제. 사전 박제 룰 변경 X (cycle 1 #5 회피). 사용자 명시 권장 옵션 A 채택 ("ㄱㄱ" 2026-04-26): C-05 박제 + V2-06 페이퍼 4주 BTC_A/ETH_A/BTC_D 그대로 유지 | V2-Strategy-E sub-plan + 사용자 권장 채택 |
 
 ---
 
