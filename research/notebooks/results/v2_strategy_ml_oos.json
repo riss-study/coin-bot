@@ -1,0 +1,69 @@
+{
+  "sharpe_gross": -7.053000515144208,
+  "sharpe_net": -8.364304049081323,
+  "mdd_net": 0.6967267210277898,
+  "trade_count": 3916,
+  "T_daily_obs": 230,
+  "skew": -0.1608504716220717,
+  "kurtosis_raw": 2.746343536526859,
+  "dsr_z": -23.033102682565158,
+  "n_trials": 1,
+  "go": false,
+  "go_criteria": {
+    "sharpe_threshold": 1.0,
+    "dsr_z_threshold": 0.0,
+    "trades_min": 50
+  },
+  "cum_return_oos": -0.6656312429601211,
+  "win_rate": 0.3739130434782609,
+  "feature_importance_top10": [
+    {
+      "feature": "days_since_listing",
+      "importance": 606
+    },
+    {
+      "feature": "amihud_illiquidity_30d",
+      "importance": 523
+    },
+    {
+      "feature": "liquidity_change_30d",
+      "importance": 491
+    },
+    {
+      "feature": "log_dollar_volume_avg_30d_rank_cs",
+      "importance": 485
+    },
+    {
+      "feature": "realized_vol_90d",
+      "importance": 484
+    },
+    {
+      "feature": "realized_vol_30d",
+      "importance": 426
+    },
+    {
+      "feature": "realized_vol_30d_rank_cs",
+      "importance": 377
+    },
+    {
+      "feature": "log_dollar_volume_avg_30d",
+      "importance": 354
+    },
+    {
+      "feature": "macd_signal_distance",
+      "importance": 344
+    },
+    {
+      "feature": "macd_histogram",
+      "importance": 331
+    }
+  ],
+  "train_period": [
+    "2024-01-01",
+    "2025-08-31"
+  ],
+  "oos_period": [
+    "2025-09-01",
+    "2026-04-25"
+  ]
+}
