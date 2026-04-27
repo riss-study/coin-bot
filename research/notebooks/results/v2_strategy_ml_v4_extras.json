@@ -1,0 +1,76 @@
+{
+  "ensemble": {
+    "method": "ensemble_4models",
+    "sharpe_top": -17.691484545059307,
+    "sharpe_bottom": -30.578565841238124,
+    "sharpe_long_short": 21.28207440786509,
+    "trade_count": 3525
+  },
+  "regime": {
+    "method": "regime_classifier",
+    "bull": {
+      "top_sharpe": -26.226457031614686,
+      "ls_sharpe": 35.065267135446646,
+      "trades": 1254
+    },
+    "bear": {
+      "top_sharpe": -11.167342073413295,
+      "ls_sharpe": 23.215897118173974,
+      "trades": 2271
+    }
+  },
+  "cpcv": {
+    "method": "cpcv_4fold",
+    "folds": [
+      {
+        "fold": 1,
+        "train_n": 89190,
+        "test_n": 21852,
+        "test_period": "2024-01-01 ~ 2024-07-22",
+        "sharpe_top": 0.5405029524662082,
+        "sharpe_bottom": -7.0688316152358235,
+        "sharpe_long_short": 16.519908923511974,
+        "trades": 2211
+      },
+      {
+        "fold": 2,
+        "train_n": 84563,
+        "test_n": 25493,
+        "test_period": "2024-07-23 ~ 2025-02-11",
+        "sharpe_top": 5.33978652225659,
+        "sharpe_bottom": 1.1791086568375102,
+        "sharpe_long_short": 7.022284700131427,
+        "trades": 2564
+      },
+      {
+        "fold": 3,
+        "train_n": 80028,
+        "test_n": 29726,
+        "test_period": "2025-02-12 ~ 2025-09-03",
+        "sharpe_top": -0.5234752702826504,
+        "sharpe_bottom": -2.10163480120954,
+        "sharpe_long_short": 3.289002478197386,
+        "trades": 2963
+      },
+      {
+        "fold": 4,
+        "train_n": 75987,
+        "test_n": 34754,
+        "test_period": "2025-09-04 ~ 2026-03-26",
+        "sharpe_top": -15.641113857536876,
+        "sharpe_bottom": -28.65610481984833,
+        "sharpe_long_short": 28.583124435762723,
+        "trades": 3480
+      }
+    ]
+  },
+  "universe100": {
+    "method": "universe_top100",
+    "n_train": 60900,
+    "n_oos": 23700,
+    "sharpe_top": -13.791951108092157,
+    "sharpe_bottom": -33.9101027028779,
+    "sharpe_long_short": 31.88715128817134,
+    "trade_count": 2070
+  }
+}
