@@ -61,6 +61,23 @@
 
 ---
 
+### Strategy G — Active Multi-pair (활동 우선, 통계 검증 X, 사용자 명시 동의)
+
+| 항목 | 값 |
+|------|-----|
+| **상태** | **Active (별도 트랙, 2026-04-27 V2-Strategy-G engine 통합 + daemon 가동 PID 71282)** |
+| **최초 등록** | V2-Strategy-G sub-plan 박제 (2026-04-26, STAGE1-V2-014, 사용자 명시 동의 "그렇게 해봐") |
+| **파라미터** | ENTRY_BAR_PCT=0.02, VOL_AVG=20, VOL_MULT=1.2, SHORT_BREAK=3, SL_PCT=0.03, TP_PCT=0.05, TIME_STOP_BARS=3 |
+| **후보 풀** | KRW 거래대금 24h top 30 (자동 필터, market_warning="NONE", 2026-04-25 측정). 30 cells, stake=50,000 cell당 |
+| **빈도 sanity (60일 백테스트, 2026-02-25~04-25)** | **1.23 trades/day** ✓ (목표 ≥ 1.0). 30 cells × 60d = 74 trades. win rate 24% (음수 expected value 재현). 누적 PnL 음수 다수, 일부 cell +PnL (ZBT +36%, KAT +65%, COMP +14%, MASK +6%, RAY +5%) |
+| **Go 기준** | **없음** (활동 우선 트랙, 사용자 명시 박제 ⚠️). Stage 1 v2 Go 기준 평가 대상 X. V2-07 라이브 진입 시 별도 한도 박제 (예: 10만원만 G 배정) |
+| **위험 박제** | (1) alpha 통계 검증 X (2) 회당 -0.20% expected value (수수료 0.10% + slippage 0.10%) (3) 월 90 trades = -18% 손실 시나리오 (4) For Traders 통계: set-and-forget 봇 90일 내 52% 깨짐 |
+| **사용자 명시 동의** | "Strategy G는 통계 alpha 검증 X. 빈번 활동 + 학습 + 위험 감수 동의. 손실은 사용자 책임. Stage 1 v2 Go 기준 평가 대상 X. 50만원 한도 내" (2026-04-26) |
+| **운영 시작** | 2026-04-27 daemon restart (PID 71282, 33 cells = BT-A/D 3 + G 30). 다음 cycle 2026-04-28 KST 09:05 |
+| **Evidence** | `research/scripts/{strategy_g, v2_strategy_g_pool}.py`, `research/notebooks/results/v2_strategy_g_pool.json`, `engine/engine/strategies/strategy_g.py`, `docs/stage1-subplans/v2-strategy-g-active.md` |
+
+---
+
 ### Strategy E — Momentum 추격 (5% 양봉 + 거래량 spike + 5d 돌파)
 
 | 항목 | 값 |
@@ -120,6 +137,7 @@
 | 2026-04-24 | **v7: Strategy A (BTC+ETH) + Strategy D (BTC only) 재활성화 → Active**. Stage 1 v2 라이브 경로 채택 (사용자 "그렇게 하자" 2026-04-24). v2 Go 기준 실용화 (Sharpe>0.8 + MDD<50% + trades≥10 + 페이퍼 ±30%). Strategy C는 W3-01 전멸 확인으로 v2에서 제외 유지 (Retained). Strategy D ETH는 W3-01 fold 2/5 음수로 유예 (BTC_D 안정 시 재검토). v2 근거: Stage 1 v1 공식 종결 + 새 cycle 시작 + 본질 목표(50만원 라이브) 재인식. cycle 1 #5 재발 X (사후 완화 아닌 프로젝트 목적 재평가) | Stage 1 v2 라이브 경로 사용자 채택 |
 | 2026-04-22 | **v6: Strategy A Active → Retained 역방향 복귀 + Strategy C/D Active/Registered → Retained (학습 가치 보존)**. W3-01 No-Go 확정 + 사용자 옵션 C 명시 채택 "3" (프레임 C = A+B 둘 다 공식 인정 + Stage 1 학습 모드 전환). Strategy A Recall mechanism 자동 해제 (W2-03 Go → W3-01 No-Go로 정당성 상실). Strategy C 전멸 (BTC_C 5/5 fold N/A, 실전 운용 부적합). Strategy D 경계선 (BTC_D 3/5, ETH_D 2/5) 최고 근접이나 5/5 미달. **Deprecated 이동 X** (학습 모드이므로 전부 Retained). Deprecated 승격은 v3 Stage 1 재시작 시점 판단. Stage 1 킬 카운터 +2 소급 = 총 +3 → Stage 1 킬 조건 충족. decisions-final.md "W3-01 No-Go 결정 + 프레임 C 학습 모드 전환" 섹션 + stage1-execution-plan.md + handover 전파 | W3-01 No-Go + 사용자 옵션 C 명시 채택 |
 | 2026-04-26 | **v8: Strategy E (Momentum 추격) Retained 신규 등록 — V2-Strategy-E No-Go**. 사용자 발화 ("메인만 보는 거 같아, 알트 급등 시도 X")로 V2-Strategy-E sub-plan 트랙 신설. Tier 3 자동 필터 (cycle 1 #5 회피) → PASSED 6 (ETH/XRP/SOL/DOGE/ADA/SUI). in-sample 24m grid: GO 5 cells (Sharpe 0.96~1.44, DSR_z 2.17~5.28 매우 강한 alpha). OOS 3.8m: 0/5 Pass (모두 Sharpe<0.4 또는 trades<3 미달). regime change 입증 (in-sample 강세/변동성 vs OOS 약세/횡보). **V2-07 진입 후보 X**, 학습 가치만 박제. 사전 박제 룰 변경 X (cycle 1 #5 회피). 사용자 명시 권장 옵션 A 채택 ("ㄱㄱ" 2026-04-26): C-05 박제 + V2-06 페이퍼 4주 BTC_A/ETH_A/BTC_D 그대로 유지 | V2-Strategy-E sub-plan + 사용자 권장 채택 |
+| 2026-04-27 | **v9: Strategy G (Active Multi-pair) Active 신규 등록 — V2-Strategy-G 별도 트랙**. 사용자 발화 ("에프는 하기 싫어. 활발했으면 좋겠어 나는" + "그렇게 해봐") + 일반 봇 운영자 사례 조사 (Freqtrade NFI / 한국 변동성돌파 등) 결과 반영. **활동 우선 트랙 = Stage 1 v2 Go 기준 평가 대상 X** (사용자 명시 박제). 후보 풀 KRW 거래대금 top 30 자동 (BT-A/D는 100k stake, G는 50k stake). 빈도 sanity 1.23 trades/day ✓. win rate 24% (음수 expected value 재현, 사용자 위험 감수 동의). engine 통합 + daemon restart (PID 71282, 33 cells). V2-07 라이브 진입 시 별도 한도 박제 (10만원). cycle 1 #5 회피: 사전 룰 박제 + Go 기준 변경 X (별도 트랙으로 분리, BT-A/D 박제 그대로 유지) | V2-Strategy-G sub-plan + 사용자 명시 동의 |
 
 ---
 

@@ -94,7 +94,10 @@
 | V2-03 | 3~5일 | Strategy 이식 (research/ 재사용) + `order` 모듈 (주문/취소/조회 + 재시도 + 멱등성) | V2-04 | **DONE** 2026-04-25 |
 | V2-04 | 2~3일 | `scheduler` (일봉 close KST 09:00 트리거) + `main` orchestration + Discord `notifier` | V2-05 | **DONE** 2026-04-25 |
 | V2-05 | 3~5일 | Unit test + integration test (주문 mock + 상태 복원 시나리오) | V2-06 | **DONE** 2026-04-26 (63 tests PASS) |
-| V2-06 | 2~4주 | 페이퍼 트레이딩 관측 (BTC_A, ETH_A, BTC_D) + 백테스트 대비 오차 기록 | V2-07 | **IN PROGRESS** 2026-04-26 03:00 UTC daemon bootstrap (PID 87918) |
+| V2-06 | 2~4주 | 페이퍼 트레이딩 관측 (BTC_A, ETH_A, BTC_D) + 백테스트 대비 오차 기록 | V2-07 | **IN PROGRESS** 2026-04-26 daemon bootstrap → 2026-04-27 V2-Strategy-G 통합 restart (PID 71282) |
+| V2-Dashboard | 1주 | FastAPI backend + Next.js frontend + Cloudflare Tunnel 가이드 + D 옵션 알트 시세 panel | V2-D-05/06 | **DONE** 2026-04-26 (V2-D-05 Cloudflare 사용자 책무 / V2-D-06 launchd 사용자 책무 미진행) |
+| V2-Strategy-E | 1주 | 모멘텀 추격 + Tier 3 자동 필터 → in-sample/OOS 검증 | - | **DONE No-Go** 2026-04-26 (in-sample GO 5 → OOS 0/5 fail, Retained 학습 가치) |
+| V2-Strategy-G | 3일 | 활동 우선 트랙 (사용자 명시 동의), KRW top 30 × 활동 빈도 우선 룰 | V2-07 별도 한도 | **IN PROGRESS** 2026-04-27 daemon 통합 (PID 71282, 33 cells, 일 1.23 trades 예상) |
 | V2-07 | - | 페이퍼 Go/No-Go + 10만원 라이브 결정 | V2-08 | 대기 (V2-06 4주 후) |
 | V2-08 | 1~2주 | 10만원 라이브 운영 + 실체결 검증 | V2-09 | 대기 |
 | V2-09 | - | 10만원 Go/No-Go + 50만원 추가 투입 결정 | - | 대기 |
