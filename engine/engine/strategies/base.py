@@ -51,6 +51,7 @@ class Strategy(Protocol):
         df: pd.DataFrame,
         in_position: bool,
         entry_price_krw: float | None = None,
+        bars_held: int | None = None,
     ) -> SignalResult:
         """오늘 close 기준 신호 평가.
 
@@ -59,6 +60,7 @@ class Strategy(Protocol):
                 **마지막 row = 오늘 close (방금 마감)**.
             in_position: 현재 포지션 보유 여부
             entry_price_krw: 보유 중일 때 진입 단가 (SL 계산용). None이면 in_position=False.
+            bars_held: 보유 일수 (Strategy G time stop 등). None이면 미사용 (기존 A/D는 무시).
 
         Returns:
             SignalResult

@@ -31,7 +31,8 @@ def engine_paper(tmp_path, monkeypatch):
 class TestEngineInit:
     def test_engine_init_paper_mode(self, engine_paper):
         assert engine_paper.cfg.run_mode == "paper"
-        assert len(engine_paper.strategies) == 3  # BTC_A, ETH_A, BTC_D
+        # V2-06 (BT-A/D 3) + V2-Strategy-G (G 30) = 33 cells
+        assert len(engine_paper.strategies) >= 3
         assert "KRW-BTC_A" in engine_paper.strategies
         assert "KRW-ETH_A" in engine_paper.strategies
         assert "KRW-BTC_D" in engine_paper.strategies

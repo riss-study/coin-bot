@@ -1,0 +1,442 @@
+{
+  "window_start_utc": "2026-02-24T00:00:00+00:00",
+  "window_end_utc": "2026-04-25T00:00:00+00:00",
+  "window_days": 60,
+  "pool_top_n": 30,
+  "pool": [
+    {
+      "market": "KRW-ORCA",
+      "korean_name": "오르카",
+      "trade_price": 1904.0,
+      "acc_trade_price_24h": 263169380329.54678
+    },
+    {
+      "market": "KRW-ZBT",
+      "korean_name": "제로베이스",
+      "trade_price": 286.0,
+      "acc_trade_price_24h": 198635918505.1616
+    },
+    {
+      "market": "KRW-ENSO",
+      "korean_name": "엔소",
+      "trade_price": 1369.0,
+      "acc_trade_price_24h": 191039518917.5991
+    },
+    {
+      "market": "KRW-BTC",
+      "korean_name": "비트코인",
+      "trade_price": 116903000.0,
+      "acc_trade_price_24h": 124692859572.21964
+    },
+    {
+      "market": "KRW-ETH",
+      "korean_name": "이더리움",
+      "trade_price": 3527000.0,
+      "acc_trade_price_24h": 92491573634.76173
+    },
+    {
+      "market": "KRW-SONIC",
+      "korean_name": "소닉SVM",
+      "trade_price": 66.2,
+      "acc_trade_price_24h": 90816687272.2976
+    },
+    {
+      "market": "KRW-XRP",
+      "korean_name": "엑스알피(리플)",
+      "trade_price": 2128.0,
+      "acc_trade_price_24h": 84744681757.05316
+    },
+    {
+      "market": "KRW-MASK",
+      "korean_name": "마스크네트워크",
+      "trade_price": 812.0,
+      "acc_trade_price_24h": 75239288627.0365
+    },
+    {
+      "market": "KRW-SAHARA",
+      "korean_name": "사하라에이아이",
+      "trade_price": 34.9,
+      "acc_trade_price_24h": 67135124987.12609
+    },
+    {
+      "market": "KRW-CHIP",
+      "korean_name": "유에스디에이아이",
+      "trade_price": 123.0,
+      "acc_trade_price_24h": 66514821421.205414
+    },
+    {
+      "market": "KRW-USDT",
+      "korean_name": "테더",
+      "trade_price": 1479.0,
+      "acc_trade_price_24h": 61003825898.73688
+    },
+    {
+      "market": "KRW-0G",
+      "korean_name": "제로지",
+      "trade_price": 825.0,
+      "acc_trade_price_24h": 48182343920.86305
+    },
+    {
+      "market": "KRW-RAY",
+      "korean_name": "레이디움",
+      "trade_price": 1093.0,
+      "acc_trade_price_24h": 44673451941.86346
+    },
+    {
+      "market": "KRW-AXS",
+      "korean_name": "엑시인피니티",
+      "trade_price": 2100.0,
+      "acc_trade_price_24h": 43612739423.71883
+    },
+    {
+      "market": "KRW-KAT",
+      "korean_name": "카타나",
+      "trade_price": 18.4,
+      "acc_trade_price_24h": 42692936041.27393
+    },
+    {
+      "market": "KRW-MIRA",
+      "korean_name": "미라네트워크",
+      "trade_price": 134.0,
+      "acc_trade_price_24h": 41988508234.56451
+    },
+    {
+      "market": "KRW-AVNT",
+      "korean_name": "아반티스",
+      "trade_price": 237.0,
+      "acc_trade_price_24h": 39237646853.930756
+    },
+    {
+      "market": "KRW-SPK",
+      "korean_name": "스파크",
+      "trade_price": 56.8,
+      "acc_trade_price_24h": 34576781267.7106
+    },
+    {
+      "market": "KRW-SOMI",
+      "korean_name": "솜니아",
+      "trade_price": 264.0,
+      "acc_trade_price_24h": 24624392255.46158
+    },
+    {
+      "market": "KRW-SOL",
+      "korean_name": "솔라나",
+      "trade_price": 129500.0,
+      "acc_trade_price_24h": 22953094986.195175
+    },
+    {
+      "market": "KRW-INJ",
+      "korean_name": "인젝티브",
+      "trade_price": 5735.0,
+      "acc_trade_price_24h": 22758866488.67553
+    },
+    {
+      "market": "KRW-TRUMP",
+      "korean_name": "오피셜트럼프",
+      "trade_price": 3839.0,
+      "acc_trade_price_24h": 22269001545.300873
+    },
+    {
+      "market": "KRW-AERO",
+      "korean_name": "에어로드롬파이낸스",
+      "trade_price": 699.0,
+      "acc_trade_price_24h": 20903191524.182705
+    },
+    {
+      "market": "KRW-PENGU",
+      "korean_name": "펏지펭귄",
+      "trade_price": 15.0,
+      "acc_trade_price_24h": 19904258685.081676
+    },
+    {
+      "market": "KRW-HYPER",
+      "korean_name": "하이퍼레인",
+      "trade_price": 187.0,
+      "acc_trade_price_24h": 18295447425.067066
+    },
+    {
+      "market": "KRW-PIEVERSE",
+      "korean_name": "파이버스",
+      "trade_price": 1187.0,
+      "acc_trade_price_24h": 17028367588.560642
+    },
+    {
+      "market": "KRW-CKB",
+      "korean_name": "너보스",
+      "trade_price": 2.36,
+      "acc_trade_price_24h": 16430345908.819204
+    },
+    {
+      "market": "KRW-DOGE",
+      "korean_name": "도지코인",
+      "trade_price": 147.0,
+      "acc_trade_price_24h": 16029071084.704636
+    },
+    {
+      "market": "KRW-ELSA",
+      "korean_name": "헤이엘사",
+      "trade_price": 106.0,
+      "acc_trade_price_24h": 16009579460.66051
+    },
+    {
+      "market": "KRW-COMP",
+      "korean_name": "컴파운드",
+      "trade_price": 33040.0,
+      "acc_trade_price_24h": 11220789906.420876
+    }
+  ],
+  "cells": [
+    {
+      "market": "KRW-ORCA",
+      "entries": 4,
+      "trades_total": 4,
+      "trades_winning": 0,
+      "total_return": -0.20390896704641367,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-ZBT",
+      "entries": 7,
+      "trades_total": 4,
+      "trades_winning": 3,
+      "total_return": 0.3610408172073249,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-ENSO",
+      "entries": 3,
+      "trades_total": 3,
+      "trades_winning": 0,
+      "total_return": -0.3227166503065289,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-BTC",
+      "entries": 7,
+      "trades_total": 4,
+      "trades_winning": 2,
+      "total_return": 0.07688291279386357,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-ETH",
+      "entries": 6,
+      "trades_total": 4,
+      "trades_winning": 1,
+      "total_return": -0.0930089758858044,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-SONIC",
+      "entries": 4,
+      "trades_total": 3,
+      "trades_winning": 0,
+      "total_return": -0.12437269416262733,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-XRP",
+      "entries": 3,
+      "trades_total": 3,
+      "trades_winning": 0,
+      "total_return": -0.08788293175972718,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-MASK",
+      "entries": 3,
+      "trades_total": 2,
+      "trades_winning": 2,
+      "total_return": 0.05775315419198619,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-SAHARA",
+      "entries": 4,
+      "trades_total": 4,
+      "trades_winning": 0,
+      "total_return": -0.20029126426551527,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-CHIP",
+      "entries": 0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "total_return": 0.0,
+      "trades_per_day": 0.0
+    },
+    {
+      "market": "KRW-USDT",
+      "entries": 0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "total_return": 0.0,
+      "trades_per_day": 0.0
+    },
+    {
+      "market": "KRW-0G",
+      "entries": 2,
+      "trades_total": 2,
+      "trades_winning": 0,
+      "total_return": -0.09655744856551755,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-RAY",
+      "entries": 2,
+      "trades_total": 2,
+      "trades_winning": 1,
+      "total_return": 0.04884480317050894,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-AXS",
+      "entries": 2,
+      "trades_total": 2,
+      "trades_winning": 0,
+      "total_return": -0.052937777490961714,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-KAT",
+      "entries": 3,
+      "trades_total": 2,
+      "trades_winning": 1,
+      "total_return": 0.6488466104438507,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-MIRA",
+      "entries": 3,
+      "trades_total": 2,
+      "trades_winning": 0,
+      "total_return": -0.16239646223431103,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-AVNT",
+      "entries": 3,
+      "trades_total": 3,
+      "trades_winning": 0,
+      "total_return": -0.13931650840805668,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-SPK",
+      "entries": 0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "total_return": 0.0,
+      "trades_per_day": 0.0
+    },
+    {
+      "market": "KRW-SOMI",
+      "entries": 2,
+      "trades_total": 2,
+      "trades_winning": 0,
+      "total_return": -0.058854275088072984,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-SOL",
+      "entries": 5,
+      "trades_total": 4,
+      "trades_winning": 1,
+      "total_return": -0.05880808352951566,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-INJ",
+      "entries": 3,
+      "trades_total": 3,
+      "trades_winning": 1,
+      "total_return": 0.0035420431105269816,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-TRUMP",
+      "entries": 2,
+      "trades_total": 2,
+      "trades_winning": 0,
+      "total_return": -0.10949325669884076,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-AERO",
+      "entries": 4,
+      "trades_total": 3,
+      "trades_winning": 2,
+      "total_return": -0.02298328837863123,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-PENGU",
+      "entries": 4,
+      "trades_total": 4,
+      "trades_winning": 1,
+      "total_return": -0.1118671700590637,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-HYPER",
+      "entries": 2,
+      "trades_total": 2,
+      "trades_winning": 0,
+      "total_return": -0.12805616662571476,
+      "trades_per_day": 0.03333333333333333
+    },
+    {
+      "market": "KRW-PIEVERSE",
+      "entries": 0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "total_return": 0.0,
+      "trades_per_day": 0.0
+    },
+    {
+      "market": "KRW-CKB",
+      "entries": 0,
+      "trades_total": 0,
+      "trades_winning": 0,
+      "total_return": 0.0,
+      "trades_per_day": 0.0
+    },
+    {
+      "market": "KRW-DOGE",
+      "entries": 5,
+      "trades_total": 4,
+      "trades_winning": 1,
+      "total_return": -0.043849962471988635,
+      "trades_per_day": 0.06666666666666667
+    },
+    {
+      "market": "KRW-ELSA",
+      "entries": 3,
+      "trades_total": 3,
+      "trades_winning": 0,
+      "total_return": -0.12568407530443637,
+      "trades_per_day": 0.05
+    },
+    {
+      "market": "KRW-COMP",
+      "entries": 4,
+      "trades_total": 3,
+      "trades_winning": 2,
+      "total_return": 0.13506457908898453,
+      "trades_per_day": 0.05
+    }
+  ],
+  "total_trades": 74,
+  "total_wins": 18,
+  "trades_per_day_overall": 1.2333333333333334,
+  "strategy_g_params": {
+    "ENTRY_BAR_PCT": 0.02,
+    "VOL_AVG": 20,
+    "VOL_MULT": 1.2,
+    "SHORT_BREAK": 3,
+    "SL_STOP": 0.03,
+    "TP_STOP": 0.05,
+    "TIME_STOP_BARS": 3
+  }
+}

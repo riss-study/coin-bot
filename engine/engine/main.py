@@ -47,7 +47,7 @@ from engine.order import OrderExecutor, OrderRequest, make_client_oid
 from engine.position import close_position_from_order, compute_unrealized_pnl, open_position_from_order
 from engine.scheduler import run_daily_loop, next_trigger_at
 from engine.state import StateStore
-from engine.strategies import SignalAction, SignalResult, StrategyA, StrategyD
+from engine.strategies import SignalAction, SignalResult, StrategyA, StrategyD, StrategyG
 
 
 def build_strategy(name: str, cfg: Config):
@@ -69,6 +69,16 @@ def build_strategy(name: str, cfg: Config):
             bollinger_window=cfg.strategy_d.bollinger_window,
             bollinger_sigma=cfg.strategy_d.bollinger_sigma,
             sl_hard=cfg.strategy_d.sl_hard,
+        )
+    if name == "G":
+        return StrategyG(
+            entry_bar_pct=cfg.strategy_g.entry_bar_pct,
+            vol_avg=cfg.strategy_g.vol_avg,
+            vol_mult=cfg.strategy_g.vol_mult,
+            short_break=cfg.strategy_g.short_break,
+            sl_pct=cfg.strategy_g.sl_pct,
+            tp_pct=cfg.strategy_g.tp_pct,
+            time_stop_bars=cfg.strategy_g.time_stop_bars,
         )
     raise ValueError(f"unknown strategy: {name}")
 
@@ -185,14 +195,27 @@ class Engine:
         strat = self.strategies[cell_key]
         result: dict[str, Any] = {"cell_key": cell_key, "actions": []}
 
-        # warmup 충분히: MA200 + 여유 100 bar = 300 bars
+        # warmup 충분히: MA200 + 여유 100 bar = 300 bars (Strategy G는 적게 필요하나 통일)
         df = fetch_ohlcv(cell.ticker, interval="day", count=300)
 
         pos = self.state.get_position(cell_key)
         in_position = pos is not None
         entry_price = pos.entry_price_krw if pos else None
 
-        signal: SignalResult = strat.compute_signal(df, in_position=in_position, entry_price_krw=entry_price)
+        # bars_held 계산 (Strategy G time stop용)
+        bars_held: int | None = None
+        if pos and pos.entry_ts_utc:
+            try:
+                entry_ts = datetime.fromisoformat(pos.entry_ts_utc)
+                if entry_ts.tzinfo is None:
+                    entry_ts = entry_ts.replace(tzinfo=timezone.utc)
+                bars_held = (trigger_utc - entry_ts).days
+            except (ValueError, TypeError):
+                bars_held = None
+
+        signal: SignalResult = strat.compute_signal(
+            df, in_position=in_position, entry_price_krw=entry_price, bars_held=bars_held,
+        )
         result["signal"] = {"action": signal.action.value, "reason": signal.reason}
         self.logger.info("signal_evaluated", extra={
             "cell_key": cell_key, "action": signal.action.value,
@@ -210,15 +233,26 @@ class Engine:
 
         # 주문 처리 (C-2 정정: 동일 cell pending order 있으면 발행 X — 이중 주문 방지)
         if signal.action == SignalAction.ENTRY and not in_position:
+            # max_open_positions 한도 체크 (Strategy G 등 다중 cell 운영 시)
+            current_open = len(self.state.list_open_positions())
+            if current_open >= self.cfg.portfolio.max_open_positions:
+                self.logger.info("skip_buy_max_open", extra={
+                    "cell_key": cell_key, "current_open": current_open,
+                    "max_open": self.cfg.portfolio.max_open_positions,
+                })
+                result["actions"].append({"type": "skip_buy_max_open"})
+                return result
             if self.has_pending_order(cell_key, "buy"):
                 self.logger.info("skip_buy_pending", extra={"cell_key": cell_key})
                 result["actions"].append({"type": "skip_buy_pending"})
                 return result
+            # cell별 stake_amount_override (Strategy G 50k vs default)
+            stake = float(cell.stake_amount_override or self.cfg.portfolio.stake_amount)
             client_oid = make_client_oid(cell_key, "buy", trigger_utc)
             order = self.order_executor.place_order(OrderRequest(
                 cell_key=cell_key, pair=cell.ticker, strategy=cell.strategy,
                 side="buy", order_type="market",
-                krw_amount=float(self.cfg.portfolio.stake_amount),
+                krw_amount=stake,
                 client_oid=client_oid,
             ))
             result["actions"].append({"type": "buy", "order_uuid": order.order_uuid, "status": order.status})

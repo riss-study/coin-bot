@@ -49,6 +49,7 @@ class StrategyD:
         df: pd.DataFrame,
         in_position: bool,
         entry_price_krw: float | None = None,
+        bars_held: int | None = None,  # interface compat (Strategy D는 미사용)
     ) -> SignalResult:
         required_cols = {"open", "high", "low", "close", "volume"}
         missing = required_cols - set(df.columns)

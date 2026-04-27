@@ -88,6 +88,18 @@ class KeychainConfig:
 class CellConfig:
     ticker: str
     strategy: str
+    stake_amount_override: int | None = None  # cell별 stake 박제 (Strategy G 50k vs default)
+
+
+@dataclass
+class StrategyGParams:
+    entry_bar_pct: float = 0.02
+    vol_avg: int = 20
+    vol_mult: float = 1.2
+    short_break: int = 3
+    sl_pct: float = 0.03
+    tp_pct: float = 0.05
+    time_stop_bars: int = 3
 
 
 @dataclass
@@ -96,6 +108,7 @@ class Config:
     pairs: list[CellConfig]
     strategy_a: StrategyAParams
     strategy_d: StrategyDParams
+    strategy_g: StrategyGParams
     portfolio: PortfolioParams
     schedule: ScheduleParams
     go_criteria: GoCriteria
@@ -114,6 +127,7 @@ def load_config(path: Path | None = None) -> Config:
     pairs = [CellConfig(**p) for p in raw["pairs"]]
     strategy_a = StrategyAParams(**raw["strategies"]["A"])
     strategy_d = StrategyDParams(**raw["strategies"]["D"])
+    strategy_g = StrategyGParams(**raw["strategies"].get("G", {}))
     portfolio = PortfolioParams(**raw["portfolio"])
     schedule = ScheduleParams(**raw["schedule"])
     go_criteria = GoCriteria(**raw["go_criteria"])
@@ -127,6 +141,7 @@ def load_config(path: Path | None = None) -> Config:
         pairs=pairs,
         strategy_a=strategy_a,
         strategy_d=strategy_d,
+        strategy_g=strategy_g,
         portfolio=portfolio,
         schedule=schedule,
         go_criteria=go_criteria,
