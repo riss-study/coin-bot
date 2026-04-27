@@ -1,0 +1,62 @@
+{
+  "forward_start": "2026-04-27T00:00:00+00:00",
+  "n_observations": 1,
+  "bottom_sharpe": 0.0,
+  "top_sharpe": 0.0,
+  "long_short_sharpe": 0.0,
+  "bottom_mean_daily": 0.002234554782358886,
+  "top_mean_daily": 0.0011500288657836015,
+  "pass_criteria": {
+    "long_short_sharpe>0.5": false,
+    "bottom_sharpe>0": false,
+    "trades>=14": false
+  },
+  "pass_overall": false,
+  "daily": [
+    {
+      "ts_utc": "2026-03-26T00:00:00+00:00",
+      "n_universe": 174,
+      "n_select": 17,
+      "bottom_picks": [
+        "KRW-BARD",
+        "KRW-XPL",
+        "KRW-ENSO",
+        "KRW-G",
+        "KRW-PROVE",
+        "KRW-PLUME",
+        "KRW-SAHARA",
+        "KRW-SIGN",
+        "KRW-AERO",
+        "KRW-MON",
+        "KRW-WET",
+        "KRW-JTO",
+        "KRW-DOOD",
+        "KRW-KERNEL",
+        "KRW-CPOOL",
+        "KRW-ZBT",
+        "KRW-DEEP"
+      ],
+      "top_picks": [
+        "KRW-XRP",
+        "KRW-BTC",
+        "KRW-ETH",
+        "KRW-AWE",
+        "KRW-USDT",
+        "KRW-ATOM",
+        "KRW-DOGE",
+        "KRW-GLM",
+        "KRW-BCH",
+        "KRW-SOL",
+        "KRW-WAVES",
+        "KRW-EGLD",
+        "KRW-SNT",
+        "KRW-TRX",
+        "KRW-ADA",
+        "KRW-ETC",
+        "KRW-SHIB"
+      ],
+      "bottom_net_return_30d": 0.06703664347076659,
+      "top_net_return_30d": 0.034500865973508044
+    }
+  ]
+}
