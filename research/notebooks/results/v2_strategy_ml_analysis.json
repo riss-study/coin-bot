@@ -1,0 +1,139 @@
+{
+  "monthly_sharpe": [
+    {
+      "month": "2025-09",
+      "n_obs": 30,
+      "mean_daily": 0.0002834996981975453,
+      "sharpe_annual": 0.6803279684399889,
+      "cum_return_pct": 0.7610736646944227
+    },
+    {
+      "month": "2025-10",
+      "n_obs": 31,
+      "mean_daily": -0.011316319196370186,
+      "sharpe_annual": -21.491826672548886,
+      "cum_return_pct": -29.837796483476154
+    },
+    {
+      "month": "2025-11",
+      "n_obs": 30,
+      "mean_daily": -0.007696276052515454,
+      "sharpe_annual": -12.965370502644536,
+      "cum_return_pct": -20.83722611604175
+    },
+    {
+      "month": "2025-12",
+      "n_obs": 31,
+      "mean_daily": -0.00462049251885232,
+      "sharpe_annual": -6.3539996661746025,
+      "cum_return_pct": -13.625991704596462
+    },
+    {
+      "month": "2026-01",
+      "n_obs": 31,
+      "mean_daily": -0.008556576079708363,
+      "sharpe_annual": -14.26184967498084,
+      "cum_return_pct": -23.540105934712074
+    },
+    {
+      "month": "2026-02",
+      "n_obs": 28,
+      "mean_daily": -0.0005993242363834785,
+      "sharpe_annual": -1.283669511761223,
+      "cum_return_pct": -1.7704148608431725
+    },
+    {
+      "month": "2026-03",
+      "n_obs": 31,
+      "mean_daily": -0.003496687245116919,
+      "sharpe_annual": -9.456323402357981,
+      "cum_return_pct": -10.35743609554517
+    },
+    {
+      "month": "2026-04",
+      "n_obs": 18,
+      "mean_daily": 0.0015107189696459697,
+      "sharpe_annual": 6.839044426874295,
+      "cum_return_pct": 2.7390002468762997
+    }
+  ],
+  "long_short": {
+    "top_sharpe": -8.364304049081323,
+    "bottom_sharpe": -8.723649112303951,
+    "long_short_sharpe": -0.349646735209937,
+    "top_mean_daily": -0.00469419023493969,
+    "bottom_mean_daily": -0.00460718011778933
+  },
+  "gross_vs_net": {
+    "gross_sharpe": -7.053000515144208,
+    "net_sharpe": -8.364304049081323,
+    "cost_impact": 1.3113035339371146
+  },
+  "shap_top_15": [
+    {
+      "feature": "days_since_listing",
+      "mean_abs_shap": 0.13368123603286963
+    },
+    {
+      "feature": "return_14d_rank_cs",
+      "mean_abs_shap": 0.1250899682003953
+    },
+    {
+      "feature": "log_dollar_volume_avg_7d",
+      "mean_abs_shap": 0.11829450798284848
+    },
+    {
+      "feature": "log_dollar_volume_avg_30d",
+      "mean_abs_shap": 0.09657003995529446
+    },
+    {
+      "feature": "amihud_illiquidity_30d",
+      "mean_abs_shap": 0.09566400153089805
+    },
+    {
+      "feature": "log_dollar_volume_avg_30d_rank_cs",
+      "mean_abs_shap": 0.0915101753679591
+    },
+    {
+      "feature": "realized_vol_90d",
+      "mean_abs_shap": 0.07989085446051863
+    },
+    {
+      "feature": "realized_vol_30d_rank_cs",
+      "mean_abs_shap": 0.0749343118008456
+    },
+    {
+      "feature": "ma_50_distance_rank_cs",
+      "mean_abs_shap": 0.07447897536760686
+    },
+    {
+      "feature": "ma_200_distance_rank_cs",
+      "mean_abs_shap": 0.07122554000467803
+    },
+    {
+      "feature": "ma_200_distance",
+      "mean_abs_shap": 0.07062579276722378
+    },
+    {
+      "feature": "liquidity_change_30d",
+      "mean_abs_shap": 0.06870468253095212
+    },
+    {
+      "feature": "macd_signal_distance",
+      "mean_abs_shap": 0.06612473545648222
+    },
+    {
+      "feature": "return_90d",
+      "mean_abs_shap": 0.06315501503991629
+    },
+    {
+      "feature": "realized_vol_30d",
+      "mean_abs_shap": 0.05743718459562931
+    }
+  ],
+  "universe_size_stats": {
+    "mean": 169.88185654008439,
+    "min": 136,
+    "max": 203
+  }
+}
