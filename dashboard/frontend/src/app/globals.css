@@ -2,16 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light 모드 강제 (OS 다크모드 + bg-gray-50 충돌로 텍스트 안 보임 정정 2026-04-27) */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
