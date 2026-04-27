@@ -175,6 +175,55 @@ def get_current_prices(tickers: list[str], retry_max: int = DEFAULT_RETRY_MAX) -
     raise RuntimeError(f"get_current_prices failed after {retry_max} retries for {tickers}") from last_exc
 
 
+def fetch_top_krw_markets(n: int = 30, retry_max: int = DEFAULT_RETRY_MAX) -> list[str]:
+    """KRW 마켓 거래대금 24h top N (market_warning="NONE" 강제).
+
+    박제 출처: docs/stage1-subplans/v2-strategy-g-active.md §2.4 (동적 후보 풀)
+
+    Returns:
+        ["KRW-BTC", "KRW-ETH", ...] 정렬된 ticker 리스트.
+        네트워크 fail 시 빈 리스트 반환 (호출자가 fallback 처리).
+    """
+    import requests as _r
+    last_exc: Exception | None = None
+    for attempt in range(retry_max):
+        try:
+            ms_resp = _r.get(
+                "https://api.upbit.com/v1/market/all",
+                params={"isDetails": "true"}, timeout=10,
+            )
+            ms_resp.raise_for_status()
+            all_markets = ms_resp.json()
+            krw_meta = {
+                m["market"]: m.get("market_warning", "NONE")
+                for m in all_markets if m.get("market", "").startswith("KRW-")
+            }
+            tickers: list[dict] = []
+            BATCH = 100
+            ms = list(krw_meta.keys())
+            for i in range(0, len(ms), BATCH):
+                chunk = ms[i:i + BATCH]
+                tk_resp = _r.get(
+                    "https://api.upbit.com/v1/ticker",
+                    params={"markets": ",".join(chunk)}, timeout=10,
+                )
+                tk_resp.raise_for_status()
+                tickers.extend(tk_resp.json())
+
+            filtered = [
+                t for t in tickers
+                if krw_meta.get(t.get("market", ""), "NONE") == "NONE"
+            ]
+            filtered.sort(key=lambda t: t.get("acc_trade_price_24h", 0) or 0, reverse=True)
+            return [t["market"] for t in filtered[:n]]
+        except Exception as e:
+            last_exc = e
+            if attempt < retry_max - 1:
+                time.sleep(DEFAULT_RETRY_BASE_S * (2 ** attempt))
+    # 모두 실패 → 빈 리스트 (호출자 fallback 처리)
+    return []
+
+
 def get_orderbook(ticker: str, retry_max: int = DEFAULT_RETRY_MAX) -> dict:
     """호가창 조회 (슬리피지 사전 확인용)."""
     last_exc: Exception | None = None

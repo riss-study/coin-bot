@@ -62,17 +62,25 @@ max_open_positions: 10
 stake_amount: 50_000   # cell당 (50만 한도 / 10)
 ```
 
-### 2.4 후보 풀 (자동 결정)
+### 2.4 후보 풀 (동적 자동 결정, 2026-04-27 박제 정정)
 
 ```python
-# 측정 시점 (sub-plan 작성 시점) Upbit 거래대금 top 30
+# 매 cycle 시작 시 (KST 09:05) 자동 fetch:
 1. /v1/market/all isDetails=true KRW 마켓 전체
 2. /v1/ticker?markets=... acc_trade_price_24h 기준 정렬
-3. top 30 (단순 거래대금 우선, 시총/변동성 필터 없음 — 활동 빈도 우선)
+3. top 30 (단순 거래대금 우선)
 4. market_warning="NONE" 강제 (투자유의 제외)
+5. fetch fail (네트워크 등) 시 → config.yaml 정적 fallback cells 사용
 
 → 자동 필터 결과를 그대로 사용 (cherry-pick X)
+→ 매일 신규 급등 코인 자동 진입 (KRW-TOKAMAK 같은 사례)
 ```
+
+**박제 정정 사유 (2026-04-27 사용자 보고)**:
+- 사용자 발화: "토카막네트워크가 16% 올랐는데 왜 미리 안 샀나?"
+- 정적 박제는 측정 시점 (2026-04-25) top 30 = 신규 급등 코인 영구 미접근
+- 사용자 의도 ("활발 + 여러 코인 + 신규 급등 잡기") 충족 위해 동적 변경
+- cycle 1 #5 회피 유지 (자동 결정, 사람 cherry-pick X)
 
 ---
 

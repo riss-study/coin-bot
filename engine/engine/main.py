@@ -41,7 +41,7 @@ from engine.config import (
     load_upbit_credentials,
 )
 from engine.logger import setup_logger
-from engine.market_data import fetch_ohlcv, get_current_price
+from engine.market_data import fetch_ohlcv, fetch_top_krw_markets, get_current_price
 from engine.notifier import DiscordNotifier
 from engine.order import OrderExecutor, OrderRequest, make_client_oid
 from engine.position import close_position_from_order, compute_unrealized_pnl, open_position_from_order
@@ -91,10 +91,17 @@ class Engine:
         self.logger = logging.getLogger("engine.main")
         self.state = StateStore(ENGINE_ROOT / cfg.state["db_path"])
 
-        # Strategy 인스턴스 (cell마다)
-        self.strategies = {
+        # 정적 cells (BT-A/D 등 strategy != "G")
+        self._static_pairs: list = [c for c in cfg.pairs if c.strategy != "G"]
+        # config.yaml의 G cells = fallback (네트워크 fail 시)
+        self._g_fallback_pairs: list = [c for c in cfg.pairs if c.strategy == "G"]
+        # 매 cycle 시작 시 갱신되는 동적 G pairs
+        self._dynamic_g_pairs: list = []
+
+        # Strategy 인스턴스 (cell_key별 cache, 매 cycle init/갱신)
+        self.strategies: dict = {
             f"{c.ticker}_{c.strategy}": build_strategy(c.strategy, cfg)
-            for c in cfg.pairs
+            for c in self._static_pairs
         }
 
         # Notifier (Discord webhook 없으면 None)
@@ -301,6 +308,44 @@ class Engine:
 
         return result
 
+    def refresh_dynamic_g_pairs(self) -> list:
+        """매 cycle 시작 시 KRW 거래대금 top 30 자동 fetch + G cells 동적 갱신.
+
+        박제: docs/stage1-subplans/v2-strategy-g-active.md §2.4 (동적 후보 풀)
+        cycle 1 #5 회피: 자동 fetch 결과 그대로 채택, cherry-pick X
+        """
+        from engine.config import CellConfig
+        top_markets = fetch_top_krw_markets(n=30)
+        if not top_markets:
+            # 네트워크 fail → fallback (config.yaml 정적 G cells)
+            self.logger.warning("dynamic_g_fetch_failed_fallback",
+                                 extra={"fallback_count": len(self._g_fallback_pairs)})
+            return self._g_fallback_pairs
+
+        # 보유 중인 G position의 ticker는 강제 포함 (exit 평가 위해)
+        open_g_tickers = {
+            p.cell_key.replace("_G", "") for p in self.state.list_open_positions()
+            if p.cell_key.endswith("_G")
+        }
+        for t in open_g_tickers:
+            if t not in top_markets:
+                top_markets.append(t)
+
+        stake = 50_000  # sub-plan §2.3 박제
+        dynamic = [
+            CellConfig(ticker=m, strategy="G", stake_amount_override=stake)
+            for m in top_markets
+        ]
+        # strategies dict 갱신 (신규 cells 추가)
+        for cell in dynamic:
+            key = f"{cell.ticker}_G"
+            if key not in self.strategies:
+                self.strategies[key] = build_strategy("G", self.cfg)
+        self._dynamic_g_pairs = dynamic
+        self.logger.info("dynamic_g_pairs_refreshed",
+                          extra={"count": len(dynamic), "open_g_forced": list(open_g_tickers)})
+        return dynamic
+
     def run_cycle(self, trigger_utc: datetime) -> None:
         """단일 트리거 사이클: open orders 동기화 → cell 순차 처리 → 일일 요약."""
         self.logger.info("cycle_start", extra={"trigger_utc": trigger_utc.isoformat()})
@@ -308,8 +353,12 @@ class Engine:
         # C-1/C-2 정정: cycle 시작 시 open orders 동기화 (filled buy/sell 처리)
         self.sync_open_orders()
 
+        # 동적 G cells 갱신 (KRW 거래대금 top 30, 매 cycle 자동 fetch)
+        g_pairs = self.refresh_dynamic_g_pairs()
+        all_pairs = self._static_pairs + g_pairs
+
         cell_results = []
-        for cell in self.cfg.pairs:
+        for cell in all_pairs:
             try:
                 r = self.process_cell(cell, trigger_utc)
                 cell_results.append(r)
