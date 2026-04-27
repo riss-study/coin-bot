@@ -224,6 +224,63 @@ def fetch_top_krw_markets(n: int = 30, retry_max: int = DEFAULT_RETRY_MAX) -> li
     return []
 
 
+def fetch_binance_btc_usd(start_date: str = "2023-01-01") -> pd.Series:
+    """Binance BTCUSDT 일봉 close (USD). Strategy I 김치 프리미엄 계산용."""
+    import requests as _r
+    import datetime as _dt
+    start_ms = int(_dt.datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc).timestamp() * 1000)
+    rows = []
+    cur = start_ms
+    end_ms = int(_dt.datetime.now(timezone.utc).timestamp() * 1000)
+    while cur < end_ms:
+        try:
+            resp = _r.get(
+                "https://api.binance.com/api/v3/klines",
+                params={"symbol": "BTCUSDT", "interval": "1d",
+                        "startTime": cur, "endTime": end_ms, "limit": 1000},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            batch = resp.json()
+        except Exception:
+            break
+        if not batch:
+            break
+        rows.extend(batch)
+        last = batch[-1][0]
+        if last == cur:
+            break
+        cur = last + 86_400_000
+        time.sleep(0.1)
+    if not rows:
+        return pd.Series(dtype=float)
+    df = pd.DataFrame(rows, columns=[
+        "open_time", "open", "high", "low", "close", "volume",
+        "close_time", "quote_volume", "trades", "taker_buy", "taker_quote", "ignore",
+    ])
+    df["ts_utc"] = pd.to_datetime(df["open_time"], unit="ms", utc=True)
+    s = pd.Series(df["close"].astype(float).values, index=df["ts_utc"], name="btc_global_usd")
+    return s
+
+
+def fetch_usdkrw(start_date: str = "2023-01-01") -> pd.Series:
+    """yfinance USDKRW=X 일봉 close. fail 시 빈 Series."""
+    try:
+        import yfinance as yf
+    except ImportError:
+        return pd.Series(dtype=float)
+    try:
+        df = yf.download("KRW=X", start=start_date, progress=False, auto_adjust=False)
+        if df is None or df.empty:
+            return pd.Series(dtype=float)
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = [c[0] for c in df.columns]
+        df.index = pd.to_datetime(df.index, utc=True)
+        return pd.Series(df["Close"].values, index=df.index, name="usd_krw")
+    except Exception:
+        return pd.Series(dtype=float)
+
+
 def get_orderbook(ticker: str, retry_max: int = DEFAULT_RETRY_MAX) -> dict:
     """호가창 조회 (슬리피지 사전 확인용)."""
     last_exc: Exception | None = None

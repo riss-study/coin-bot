@@ -41,13 +41,16 @@ from engine.config import (
     load_upbit_credentials,
 )
 from engine.logger import setup_logger
-from engine.market_data import fetch_ohlcv, fetch_top_krw_markets, get_current_price
+from engine.market_data import (
+    fetch_binance_btc_usd, fetch_ohlcv, fetch_top_krw_markets,
+    fetch_usdkrw, get_current_price,
+)
 from engine.notifier import DiscordNotifier
 from engine.order import OrderExecutor, OrderRequest, make_client_oid
 from engine.position import close_position_from_order, compute_unrealized_pnl, open_position_from_order
 from engine.scheduler import run_daily_loop, next_trigger_at
 from engine.state import StateStore
-from engine.strategies import SignalAction, SignalResult, StrategyA, StrategyD, StrategyG
+from engine.strategies import SignalAction, SignalResult, StrategyA, StrategyD, StrategyG, StrategyI
 
 
 def build_strategy(name: str, cfg: Config):
@@ -126,6 +129,18 @@ class Engine:
             upbit_client=self.upbit_client,
             price_oracle=get_current_price,
         )
+
+        # Strategy I (Mean Reversion) — Portfolio-level, optional (artifact 있을 때만)
+        self.strategy_i: StrategyI | None = None
+        i_artifact = ENGINE_ROOT / "data" / "strategy_i"
+        if (i_artifact / "ridge_model.pkl").exists():
+            try:
+                self.strategy_i = StrategyI(artifact_dir=i_artifact)
+                self.logger.info("strategy_i_initialized", extra={
+                    "features": len(self.strategy_i.feature_cols),
+                })
+            except Exception as e:
+                self.logger.warning("strategy_i_init_failed", extra={"err": str(e)[:100]})
 
     def restore_state(self) -> None:
         """재시작 시 open positions/orders 로깅 + 동기화."""
@@ -346,6 +361,145 @@ class Engine:
                           extra={"count": len(dynamic), "open_g_forced": list(open_g_tickers)})
         return dynamic
 
+    def process_strategy_i(self, trigger_utc: datetime) -> dict:
+        """Strategy I (Portfolio-level Mean Reversion via inverse).
+
+        매 cycle 시작 시:
+        1. 보유 중 Strategy I positions exit 평가 (SL/TP/time stop)
+        2. 새 진입: bottom decile 5 — 보유 < 5 일 때만 추가
+        3. stake: 1만원 × cell (사용자 박제 5만원 한도)
+        """
+        if self.strategy_i is None:
+            return {"skipped": True, "reason": "no_strategy_i_artifact"}
+
+        result: dict = {"exits": [], "entries": [], "skipped_full": False}
+
+        # 1. 보유 포지션 exit 평가
+        open_positions = self.state.list_open_positions()
+        i_positions = [p for p in open_positions if p.cell_key.endswith("_I")]
+        for pos in i_positions:
+            try:
+                df = fetch_ohlcv(pos.pair, interval="day", count=2)
+                today_low = float(df["low"].iloc[-1])
+                today_close = float(df["close"].iloc[-1])
+                entry_ts = datetime.fromisoformat(pos.entry_ts_utc)
+                if entry_ts.tzinfo is None:
+                    entry_ts = entry_ts.replace(tzinfo=timezone.utc)
+                bars_held = (trigger_utc - entry_ts).days
+                decision = self.strategy_i.check_exit(today_low, today_close, pos.entry_price_krw, bars_held)
+                if decision:
+                    action_str, reason = decision
+                    if self.has_pending_order(pos.cell_key, "sell"):
+                        continue
+                    client_oid = make_client_oid(pos.cell_key, "sell", trigger_utc)
+                    order = self.order_executor.place_order(OrderRequest(
+                        cell_key=pos.cell_key, pair=pos.pair, strategy="I",
+                        side="sell", order_type="market",
+                        volume=pos.volume,
+                        client_oid=client_oid,
+                        metadata={"exit_reason": action_str, "reason": reason},
+                    ))
+                    if order.status == "filled":
+                        pnl = close_position_from_order(
+                            self.state, ENGINE_ROOT / "logs", order, run_mode=self.cfg.run_mode,
+                        )
+                        result["exits"].append({"cell_key": pos.cell_key, "reason": action_str, "pnl": pnl})
+                        if self.notifier:
+                            self.notifier.notify_order_filled(
+                                cell_key=pos.cell_key, side="sell", pair=pos.pair,
+                                price_krw=order.filled_price_krw or 0,
+                                volume=order.filled_volume or 0,
+                                krw_amount=(order.filled_volume or 0) * (order.filled_price_krw or 0),
+                                fees_krw=order.fees_krw or 0,
+                                order_uuid=order.order_uuid, run_mode=self.cfg.run_mode,
+                            )
+            except Exception:
+                self.logger.exception("strategy_i_exit_failed", extra={"cell_key": pos.cell_key})
+
+        # 2. 새 진입 — 보유 < 5 일 때만
+        i_count_after = len([p for p in self.state.list_open_positions() if p.cell_key.endswith("_I")])
+        slots = max(0, self.strategy_i.bottom_decile_n - i_count_after)
+        if slots == 0:
+            result["skipped_full"] = True
+            return result
+
+        # universe + macro fetch
+        try:
+            top_markets = fetch_top_krw_markets(n=50)
+            if not top_markets:
+                result["error"] = "fetch_top_failed"
+                return result
+            universe_ohlcv = {}
+            for m in top_markets:
+                try:
+                    universe_ohlcv[m] = fetch_ohlcv(m, interval="day", count=300).reset_index().rename(columns={"index": "ts_utc"})
+                except Exception:
+                    continue
+            if "KRW-BTC" not in universe_ohlcv:
+                result["error"] = "btc_missing"
+                return result
+            btc_global = fetch_binance_btc_usd("2023-01-01")
+            fx = fetch_usdkrw("2023-01-01")
+            if btc_global.empty or fx.empty:
+                result["error"] = "macro_fetch_failed"
+                return result
+        except Exception as e:
+            self.logger.exception("strategy_i_universe_fetch_failed")
+            result["error"] = f"fetch_exception: {str(e)[:80]}"
+            return result
+
+        # bottom decile 5 — 보유 중 ticker는 제외
+        held_tickers = {p.pair for p in self.state.list_open_positions() if p.cell_key.endswith("_I")}
+        try:
+            candidates = self.strategy_i.select_bottom_decile(universe_ohlcv, btc_global, fx)
+        except Exception as e:
+            self.logger.exception("strategy_i_select_failed")
+            result["error"] = f"select_exception: {str(e)[:80]}"
+            return result
+
+        # max_open_positions 한도 내 추가
+        new_entries = 0
+        for cand in candidates:
+            if new_entries >= slots:
+                break
+            if cand["market"] in held_tickers:
+                continue
+            cell_key = f"{cand['market']}_I"
+            if self.has_pending_order(cell_key, "buy"):
+                continue
+            current_open = len(self.state.list_open_positions())
+            if current_open >= self.cfg.portfolio.max_open_positions:
+                break
+
+            stake = 10_000.0  # sub-plan §1.2: 5 cells × 1만 = 5만 한도
+            client_oid = make_client_oid(cell_key, "buy", trigger_utc)
+            try:
+                order = self.order_executor.place_order(OrderRequest(
+                    cell_key=cell_key, pair=cand["market"], strategy="I",
+                    side="buy", order_type="market",
+                    krw_amount=stake,
+                    client_oid=client_oid,
+                    metadata={"score": cand["score"], "rank": cand["rank"]},
+                ))
+                if order.status == "filled":
+                    open_position_from_order(self.state, order)
+                    result["entries"].append({"cell_key": cell_key, "score": cand["score"], "rank": cand["rank"]})
+                    new_entries += 1
+                    if self.notifier:
+                        self.notifier.notify_order_filled(
+                            cell_key=cell_key, side="buy", pair=cand["market"],
+                            price_krw=order.filled_price_krw or 0,
+                            volume=order.filled_volume or 0,
+                            krw_amount=order.requested_krw,
+                            fees_krw=order.fees_krw or 0,
+                            order_uuid=order.order_uuid, run_mode=self.cfg.run_mode,
+                        )
+            except Exception:
+                self.logger.exception("strategy_i_entry_failed", extra={"cell_key": cell_key})
+
+        self.logger.info("strategy_i_done", extra=result)
+        return result
+
     def run_cycle(self, trigger_utc: datetime) -> None:
         """단일 트리거 사이클: open orders 동기화 → cell 순차 처리 → 일일 요약."""
         self.logger.info("cycle_start", extra={"trigger_utc": trigger_utc.isoformat()})
@@ -369,6 +523,14 @@ class Engine:
                         key=f"cell_fail_{cell.ticker}_{cell.strategy}",
                         message=f"cell {cell.ticker}_{cell.strategy} 처리 실패. 로그 확인 필요.",
                     )
+
+        # Strategy I (Portfolio-level Mean Reversion) — cell 처리 후
+        try:
+            i_result = self.process_strategy_i(trigger_utc)
+            if not i_result.get("skipped"):
+                self.logger.info("strategy_i_cycle_done", extra=i_result)
+        except Exception:
+            self.logger.exception("strategy_i_cycle_failed")
 
         # 일일 요약: open positions PnL
         positions = self.state.list_open_positions()

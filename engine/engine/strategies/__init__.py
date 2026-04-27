@@ -9,5 +9,6 @@ from engine.strategies.base import SignalAction, SignalResult, Strategy
 from engine.strategies.strategy_a import StrategyA
 from engine.strategies.strategy_d import StrategyD
 from engine.strategies.strategy_g import StrategyG
+from engine.strategies.strategy_i import StrategyI
 
-__all__ = ["SignalAction", "SignalResult", "Strategy", "StrategyA", "StrategyD", "StrategyG"]
+__all__ = ["SignalAction", "SignalResult", "Strategy", "StrategyA", "StrategyD", "StrategyG", "StrategyI"]

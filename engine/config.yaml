@@ -82,7 +82,7 @@ portfolio:
   fees: 0.0005              # 업비트 0.05%
   slippage: 0.0005          # 백테스트 슬리피지 (페이퍼 실측으로 교정)
   year_freq: "365 days"     # sqrt(365) annualization (W1-06 패턴, PT-04 명시)
-  max_open_positions: 13    # V2-06 (BT-A/D 3) + V2-Strategy-G (G 10) 합계
+  max_open_positions: 18    # V2-06 (BT-A/D 3) + V2-Strategy-G (G 10) + V2-Strategy-I (I 5) 합계
 
 # 스케줄
 schedule:
