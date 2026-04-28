@@ -17,10 +17,9 @@ STATE_DB_PATH = ENGINE_DATA / "state.sqlite"
 
 # 호스트 박제 (security): localhost only. 외부 노출은 Cloudflare Tunnel만.
 HOST = "127.0.0.1"
-PORT = 8001  # engine은 별도 프로세스, 다른 port
+PORT = 8003  # 1h worktree (1d=8001, 4h=8002)
 
-# CORS — frontend Next.js dev (localhost:3000) + 동일 호스트
 CORS_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:3002",
+    "http://127.0.0.1:3002",
 ]

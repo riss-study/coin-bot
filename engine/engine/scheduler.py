@@ -24,6 +24,53 @@ from engine.config import KST
 _log = logging.getLogger("engine.scheduler")
 
 
+def next_trigger_1h(minute_offset: int = 5, *, now_utc: datetime | None = None) -> datetime:
+    """다음 1시간 단위 트리거 (UTC 매 정시 + offset min)."""
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    if now_utc.tzinfo is None:
+        raise ValueError("now_utc must be tz-aware")
+    target = now_utc.replace(minute=minute_offset, second=0, microsecond=0)
+    if target <= now_utc:
+        target = target + timedelta(hours=1)
+    return target
+
+
+def run_1h_loop(
+    *,
+    callback: Callable[[datetime], None],
+    minute_offset: int = 5,
+    on_error: Callable[[Exception], None] | None = None,
+    max_iterations: int | None = None,
+) -> None:
+    """매 1시간 (UTC 정시 + offset min) callback 호출."""
+    iteration = 0
+    _log.info("scheduler_1h_started", extra={"minute_offset": minute_offset})
+    while True:
+        target = next_trigger_1h(minute_offset)
+        _log.info("scheduler_next_trigger", extra={
+            "trigger_utc": target.isoformat(),
+            "trigger_kst": target.astimezone(KST).isoformat(),
+        })
+        sleep_until(target)
+        try:
+            callback(target)
+        except KeyboardInterrupt:
+            _log.info("scheduler_interrupted")
+            raise
+        except Exception:
+            if on_error is not None:
+                try:
+                    on_error(Exception)
+                except Exception:
+                    _log.exception("on_error_handler_failed")
+            else:
+                _log.exception("scheduler_callback_failed")
+        iteration += 1
+        if max_iterations is not None and iteration >= max_iterations:
+            return
+
+
 def next_trigger_4h(minute_offset: int = 5, *, now_utc: datetime | None = None) -> datetime:
     """다음 4시간 단위 트리거 (KST 기준 매 4h: 00:05, 04:05, 08:05, 12:05, 16:05, 20:05).
 

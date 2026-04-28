@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.coinbot.engine-4h</string>
+    <string>com.coinbot.engine-1h</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/riss/project/coin-bot-4h/engine/.venv/bin/python</string>
+        <string>/Users/riss/project/coin-bot-1h/engine/.venv/bin/python</string>
         <string>-m</string>
         <string>engine.main</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/riss/project/coin-bot-4h/engine</string>
+    <string>/Users/riss/project/coin-bot-1h/engine</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
@@ -19,13 +19,13 @@
     <key>ThrottleInterval</key>
     <integer>30</integer>
     <key>StandardOutPath</key>
-    <string>/Users/riss/project/coin-bot-4h/engine/logs/launchd.out.log</string>
+    <string>/Users/riss/project/coin-bot-1h/engine/logs/launchd.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/riss/project/coin-bot-4h/engine/logs/launchd.err.log</string>
+    <string>/Users/riss/project/coin-bot-1h/engine/logs/launchd.err.log</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/Users/riss/project/coin-bot-4h/engine/.venv/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <string>/Users/riss/project/coin-bot-1h/engine/.venv/bin:/usr/local/bin:/usr/bin:/bin</string>
         <key>PYTHONUNBUFFERED</key>
         <string>1</string>
     </dict>

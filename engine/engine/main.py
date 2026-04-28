@@ -109,7 +109,12 @@ class Engine:
 
         # Notifier (Discord webhook 없으면 None)
         # 4h worktree 식별용 prefix — engine root 경로에 "coin-bot-4h" 포함 여부로 자동 감지
-        msg_prefix = "[4h] " if "coin-bot-4h" in str(ENGINE_ROOT) else ""
+        if "coin-bot-1h" in str(ENGINE_ROOT):
+            msg_prefix = "[1h] "
+        elif "coin-bot-4h" in str(ENGINE_ROOT):
+            msg_prefix = "[4h] "
+        else:
+            msg_prefix = ""
         self.notifier: DiscordNotifier | None = None
         try:
             url = load_discord_webhook(cfg)
@@ -133,9 +138,9 @@ class Engine:
         )
 
         # Strategy I (Mean Reversion) — Portfolio-level, optional (artifact 있을 때만)
-        # 4h artifact 우선 (coin-bot-4h worktree), 없으면 기본 strategy_i (일봉)
+        # 1h/4h/1d artifact 우선순위
         self.strategy_i: StrategyI | None = None
-        for sub in ("strategy_i_4h", "strategy_i"):
+        for sub in ("strategy_i_1h", "strategy_i_4h", "strategy_i"):
             i_artifact = ENGINE_ROOT / "data" / sub
             if (i_artifact / "ridge_model.pkl").exists():
                 try:
@@ -520,10 +525,10 @@ class Engine:
         # C-1/C-2 정정: cycle 시작 시 open orders 동기화 (filled buy/sell 처리)
         self.sync_open_orders()
 
-        # 4h mode: Strategy I 단독 — BT-A/D + G 비활성
+        # 4h/1h mode: Strategy I 단독 — BT-A/D + G 비활성
         bars_per_day_local = getattr(self.strategy_i, "bars_per_day", 1) if self.strategy_i else 1
-        if bars_per_day_local == 6:
-            all_pairs = []   # 4h cycle은 Strategy I만
+        if bars_per_day_local in (6, 24):
+            all_pairs = []   # 분봉 cycle은 Strategy I만
         else:
             # 동적 G cells 갱신 (KRW 거래대금 top 30, 매 cycle 자동 fetch)
             g_pairs = self.refresh_dynamic_g_pairs()
@@ -576,17 +581,19 @@ class Engine:
         })
 
     def run_forever(self) -> None:
-        """일별 또는 4시간 무한 루프 (KeyboardInterrupt 종료)."""
+        """일별 / 4시간 / 1시간 무한 루프 (KeyboardInterrupt 종료)."""
         self.restore_state()
-        # 4h artifact 사용 시 4시간 cycle
         bars_per_day = getattr(self.strategy_i, "bars_per_day", 1) if self.strategy_i else 1
-        if bars_per_day == 6:
+        if bars_per_day == 24:
+            from engine.scheduler import run_1h_loop
+            self.logger.info("scheduler_mode_1h")
+            run_1h_loop(callback=self.run_cycle,
+                        minute_offset=self.cfg.schedule.signal_check_minute)
+        elif bars_per_day == 6:
             from engine.scheduler import run_4h_loop
             self.logger.info("scheduler_mode_4h")
-            run_4h_loop(
-                callback=self.run_cycle,
-                minute_offset=self.cfg.schedule.signal_check_minute,
-            )
+            run_4h_loop(callback=self.run_cycle,
+                        minute_offset=self.cfg.schedule.signal_check_minute)
         else:
             run_daily_loop(
                 callback=self.run_cycle,
