@@ -24,6 +24,61 @@ from engine.config import KST
 _log = logging.getLogger("engine.scheduler")
 
 
+def next_trigger_4h(minute_offset: int = 5, *, now_utc: datetime | None = None) -> datetime:
+    """다음 4시간 단위 트리거 (KST 기준 매 4h: 00:05, 04:05, 08:05, 12:05, 16:05, 20:05).
+
+    Upbit 4시간봉 close 시점 (UTC 00:00, 04:00, ..., 20:00) + 5분 buffer.
+    KST = UTC+9 → KST 00:05 = UTC 15:05 (전날) — 단순화 위해 UTC hour 기준.
+    """
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    if now_utc.tzinfo is None:
+        raise ValueError("now_utc must be tz-aware")
+    # 다음 UTC 00/04/08/12/16/20 hour + minute_offset
+    candidates = [now_utc.replace(hour=h, minute=minute_offset, second=0, microsecond=0)
+                  for h in [0, 4, 8, 12, 16, 20]]
+    future = [c for c in candidates if c > now_utc]
+    if future:
+        return min(future)
+    # 모두 과거 → 다음 날 00:05
+    return (candidates[0] + timedelta(days=1))
+
+
+def run_4h_loop(
+    *,
+    callback: Callable[[datetime], None],
+    minute_offset: int = 5,
+    on_error: Callable[[Exception], None] | None = None,
+    max_iterations: int | None = None,
+) -> None:
+    """매 4시간 (UTC 00/04/08/12/16/20 + offset min) callback 호출."""
+    iteration = 0
+    _log.info("scheduler_4h_started", extra={"minute_offset": minute_offset})
+    while True:
+        target = next_trigger_4h(minute_offset)
+        _log.info("scheduler_next_trigger", extra={
+            "trigger_utc": target.isoformat(),
+            "trigger_kst": target.astimezone(KST).isoformat(),
+        })
+        sleep_until(target)
+        try:
+            callback(target)
+        except KeyboardInterrupt:
+            _log.info("scheduler_interrupted")
+            raise
+        except Exception:
+            if on_error is not None:
+                try:
+                    on_error(Exception)
+                except Exception:
+                    _log.exception("on_error_handler_failed")
+            else:
+                _log.exception("scheduler_callback_failed")
+        iteration += 1
+        if max_iterations is not None and iteration >= max_iterations:
+            return
+
+
 def next_trigger_at(hour_kst: int, minute_kst: int, *, now_utc: datetime | None = None) -> datetime:
     """다음 KST hh:mm 시각을 UTC datetime으로 반환.
 

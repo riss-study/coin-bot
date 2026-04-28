@@ -41,7 +41,7 @@ class DiscordNotifier:
 
     _PREFIX = "https://discord.com/api/webhooks/"
 
-    def __init__(self, webhook_url: str, debounce_s: int = DEFAULT_DEBOUNCE_S):
+    def __init__(self, webhook_url: str, debounce_s: int = DEFAULT_DEBOUNCE_S, msg_prefix: str = ""):
         # NIT #3 정정 (2026-04-26): prefix만이 아니라 path segment 형식 검증
         if not webhook_url or not webhook_url.startswith(self._PREFIX):
             raise ValueError(f"invalid Discord webhook URL prefix: {webhook_url[:40]}...")
@@ -54,6 +54,7 @@ class DiscordNotifier:
             )
         self.webhook_url = webhook_url
         self.debounce_s = debounce_s
+        self.msg_prefix = msg_prefix  # 예: "[4h] " — daemon 구분용
         self._last_sent: dict[str, datetime] = defaultdict(lambda: datetime.min.replace(tzinfo=timezone.utc))
         self._lock = RLock()
 
@@ -67,6 +68,8 @@ class DiscordNotifier:
                     return False
                 self._last_sent[debounce_key] = datetime.now(timezone.utc)
 
+        if self.msg_prefix:
+            content = f"{self.msg_prefix}{content}"
         payload = {"content": content[:1900]}  # Discord content 제한 2000자, 마진 100
         for attempt in range(2):  # 1회 retry
             try:
