@@ -44,9 +44,12 @@ class StrategyI:
         with open(self.artifact_dir / "feature_cols.json", encoding="utf-8") as f:
             meta = json.load(f)
         self.feature_cols = meta["feature_cols"]
+        self.bars_per_day = meta.get("bars_per_day", 1)
+        self.interval = meta.get("interval", "day")
         log.info("strategy_i_model_loaded",
                   extra={"features": len(self.feature_cols), "alpha": meta.get("ridge_alpha"),
-                          "train_end": meta.get("train_end")})
+                          "train_end": meta.get("train_end"),
+                          "bars_per_day": self.bars_per_day, "interval": self.interval})
 
     def select_bottom_decile(
         self,
@@ -59,7 +62,7 @@ class StrategyI:
         Returns:
             list of {"market": str, "score": float, "rank": int, "snapshot": dict}
         """
-        feats = build_features(universe_ohlcv, btc_global, fx)
+        feats = build_features(universe_ohlcv, btc_global, fx, bars_per_day=self.bars_per_day)
         # 가장 최근 ts_utc 행만 사용 (daemon은 매일 어제 close까지 데이터)
         latest_ts = feats["ts_utc"].max()
         latest = feats[(feats["ts_utc"] == latest_ts) & feats["universe_member"]].copy()
